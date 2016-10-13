@@ -1,6 +1,8 @@
 <?php
 namespace rap;
-
+/**
+*tengzhinei
+*/
 class Aop  {
 
     static private $beforeActions=array();

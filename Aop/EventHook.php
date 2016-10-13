@@ -26,7 +26,6 @@ class   EventHook  {
      * @param $args
      */
     public static function trigger($name,$args) {
-        echo $name;
         if(array_key_exists($name,self::$wares)){
             $infos=self::$wares[$name];
             if($infos){

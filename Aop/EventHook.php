@@ -14,10 +14,14 @@ class   EventHook  {
      * @param $action
      */
     public static function add($name, $class, $action) {
-        if(!$action)$action="on".ucfirst($name);
+        if(!$action){
+            $action="on".ucfirst($name);
+        }
         $info=array('name'=>$name,'class'=>$class,"action"=>$action);
-        if(!self::$wares[$name])self::$wares[$name] = array();
-        self::$wares[$name][]=$info;
+        if(!static::$wares[$name]){
+            static::$wares[$name] = array();
+        }
+        static::$wares[$name][]=$info;
     }
 
     /**
@@ -26,13 +30,13 @@ class   EventHook  {
      * @param $args
      */
     public static function trigger($name,$args) {
-        if(array_key_exists($name,self::$wares)){
-            $infos=self::$wares[$name];
+        if(array_key_exists($name,static::$wares)){
+            $infos=static::$wares[$name];
             if($infos){
                 foreach ($infos as $info){
                     $module=Ioc::get($info['class']);
                     if($info['action']){
-                        self::doAction($module,$info['action'],$args);
+                        static::doAction($module,$info['action'],$args);
                     }
                 }
             }

@@ -5,6 +5,8 @@ use think\Config;
 use think\Request;
 
 /**
+ * CtrWave 针对thinkphp写的,如果项目中没有使用tp,请勿使用该类
+ *
  * 为控制器添加织入型AOP功能
  * @package Dh\Aop
  */
@@ -16,10 +18,10 @@ class   CtrWave  {
     }
 
     public static function instance() {
-        if(!self::$instance){
-            self::$instance=new CtrWave();
+        if(!static::$instance){
+            static::$instance=new CtrWave();
         }
-       return self::$instance;
+       return static::$instance;
     }
 
     private $wares;
@@ -136,6 +138,7 @@ class   CtrWave  {
                 }
             }
         }
+
         return false;
     }
 
@@ -166,11 +169,9 @@ class   CtrWave  {
         if($this->actionAfters){
             foreach ($this->actionAfters as $name){
                 $info=$this->wares[$name];
-                if($info){
-                    if($info['after']){
+                if($info&&$info['after']){
                         $module = Ioc::get($info['class']);
                         $this->result=$this->doAction($module,$info['after']);
-                    }
                 }
             }
         }

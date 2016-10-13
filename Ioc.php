@@ -23,8 +23,8 @@ class Ioc  {
      * @return mixed
      */
     public static function config($who,$name,$def=null){
-        if(self::$config[$who]&&self::$config[$who][$name]){
-            $def=self::$config[$who][$name];
+        if(static::$config[$who]&&static::$config[$who][$name]){
+            $def=static::$config[$who][$name];
         }
         return $def;
     }
@@ -41,29 +41,27 @@ class Ioc  {
             $name=$who;
         }else{
             //判断类中是否有衍射
-            $config= self::$beanInClazzConfig[$who];
-            if($config){
-                if($config[$name]){
-                    $name=$config[$name];
-                }
+            $config= static::$beanInClazzConfig[$who];
+            if($config&&$config[$name]){
+                $name=$config[$name];
             }
         }
         //判断是否有实例
-       if(isset(self::$instances[$name])&&self::$instances[$name]){
-           return self::$instances[$name];
+       if(isset(static::$instances[$name])&&static::$instances[$name]){
+           return static::$instances[$name];
        }
        //判断是否有配置
-       if(isset(self::$beansConfig[$name])&&self::$beansConfig[$name]){
+       if(isset(static::$beansConfig[$name])&&static::$beansConfig[$name]){
            //构造对象
-           $bean=new self::$beansConfig[$name]();
+           $bean=new static::$beansConfig[$name]();
        }else{
            //没有配置直接初始化需要的类(接口不可以)
            $bean=new $who();
        }
-       self::prepareBean($bean);
-        $bean=self::warpBean($bean);
-        self::$instances[$name]=$bean;
-        return self::$instances[$name];
+       static::prepareBean($bean);
+        $bean=static::warpBean($bean);
+        static::$instances[$name]=$bean;
+        return static::$instances[$name];
     }
 
     /**
@@ -74,14 +72,14 @@ class Ioc  {
         $class  =   new \ReflectionClass(get_class($bean));
         if($class->hasMethod('_initialize')) {
             $bean->_initialize();
-            if(self::$injectBeans[0]===$bean){
-                for ($i=count(self::$injectBeans)-1;$i>-1;$i--){
-                    $class  =   new \ReflectionClass(get_class(self::$injectBeans[$i]));
+            if(static::$injectBeans[0]===$bean){
+                for ($i=count(static::$injectBeans)-1;$i>-1;$i--){
+                    $class  =   new \ReflectionClass(get_class(static::$injectBeans[$i]));
                     if($class->hasMethod('_prepared')) {
-                        self::$injectBeans[$i]->_prepared();
+                        static::$injectBeans[$i]->_prepared();
                     }
                 }
-                self::$injectBeans=array();
+                static::$injectBeans=array();
             }
         }
     }
@@ -103,7 +101,7 @@ class Ioc  {
      * @param $toClazz
      */
     public static function bind($nameOrClazz,$toClazz){
-        self::$beansConfig[$nameOrClazz]=$toClazz;
+        static::$beansConfig[$nameOrClazz]=$toClazz;
     }
 
     /**
@@ -112,7 +110,7 @@ class Ioc  {
      * @param $array
      */
     public static function setConfig($bean,$array){
-        self::$config[$bean]=$array;
+        static::$config[$bean]=$array;
 
     }
 
@@ -123,10 +121,10 @@ class Ioc  {
      * @param $toName
      */
     public static function bindSpecial($bean, $name, $toName){
-        if(!self::$beanInClazzConfig[$bean]){
-            self::$beanInClazzConfig[$bean]=array();
+        if(!static::$beanInClazzConfig[$bean]){
+            static::$beanInClazzConfig[$bean]=array();
         }
-        self::$beanInClazzConfig[$bean][$name]=$toName;
+        static::$beanInClazzConfig[$bean][$name]=$toName;
     }
 
     /**
@@ -135,36 +133,9 @@ class Ioc  {
      * @param $bean
      */
     public  static  function instance($name,$bean){
-        self::$instances[$name]=$bean;
+        static::$instances[$name]=$bean;
     }
 
 
-//    /**
-//     * 触发方法 会自动传入 如果方法有依赖会自动传入 因为aop的原因注入的对象类型可能会有变化 所以这个失效
-//     * @param $bean
-//     * @param $methodName
-//     * @param array $parseArgs
-//     */
-//    public static function invokeWithDepend($bean,$methodName,$parseArgs=array()){
-//        if(method_exists($bean,$methodName)){
-//            $method =   new \ReflectionMethod($bean, $methodName);
-//            $params =  $method->getParameters();
-//            $args=array();
-//            foreach ($params as $param){
-//                //用于初始化的方法支持注入参数
-//                if($param->getName()=='config'&&$methodName=='_initialize'){
-//                    $args[]=self::$config[get_class($bean)];
-//                }else if($parseArgs[$param->getName()]){
-//                    $args[]=$parseArgs[$param->getName()];
-//                } else{
-//                    $dependClass=$param->getClass();
-//                    $dependClassName=$dependClass->getName();
-//                    $depend=Ioc::get(get_class($bean),$dependClassName);
-//                    $args[]=$depend;
-//                }
-//            }
-//            $method->invokeArgs($bean,$args);
-//        }
-//    }
 
 }

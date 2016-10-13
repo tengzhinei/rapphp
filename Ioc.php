@@ -4,7 +4,7 @@ namespace rap;
 use rap\Aop\BeanWarp;
 
 class Ioc  {
-
+    //配置
     static private $config;
     //所有对象
     static private $instances;

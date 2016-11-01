@@ -12,11 +12,14 @@ use think\Request;
  */
 class   CtrWave  {
 
-    static $instance;
+    private  static $instance;
 
     private function __construct(){
     }
 
+    /**
+     * @return CtrWave
+     */
     public static function instance() {
         if(!static::$instance){
             static::$instance=new CtrWave();

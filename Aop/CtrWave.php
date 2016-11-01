@@ -91,7 +91,7 @@ class   CtrWave  {
 
     }
 
-    public function methodsExecpt($methods){
+    public function methodsExcept($methods){
         $this->rule="except";
         $this->methods=$methods;
         return $this;

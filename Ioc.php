@@ -58,9 +58,12 @@ class Ioc  {
            //没有配置直接初始化需要的类(接口不可以)
            $bean=new $who();
        }
-       static::prepareBean($bean);
-        $bean=static::warpBean($bean);
+        //必须先赋值
         static::$instances[$name]=$bean;
+        //再初始化
+        static::prepareBean($bean);
+        //再包装
+        $bean=static::warpBean($bean);
         return static::$instances[$name];
     }
 

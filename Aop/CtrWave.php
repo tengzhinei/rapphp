@@ -69,18 +69,30 @@ class   CtrWave  {
     private $rule;
     public function methodsStart($methods){
         $this->rule="start";
-        $this->methods=$methods;
+        $ms=[];
+        foreach ($methods as $method) {
+            $ms[]=strtolower($method);
+        }
+        $this->methods=$ms;
         return $this;
     }
     public function methodsEnd($methods){
         $this->rule="end";
-        $this->methods=$methods;
+        $ms=[];
+        foreach ($methods as $method) {
+            $ms[]=strtolower($method);
+        }
+        $this->methods=$ms;
         return $this;
     }
 
     public function methods($methods){
         $this->rule="only";
-        $this->methods=$methods;
+        $ms=[];
+        foreach ($methods as $method) {
+            $ms[]=strtolower($method);
+        }
+        $this->methods=$ms;
         return $this;
     }
 
@@ -93,12 +105,20 @@ class   CtrWave  {
 
     public function methodsExcept($methods){
         $this->rule="except";
-        $this->methods=$methods;
+        $ms=[];
+        foreach ($methods as $method) {
+            $ms[]=strtolower($method);
+        }
+        $this->methods=$ms;
         return $this;
     }
     public function methodsContains($methods){
         $this->rule="contains";
-        $this->methods=$methods;
+        $ms=[];
+        foreach ($methods as $method) {
+            $ms[]=strtolower($method);
+        }
+        $this->methods=$ms;
         return $this;
     }
 
@@ -114,6 +134,7 @@ class   CtrWave  {
      */
     private function checkAction(&$methods, $rule){
         $action=Request::instance()->action();
+        $action=strtolower($action);
         if($rule=='only'){
             if(in_array($action,$methods)){
                   return true;

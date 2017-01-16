@@ -213,9 +213,6 @@ class   CtrWave  {
     private function doAction($module,$action){
         //执行当前操作
         $warpBean=$module;
-        if($module instanceof  BeanWarp){
-            $warpBean=$module->getWarpBean();
-        }
         //拿包装类的方法
         $method =   new \ReflectionMethod($warpBean, $action);
         $args=$this->bindParams($method);

@@ -1,7 +1,6 @@
 <?php
 namespace rap;
 
-use rap\Aop\BeanWarp;
 
 class Ioc  {
     //配置
@@ -53,17 +52,15 @@ class Ioc  {
        //判断是否有配置
        if(isset(static::$beansConfig[$name])&&static::$beansConfig[$name]){
            //构造对象
-           $bean=new static::$beansConfig[$name]();
+           $bean= $bean=Aop::warpBean(static::$beansConfig[$name]);
        }else{
            //没有配置直接初始化需要的类(接口不可以)
-           $bean=new $who();
+           $bean=Aop::warpBean($who);
        }
         //必须先赋值
         static::$instances[$name]=$bean;
         //再初始化
         static::prepareBean($bean);
-        //再包装
-        $bean=static::warpBean($bean);
         return static::$instances[$name];
     }
 
@@ -74,7 +71,7 @@ class Ioc  {
     private static function prepareBean($bean){
         $class  =   new \ReflectionClass(get_class($bean));
         if($class->hasMethod('_initialize')) {
-            $bean->_initialize();
+            self::invokeWithIocParams($bean,"_initialize");
             if(static::$injectBeans[0]===$bean){
                 for ($i=count(static::$injectBeans)-1;$i>-1;$i--){
                     $class  =   new \ReflectionClass(get_class(static::$injectBeans[$i]));
@@ -87,17 +84,9 @@ class Ioc  {
         }
     }
 
-    /**
-     * 包装bean
-     * @param $bean
-     * @return BeanWarp
-     */
-    private static function warpBean($bean){
-       if(Aop::needWarp($bean)){
-           $bean=new BeanWarp($bean);
-       }
-       return $bean;
-    }
+
+
+
     /**
      * 绑定对象
      * @param $nameOrClazz
@@ -114,7 +103,6 @@ class Ioc  {
      */
     public static function setConfig($bean,$array){
         static::$config[$bean]=$array;
-
     }
 
     /**
@@ -140,5 +128,36 @@ class Ioc  {
     }
 
 
+    /**
+     * 调用方法 并绑定对象
+     * @param $obj mixed 对象
+     * @param $method string 方法名
+     * @return mixed
+     */
+    public static function invokeWithIocParams($obj, $method)
+    {
+        $method =   new \ReflectionMethod(get_class($obj), $method);
+        $args=[];
+        if ($method->getNumberOfParameters() > 0) {
+            $params = $method->getParameters();
+            foreach ($params as $param) {
+                $name  = $param->getName();
+                $class = $param->getClass();
+                if ($class) {
+                    $className = $class->getName();
+                    $bean= Ioc::get($className);
 
+                    if(!$bean){
+                        $args[] = method_exists($className, 'instance') ? $className::instance() : new $className();
+                    }else{
+                        $args[]=$bean;
+                    }
+                }else{
+                    $args[]=null;
+                }
+            }
+        }
+        $val= $method->invokeArgs($obj,$args);
+        return $val;
+    }
 }

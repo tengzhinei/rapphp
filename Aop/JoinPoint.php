@@ -3,15 +3,18 @@ namespace rap\Aop;
 
 class JoinPoint  {
     private $args;
-    private $target;
     private $obj;
+    /**
+     * @var $callback \Closure
+     */
+    private $callback;
     /* @var $method \ReflectionMethod */
     private $method;
-    public function __construct($obj,$target,$method,$args){
+    public function __construct($obj,$method,$args,$callback){
         $this->args=$args;
-        $this->target=$target;
         $this->method=$method;
         $this->obj=$obj;
+        $this->callback=$callback;
     }
 
     /**
@@ -34,13 +37,7 @@ class JoinPoint  {
         return $this->method;
     }
 
-    /**
-     * 获取被织入的对象
-     * @return mixed
-     */
-    public function getTarget() {
-        return $this->target;
-    }
+
 
     /**
      * 获取织入后的对象
@@ -55,7 +52,8 @@ class JoinPoint  {
      * @return mixed
      */
     public function process($args){
-        return $this->method->invokeArgs($this->target,$args);
+        $callback=$this->callback;
+        return $callback($args);
     }
 
 }

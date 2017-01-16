@@ -206,6 +206,7 @@ class Aop{
     }
 
     private static function deleteAll($path){
+        if(!file_exists($path))return;
         $op = dir($path);
         while (false != ($item = $op->read())) {
             if ($item == '.' || $item == '..') {
@@ -256,7 +257,6 @@ class Aop{
                 if (!$around && !$after && !$before) {
                     continue;
                 }
-
                 $methodName = $method->getName();
                 $BeanClazz = "'" . $clazz . "'";
                 $methodArgs = "";

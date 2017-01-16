@@ -239,6 +239,7 @@ class Aop{
      * 创建代理文件
      */
     public static function buildProxy(){
+        self::deleteAll(str_replace("/Aop.php", "/build", __FILE__));
         $clazzs = array_unique(array_merge(array_keys(static::$beforeActions), array_keys(static::$beforeActions), array_keys(static::$aroundActions)));
         foreach ($clazzs as $clazz) {
             $reflection = new \ReflectionClass($clazz);
@@ -344,7 +345,6 @@ class $clazzSimpleName extends $clazzExtend{
 }
 EOF;
 
-            self::deleteAll(str_replace("/Aop.php", "/build", __FILE__));
             $dir = str_replace("/Aop.php", "/build" . str_replace("\\", "/", $nameSpace), __FILE__);
             if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);

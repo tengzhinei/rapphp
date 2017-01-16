@@ -18,7 +18,7 @@ class   EventHook  {
             $action="on".ucfirst($name);
         }
         $info=array('name'=>$name,'class'=>$class,"action"=>$action);
-        if(!static::$wares[$name]){
+        if(!key_exists($name,static::$wares)){
             static::$wares[$name] = array();
         }
         static::$wares[$name][]=$info;

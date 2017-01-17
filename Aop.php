@@ -212,18 +212,18 @@ class Aop{
             if ($item == '.' || $item == '..') {
                 continue;
             }
-            if (is_dir($op->path . '/' . $item)) {
-                static::deleteAll($op->path . '/' . $item);
-                rmdir($op->path . '/' . $item);
+            if (is_dir($op->path . DS . $item)) {
+                static::deleteAll($op->path . DS . $item);
+                rmdir($op->path . DS . $item);
             } else {
-                unlink($op->path . '/' . $item);
+                unlink($op->path . DS . $item);
             }
 
         }
     }
 
     public static function init($version){
-        $file=str_replace("/Aop.php", "/build/build", __FILE__);
+        $file=str_replace(DS."Aop.php", DS."build".DS."build", __FILE__);
         if(file_exists($file)){
             $content = file_get_contents($file);
             //版本相同 返回
@@ -240,8 +240,8 @@ class Aop{
      * 创建代理文件
      */
     public static function buildProxy(){
-        self::deleteAll(str_replace("/Aop.php", "/build", __FILE__));
-        $dir = str_replace("/Aop.php", "/build", __FILE__);
+        self::deleteAll(str_replace(DS."Aop.php", DS."build", __FILE__));
+        $dir = str_replace(DS."Aop.php", DS."build", __FILE__);
         if (!file_exists($dir)) {
             mkdir($dir, 0777, true);
         }
@@ -349,7 +349,7 @@ class $clazzSimpleName extends $clazzExtend{
 }
 EOF;
 
-            $dir = str_replace("/Aop.php", "/build" . str_replace("\\", "/", $nameSpace), __FILE__);
+            $dir = str_replace(DS."Aop.php", DS."build" . str_replace("\\", DS, $nameSpace), __FILE__);
             if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }

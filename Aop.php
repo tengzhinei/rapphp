@@ -245,7 +245,7 @@ class Aop{
         if (!file_exists($dir)) {
             mkdir($dir, 0777, true);
         }
-        $clazzs = array_unique(array_merge(array_keys(static::$beforeActions), array_keys(static::$beforeActions), array_keys(static::$aroundActions)));
+        $clazzs = array_unique(array_merge(array_keys(static::$beforeActions), array_keys(static::$afterActions), array_keys(static::$aroundActions)));
         foreach ($clazzs as $clazz) {
             $reflection = new \ReflectionClass($clazz);
             $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);

@@ -109,7 +109,9 @@ use Comment;
             foreach ($data as $item) {
                 $clazz=$this->clazz;
                 $result=new $clazz;
-                ArrayHelper::copyArray($item,$result);
+                foreach ($item as $key=>$value) {
+                    $result->$key=$value;
+                }
                 $results[]=$result;
             }
             return $results;

@@ -10,7 +10,6 @@ class SmartyView implements View{
 
     private $smarty;
 
-
     public function __construct(){
         $this->smarty = new \Smarty();
         $this->smarty->setTemplateDir('.' . DIRECTORY_SEPARATOR.'tpl');

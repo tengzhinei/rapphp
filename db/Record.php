@@ -107,7 +107,9 @@ class Record{
         $model=new $model;
         $data=DB::select($model->getTable())->where($where)->find();
         if($data){
-            ArrayHelper::copyArray($data,$model);
+            foreach ($data as $key=>$value) {
+                $model->$key=$value;
+            }
             return $model;
         }
         return $model;

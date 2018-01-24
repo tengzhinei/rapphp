@@ -6,8 +6,8 @@
  * Time: 下午1:36
  */
 
-namespace rap\Aop;
-use rap\Aop;
+namespace rap\aop;
+use rap\aop\Aop;
 
 class AopBuild {
     private  $method;

@@ -1,5 +1,5 @@
 <?php
-namespace rap\Aop;
+namespace rap\aop;
 
 class JoinPoint  {
     private $args;

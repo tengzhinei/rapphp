@@ -1,5 +1,5 @@
 <?php
-namespace rap;
+namespace rap\aop;
 
 /**
  *tengzhinei

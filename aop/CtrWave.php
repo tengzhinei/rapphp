@@ -1,6 +1,6 @@
 <?php
-namespace rap\Aop;
-use rap\Ioc;
+namespace rap\aop;
+use rap\ioc\Ioc;
 use think\Config;
 use think\Request;
 

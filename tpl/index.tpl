@@ -1,0 +1,1 @@
+caecdas{$article->go()}

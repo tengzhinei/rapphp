@@ -1,3 +1,7 @@
 .idea
 composer.lock
 *.log
+vendor/
+app/
+index.php
+

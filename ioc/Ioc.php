@@ -1,32 +1,20 @@
 <?php
-namespace rap;
+namespace rap\ioc;
 
+
+use rap\aop\Aop;
 
 class Ioc  {
-    //配置
-    static private $config;
     //所有对象
     static private $instances;
     //类衍射定义
-    static private $beansConfig;
+    static private $beansConfig=[];
     //类中衍射
     static private $beanInClazzConfig;
     //初始化对象时用于存储
-    static private $injectBeans;
+    static private $injectBeans=[];
 
-    /**
-     * 返回配置信息
-     * @param $who
-     * @param $name
-     * @param $def
-     * @return mixed
-     */
-    public static function config($who,$name,$def=null){
-        if(static::$config[$who]&&static::$config[$who][$name]){
-            $def=static::$config[$who][$name];
-        }
-        return $def;
-    }
+
 
     /**
      * 根据类名,别名获取对象
@@ -46,21 +34,30 @@ class Ioc  {
             }
         }
         //判断是否有实例
-       if(isset(static::$instances[$name])&&static::$instances[$name]){
-           return static::$instances[$name];
-       }
-       //判断是否有配置
-       if(isset(static::$beansConfig[$name])&&static::$beansConfig[$name]){
-           //构造对象
-           $bean= $bean=Aop::warpBean(static::$beansConfig[$name]);
-       }else{
-           //没有配置直接初始化需要的类(接口不可以)
-           $bean=Aop::warpBean($who);
-       }
+        if(isset(static::$instances[$name])&&static::$instances[$name]){
+            return static::$instances[$name];
+        }
+        $closure=null;
+        //判断是否有配置
+        if(isset(static::$beansConfig[$name])&&static::$beansConfig[$name]){
+            //构造对象
+            /* @var $beanDefine BeanDefine  */
+            $beanDefine = static::$beansConfig[$name];
+            $closure=$beanDefine->closure;
+            $bean=Aop::warpBean($beanDefine->ClassName);
+        }else{
+            //没有配置直接初始化需要的类(接口不可以)
+            $bean=Aop::warpBean($who);
+        }
         //必须先赋值
         static::$instances[$name]=$bean;
         //再初始化
         static::prepareBean($bean);
+        //初始化回调
+
+        if($closure){
+            $closure($bean);
+        }
         return static::$instances[$name];
     }
 
@@ -72,6 +69,7 @@ class Ioc  {
         $class  =   new \ReflectionClass(get_class($bean));
         if($class->hasMethod('_initialize')) {
             self::invokeWithIocParams($bean,"_initialize");
+            static::$injectBeans[]=$bean;
             if(static::$injectBeans[0]===$bean){
                 for ($i=count(static::$injectBeans)-1;$i>-1;$i--){
                     $class  =   new \ReflectionClass(get_class(static::$injectBeans[$i]));
@@ -89,43 +87,28 @@ class Ioc  {
 
     /**
      * 绑定对象
-     * @param $nameOrClazz
+     * @param $nameOrClazz string
      * @param $toClazz
+     * @param $closure
      */
-    public static function bind($nameOrClazz,$toClazz){
-        static::$beansConfig[$nameOrClazz]=$toClazz;
-    }
-
-    /**
-     * 设置配置
-     * @param $bean
-     * @param $array
-     */
-    public static function setConfig($bean,$array){
-        static::$config[$bean]=$array;
+    public static function bind($nameOrClazz,$toClazz,\Closure $closure=null){
+        static::$beansConfig[$nameOrClazz]= new BeanDefine($toClazz,$closure);
     }
 
     /**
      * 设置类中的衍射
      * @param $bean
      * @param $name
-     * @param $toName
+     * @param $toClazz
+     * @param $closure
      */
-    public static function bindSpecial($bean, $name, $toName){
+    public static function bindSpecial($bean, $name, $toClazz,\Closure $closure=null){
         if(!static::$beanInClazzConfig[$bean]){
             static::$beanInClazzConfig[$bean]=array();
         }
-        static::$beanInClazzConfig[$bean][$name]=$toName;
+        static::$beanInClazzConfig[$bean][$name]= new BeanDefine($toClazz,$closure);
     }
 
-    /**
-     * 设置对象
-     * @param $name
-     * @param $bean
-     */
-    public  static  function instance($name,$bean){
-        static::$instances[$name]=$bean;
-    }
 
 
     /**
@@ -141,7 +124,6 @@ class Ioc  {
         if ($method->getNumberOfParameters() > 0) {
             $params = $method->getParameters();
             foreach ($params as $param) {
-                $name  = $param->getName();
                 $class = $param->getClass();
                 if ($class) {
                     $className = $class->getName();

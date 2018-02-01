@@ -18,9 +18,9 @@ class ErrorHandler{
     public static function register()
     {
         error_reporting(E_ALL& ~E_NOTICE);
-        set_error_handler([__CLASS__, 'onError']);
-        set_exception_handler([__CLASS__, 'onException']);
-        register_shutdown_function([__CLASS__, 'onShutdown']);
+//        set_error_handler([__CLASS__, 'onError']);
+//        set_exception_handler([__CLASS__, 'onException']);
+//        register_shutdown_function([__CLASS__, 'onShutdown']);
     }
 
     /**

@@ -87,6 +87,7 @@ abstract class Connection{
         return $item;
     }
 
+
     /**
      * SQL指令安全过滤
      * @param $str

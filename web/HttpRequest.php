@@ -428,7 +428,7 @@ class HttpRequest{
         if(is_array($value)){
             $data=array();
             foreach ($value as $key=>$val) {
-                 $data[$key]=$this->valueFilter->filter($value);
+                 $data[$key]=$this->valueFilter->filter($val);
             }
             return $data;
         }

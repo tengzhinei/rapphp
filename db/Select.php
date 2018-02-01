@@ -9,7 +9,6 @@
 namespace rap\db;
 
 
-use rap\help\ArrayHelper;
 use rap\ioc\Ioc;
 
 class Select extends Where{
@@ -148,7 +147,6 @@ use Comment;
                 $this->comment,
                 $this->force
             ], $this->selectSql);
-        echo $sql;
         return $sql;
     }
 

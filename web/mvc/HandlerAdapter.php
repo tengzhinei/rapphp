@@ -83,9 +83,10 @@ abstract class HandlerAdapter{
                 }
                 $class = $param->getClass();
                 if ($class) {
-                    if($class instanceof HttpRequest){
+                    $className = $class->getName();
+                    if($className == HttpRequest::class){
                         $args[]=$request;
-                    }else if($class instanceof HttpResponse){
+                    }else if($className == HttpResponse::class){
                         $args[]=$response;
                     }else{
                         $className = $class->getName();

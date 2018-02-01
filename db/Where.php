@@ -8,7 +8,6 @@
 
 namespace rap\db;
 
-
 /**
  * 搜索条件
  * Class Where
@@ -153,7 +152,6 @@ class Where{
                     $sql.=" ".$where['logic'];
                 }
                 $op=$where['op'];
-
                 if($op=='null'){
                     $op="is null";
                     $sql.= " ".$where['field'].' '.$op;
@@ -178,10 +176,12 @@ class Where{
                     $data[]=$where['condition'][0];
                     $data[]=$where['condition'][1];
                 }else{
-                    if($where['condition']){
-                        $sql.=' ? ';
-                        $data[]=$where['condition'];
+                    if(key_exists($op,Where::$exp)){
+                        $op=Where::$exp[$op];
                     }
+                    $sql.= " ".$where['field'].' '.$op;
+                    $sql.=' ? ';
+                    $data[]=$where['condition'];
                 }
             }
         }

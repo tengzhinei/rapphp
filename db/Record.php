@@ -1,6 +1,6 @@
 <?php
 namespace rap\db;
-use rap\help\ArrayHelper;
+use rap\cache\Cache;
 use rap\ioc\Ioc;
 
 /**
@@ -72,6 +72,8 @@ class Record{
             $data[$update_time]=time();
         }
         DB::update($this->getTable(),$data,$where);
+        $cache_key="record_".get_class().$pk;
+        Cache::remove($cache_key);
     }
 
 
@@ -82,7 +84,7 @@ class Record{
     public  function delete($force=false){
         $pk=$this->getPkField();
         $id=$this->$pk;
-        if($id) {
+        if(isset($id)) {
             $where[ $pk ] = $id;
             $delete_time="delete_time";
             if(property_exists(get_class(),$delete_time)){
@@ -94,6 +96,10 @@ class Record{
             }
             DB::delete($this->getTable())->where($pk,$id)->excuse();
         }
+        $cache_key="record_".get_class().$id;
+        Cache::remove($cache_key);
+
+
     }
 
     /**
@@ -115,6 +121,8 @@ class Record{
         return $model;
     }
 
+
+
     /**
      * 静态删除  destroy方法不管delete_time字段
      * @param $id
@@ -129,17 +137,30 @@ class Record{
     }
 
     /**
-     * 根据主键获取对象
+     *  根据主键获取对象
      * @param $id
-     * @return Record|string
+     * @param bool $cache   是否使用缓存
+     * @param null $cache_time 缓存时间
+     * @return mixed|Record|string
      */
-    public static function get($id){
+    public static function get($id,$cache= false,$cache_time=null){
         $model= get_called_class();
+        $cache_key="record_".$model.$id;
+        $data=Cache::get($cache_key);
         /* @var $model Record  */
         $model=new $model;
+        if($cache&&$data){
+            $data=json_decode($data,true);
+            foreach ($data as $key=>$value) {
+                $model->$key=$value;
+            }
+            return $model;
+        }
         $pk=$model->getPkField();
         $where[ $pk ] = $id;
-        return $model::find($where);
+        $data= $model::find($where);
+        Cache::set($cache_key,json_encode($data),$cache_time);
+        return $data;
     }
 
     /**
@@ -179,7 +200,7 @@ class Record{
      * 获取字段
      * @return mixed
      */
-    protected function getFields(){
+    public function getFields(){
         /* @var $connection  Connection */
         $connection=Ioc::get(Connection::class);
         return $connection->getFields($this->getTable());
@@ -189,7 +210,7 @@ class Record{
      * 获取主键
      * @return mixed
      */
-    protected function getPkField(){
+    public function getPkField(){
         $connection=Ioc::get(Connection::class);
         return $connection->getPkField($this->getTable());
     }
@@ -198,7 +219,7 @@ class Record{
      * 获取表
      * @return string
      */
-    protected function getTable(){
+    public function getTable(){
         $table=get_class($this);
         return $table;
     }

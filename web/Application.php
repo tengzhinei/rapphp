@@ -55,7 +55,7 @@ abstract class Application{
     public function start(){
         //注册应用异常处理
      //   ErrorHandler::register();
-        $this->dispatcher->doDispatch($this->request,$this->response);
+            $this->dispatcher->doDispatch($this->request,$this->response);
     }
 
     public abstract function init(HttpRequest $request,HttpResponse $response,AutoFindHandlerMapping $autoMapping,Router $router);

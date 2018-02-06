@@ -170,8 +170,11 @@ use Comment;
         return null;
     }
 
-    public function page(){
-
+    public function page($page=1,$step=20){
+        $start=($page-1)*$step;
+        $this->limit($start,$step);
+        $data=$this->findAll();
+        return $data;
     }
 
     public function value($field){

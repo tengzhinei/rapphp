@@ -9,6 +9,8 @@
 namespace rap\web;
 
 
+use rap\console\Console;
+use rap\ioc\Ioc;
 use rap\web\mvc\AutoFindHandlerMapping;
 use rap\web\mvc\Dispatcher;
 use rap\web\mvc\Router;
@@ -49,6 +51,7 @@ abstract class Application{
         $router=new Router();
         $routerMapping=new RouterHandlerMapping($router);
         $this->dispatcher->addHandlerMapping($routerMapping);
+
         $this->init($this->request,$this->response,$autoMapping,$router);
     }
 
@@ -58,6 +61,7 @@ abstract class Application{
             $this->dispatcher->doDispatch($this->request,$this->response);
     }
 
+
     public abstract function init(HttpRequest $request,HttpResponse $response,AutoFindHandlerMapping $autoMapping,Router $router);
 
     /**
@@ -65,4 +69,10 @@ abstract class Application{
      * @return mixed
      */
     public abstract function aop();
+
+    public function console($argv){
+        /* @var $console Console  */
+        $console=Ioc::get(Console::class);
+        $console->run($argv);
+    }
 }

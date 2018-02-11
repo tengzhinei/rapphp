@@ -2,6 +2,7 @@
 namespace rap\web\mvc;
 
 use rap\ioc\Ioc;
+use rap\storage\File;
 use rap\web\HttpRequest;
 use rap\web\HttpResponse;
 
@@ -88,6 +89,8 @@ abstract class HandlerAdapter{
                         $args[]=$request;
                     }else if($className == HttpResponse::class){
                         $args[]=$response;
+                    }else if($className == File::class){
+                        $args[]=$request->file($name);
                     }else{
                         $className = $class->getName();
                         $bean = method_exists($className, 'instance') ? $className::instance() : new $className();
@@ -131,6 +134,8 @@ abstract class HandlerAdapter{
                         $args[]=$request;
                     }else if($className == HttpResponse::class){
                         $args[]=$response;
+                    }else if($className == File::class){
+                        $args[]=$request->file($name);
                     }else{
                         $bean = method_exists($className, 'instance') ? $className::instance() : new $className();
                         $properties=$class->getProperties();

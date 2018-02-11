@@ -1,6 +1,7 @@
 <?php
 namespace rap\web;
 use rap\ioc\Ioc;
+use rap\storage\File;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -438,6 +439,11 @@ class HttpRequest{
         $value=$this->valueFilter->filter($value,$filter);
         return $value;
     }
+
+    public function file($name){
+        return  File::fromRequest($name);
+    }
+
 
     /**
      * 获取session

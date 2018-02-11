@@ -32,16 +32,16 @@ class Storage{
      * @return StorageInterface
      * @throws SystemException
      */
-    public function getStorage($name){
+    public static function getStorage($name=StorageInterface::class){
         if(static::$storageArr[$name]){
             return static::$storageArr[$name];
         }
-        $cache=Ioc::get($name);
-        if(!$cache){
+        $storage=Ioc::get($name);
+        if(!$storage){
             throw new SystemException($name."文件存储不存在,你写个类可以继承自".StorageInterface::class);
         }else
-        if($cache instanceof StorageInterface){
-            static::$storageArr[$name]=new Storage($cache);
+        if($storage instanceof StorageInterface){
+            static::$storageArr[$name]=new Storage($storage);
             return static::$storageArr[$name];
         }else{
             throw new SystemException($name."文件存储需要继承".StorageInterface::class);
@@ -50,46 +50,35 @@ class Storage{
 
     /**
      * 上传文件
-     * @param string $file 文件地址
+     * @param File $file 文件
      * @param string $category 文件类别
      * @param string $name 文件保存名称
      */
-    public function upload($file,$category,$name=""){
-        $this->storage->upload($file,$category,$name);
+    public function upload(File $file,$category,$name=""){
+      return  $this->storage->upload($file,$category,$name);
     }
 
     /**
      * 获取文件外部可访问地址,如http://pic.com/head/user_1.jpg
-     * @param string $category 文件类别
-     * @param string $name 名称
+     * @param string $file_id 文件id
      * @return string
      */
-    public function getUrl($category,$name){
-        return  $this->storage->getUrl($category,$name);
+    public function getUrl($file_id){
+        return  $this->storage->getUrl($file_id);
     }
 
     /**
      * 获取图片可访问地址
      * 如果是视频请返回视频的封面图片
-     * @param string $category 文件类别
-     * @param string $name 名称
+     * @param string $file_id 文件id
      * @param int $width
      * @param int $height
+     * @param bool $water
      * @param int $crop
      * @return string
      */
-    public function getPicUrl($category,$name,$width=0,$height=0,$crop=-1){
-        return  $this->storage->getPicUrl($category,$name,$width,$height,$crop);
-    }
-
-    /**
-     * 查看文件是否存在
-     * @param $category
-     * @param $name
-     * @return bool
-     */
-    public function has($category,$name){
-        return $this->storage->has($category,$name);
+    public function getPicUrl($file_id,$width=0,$height=0,$water=false,$crop=1){
+        return  $this->storage->getPicUrl($file_id,$width,$height,$crop,$water);
     }
 
     /**
@@ -97,8 +86,8 @@ class Storage{
      * @param $category
      * @param $name
      */
-    public function delete($category,$name){
-        $this->storage->delete($category,$name);
+    public function delete($file_id){
+        $this->storage->delete($file_id);
     }
 
 }

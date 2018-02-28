@@ -108,8 +108,12 @@ use Comment;
             foreach ($data as $item) {
                 $clazz=$this->clazz;
                 $result=new $clazz;
-                foreach ($item as $key=>$value) {
-                    $result->$key=$value;
+                if($result instanceof Record){
+                    $result->setDbData($item);
+                }else{
+                    foreach ($item as $key=>$value) {
+                        $result->$key=$value;
+                    }
                 }
                 $results[]=$result;
             }

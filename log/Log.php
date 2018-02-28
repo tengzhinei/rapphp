@@ -16,7 +16,7 @@ class Log {
     /**
      * @var bool 自动保存
      */
-    static private $autoSave=false;
+    static private $autoSave=true;
     static private $logs=[];
 
 

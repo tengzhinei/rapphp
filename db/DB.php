@@ -93,10 +93,11 @@ class DB{
      * 使用sql查询
      * @param $sql
      * @param array $bind
+     * @return array
      */
    public static function query($sql, $bind = []){
        /* @var $connection Connection  */
        $connection=Ioc::get(Connection::class);
-       $connection->query($sql, $bind);
+     return   $connection->query($sql, $bind);
    }
 }

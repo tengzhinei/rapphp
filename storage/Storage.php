@@ -83,8 +83,7 @@ class Storage{
 
     /**
      * 删除文件
-     * @param $category
-     * @param $name
+     * @param $file_id
      */
     public function delete($file_id){
         $this->storage->delete($file_id);

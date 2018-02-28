@@ -92,6 +92,9 @@ class Where{
      * @param null $condition
      */
     private function addWhere($logic, $field, $op = null, $condition = null){
+        if(!$field){
+            return;
+        }
         if($field instanceof \Closure){
             $select = new Where();
             $field($select);
@@ -111,7 +114,8 @@ class Where{
             if(is_array($field)){
                 foreach ($field as $item=>$value) {
                     $where=[
-                        'field'=>$item
+                        'field'=>$item,
+                        'logic'=>$logic
                     ];
                     if(is_array($value)){
                         $where['op']=$value[0];
@@ -169,7 +173,7 @@ class Where{
                         $data[]=$item;
                     }
                     $p=implode(",",$p);
-                    $op.="(".$p.")";
+                    $op.=" (".$p.")";
                     $sql.= " ".$where['field'].' '.$op;
                 }else if($op=='between'||$op=='not between'){
                     $sql.= " ".$where['field'].' '.$op. ' ? and ? ';

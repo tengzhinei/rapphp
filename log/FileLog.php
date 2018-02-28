@@ -12,7 +12,7 @@ namespace rap\log;
 class FileLog implements LogInterface{
 
     private $options=[
-        'path'=>"./runtime/log/",
+        'path'=>"/runtime/log/",
         'logFormat'=>"%TIME% '%LEVEL%' '%MESSAGE%'",
         'splitFormat'=>'Y-m-d'
     ];
@@ -23,7 +23,7 @@ class FileLog implements LogInterface{
 
     public function writeLog($level, $message){
         $log=  $this->logStr(time(),$level,$message);
-        $file = fopen($this->options['path'].date($this->options['splitFormat'],time()).'.log', "a");
+        $file = fopen(getcwd().$this->options['path'].date($this->options['splitFormat'],time()).'.log', "a");
         fwrite($file, $log);
         fclose($file);
     }

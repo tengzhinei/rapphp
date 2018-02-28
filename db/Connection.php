@@ -1,6 +1,8 @@
 <?php
 namespace rap\db;
 use \PDO;
+use rap\log\Log;
+
 /**
  * 南京灵衍信息科技有限公司
  * User: jinghao@duohuo.net
@@ -70,16 +72,19 @@ abstract class Connection{
      */
     public function query($sql, $bind = [])
     {
+        Log::info($sql);
         $this->execute($sql,$bind);
         $procedure = in_array(strtolower(substr(trim($sql), 0, 4)), ['call', 'exec']);
         if ($procedure){
             $item = [];
             do {
                 $result = $this->PDOStatement->fetchAll(PDO::FETCH_ASSOC);
+
                 if ($result) {
                     $item[] = $result;
                 }
             } while ($this->PDOStatement->nextRowset());
+
         }else{
             $item=$this->PDOStatement->fetchAll(PDO::FETCH_ASSOC);
         }
@@ -110,7 +115,6 @@ abstract class Connection{
      */
     public function execute($sql, $bind = [])
     {
-
         $pdo=$this->connect();
         // 根据参数绑定组装最终的SQL语句
         $this->queryStr = $this->getRealSql($sql, $bind);

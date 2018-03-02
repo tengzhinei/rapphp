@@ -370,9 +370,12 @@ class HttpRequest{
      */
     public function pathInfo()
     {
-        $_SERVER['PATH_INFO'] = (0 === strpos($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME'])) ?
-            substr($_SERVER['REQUEST_URI'], strlen($_SERVER['SCRIPT_NAME'])) : $_SERVER['REQUEST_URI'];
-        return self::server('PATH_INFO');
+        $url=$this->url();
+        $index=strpos($url,"?");
+        if($index){
+            $url=substr($url,0,$index) ;
+        }
+        return $url;
     }
 
 
@@ -383,7 +386,12 @@ class HttpRequest{
      */
     public function path()
     {
-        return self::server('REDIRECT_URL');
+       $path=$this->pathInfo();
+        $index=strpos($path,".");
+        if($index){
+            $path=substr($path,0,$index) ;
+        }
+        return $path;
     }
 
     public function param($name,$default=null,$filter=null){
@@ -455,5 +463,22 @@ class HttpRequest{
     }
 
 
-
+    function getRequestUri() {
+        if (isset($_SERVER['HTTP_X_REWRITE_URL'])) {
+            // check this first so IIS will catch
+            $requestUri = $_SERVER['HTTP_X_REWRITE_URL'];
+        } elseif (isset($_SERVER['REDIRECT_URL'])) {
+            // Check if using mod_rewrite
+            $requestUri = $_SERVER['REDIRECT_URL'];
+        } elseif (isset($_SERVER['REQUEST_URI'])) {
+            $requestUri = $_SERVER['REQUEST_URI'];
+        } elseif (isset($_SERVER['ORIG_PATH_INFO'])) {
+            // IIS 5.0, PHP as CGI
+            $requestUri = $_SERVER['ORIG_PATH_INFO'];
+            if (!empty($_SERVER['QUERY_STRING'])) {
+                $requestUri .= '?' . $_SERVER['QUERY_STRING'];
+            }
+        }
+        return $requestUri;
+    }
 }

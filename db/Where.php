@@ -30,7 +30,7 @@ class Where{
      * where 参数
      * @var array
      */
-    private $params=[];
+    protected $params=[];
 
     /**
      *
@@ -74,6 +74,16 @@ class Where{
      * 获取where条件的sql语句
      * @return string
      */
+    protected function whereChildSql(){
+        $this->params=[];
+        $sql=$this->parseWhere($this->wheres,$this->params);
+        return $sql;
+    }
+
+    /**
+     * 获取where条件的sql语句
+     * @return string
+     */
     protected function whereSql(){
         $this->params=[];
         $sql=$this->parseWhere($this->wheres,$this->params);
@@ -82,6 +92,7 @@ class Where{
         }
         return $sql;
     }
+
 
 
     /**
@@ -104,6 +115,40 @@ class Where{
                 'logic'=>$logic
             ];
         }else{
+            if($op=='is'){
+                if(is_array($condition)){
+                   $c=count($condition);
+                    if($c==1){
+                        $op="=";
+                        $condition=$condition[0];
+                    }else{
+                        $op="in";
+                    }
+                }else{
+                    $op="=";
+                }
+            }else if($op=='not'){
+                if(is_array($condition)){
+                    $c=count($condition);
+                    if($c==1){
+                        $op="!=";
+                        $condition=$condition[0];
+                    }else{
+                        $op="not in";
+                    }
+                }else{
+                    $op="!=";
+                }
+            }else if($op=='start'){
+                $op="like";
+                $condition=$condition."%";
+            }else if($op=='end'){
+                $op="like";
+                $condition="%".$condition;
+            }else if($op=="contain"){
+                $op="like";
+                $condition="%".$condition."%";
+            }
             if(self::$exp[$op]){
                 $op=self::$exp[$op];
             }
@@ -148,7 +193,10 @@ class Where{
         $sql="";
         foreach ($wheres as $where) {
             if (isset($where['child'])){
-                $sql.=" ".$where['logic']." (";
+                if($sql){
+                    $sql.=" ".$where['logic'];
+                }
+                $sql.=" (";
                 $sql.= $this->parseWhere($where['child'],$data);
                 $sql.=")";
             }else{

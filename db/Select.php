@@ -85,11 +85,19 @@ use Comment;
    }
     private $having='';
     public function having($having){
+        if($having instanceof Where){
+            $sql=$having->whereChildSql();
+            $this->having_params=$having->whereParams();
+            $having=$sql;
+        }
+
         if($having){
             $this->having=' HAVING '.$having;
         }
+        return $this;
     }
 
+    private $having_params=[];
 
     private $group='';
 
@@ -100,8 +108,18 @@ use Comment;
 
     protected $selectSql    = '%COMMENT% SELECT%DISTINCT% %FIELD% FROM %TABLE%%FORCE%%JOIN%%WHERE%%GROUP%%HAVING%%ORDER%%LIMIT% %LOCK%';
 
+
+    public function prepare(){
+        $sql =  $this->getSql();
+        $params=array_merge($this->whereParams(),$this->having_params);
+        return [$sql,$params];
+    }
+
+
     public function findAll(){
-        $data = $this->connection->query($this->getSql(),$this->whereParams());
+        $sql = $this->getSql();
+        $params=array_merge($this->whereParams(),$this->having_params);
+        $data = $this->connection->query($sql,$params);
         if($this->clazz){
             $results=[];
             /* @var $item   */
@@ -132,6 +150,7 @@ use Comment;
             $this->clazz=$class;
         return $this;
     }
+
 
 
     private function getSql(){

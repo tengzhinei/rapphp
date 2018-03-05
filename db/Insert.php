@@ -27,6 +27,7 @@ class Insert{
 
     /**
      * @param $table
+     * @param Connection|null $connection
      * @return Insert
      */
     public static function table($table,Connection $connection=null){
@@ -72,8 +73,8 @@ class Insert{
         return  $this->connection->getLastInsID();
     }
 
-    public static function insert($table,$data){
-        $insert=Insert::table($table);
+    public static function insert($table,$data,Connection $connection=null){
+        $insert=Insert::table($table,$connection);
             foreach ($data as $field=>$value) {
                 $insert->set($field,$value);
             }

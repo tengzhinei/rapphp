@@ -17,6 +17,7 @@ class Log {
      * @var bool 自动保存
      */
     static private $autoSave=true;
+    static private $debug=true;
     static private $logs=[];
 
 
@@ -29,6 +30,9 @@ class Log {
     }
 
     public static function log($level,$message){
+        if(static::$debug){
+            return;
+        }
         if(static::$autoSave){
             /* @var $log LogInterface */
             $log=Ioc::get(LogInterface::class);

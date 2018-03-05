@@ -24,8 +24,10 @@ class Update extends Where{
      */
     private $connection;
 
+
     /**
      * @param $table
+     * @param Connection|null $connection
      * @return Update
      */
     public static function table($table,Connection $connection=null){
@@ -77,8 +79,8 @@ class Update extends Where{
     }
 
 
-    public static function update($table,$data,$where){
-        $update = Update::table($table);
+    public static function update($table,$data,$where,Connection $connection=null){
+        $update = Update::table($table,$connection);
         foreach ($data as $field=>$value) {
             $update->set($field,$value);
         }

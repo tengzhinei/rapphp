@@ -54,13 +54,13 @@ class Delete extends Where{
 
 
     /**
-     * 快捷删除
      * @param $table
      * @param $where
+     * @param Connection|null $connection
      * @return int
      */
-    public static function delete($table,$where){
-        $delete=Delete::table($table);
+    public static function delete($table,$where,Connection $connection=null){
+        $delete=Delete::table($table,$connection);
         if(is_array($where)){
             foreach ($where as $field=>$value) {
                 $delete->where($field,$value);

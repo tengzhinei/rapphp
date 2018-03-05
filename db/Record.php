@@ -12,9 +12,15 @@ use rap\ioc\Ioc;
 class Record{
 
     private $_db_data=[];
-    private $_fields=[];
     public function cacheKeys(){
         return [];
+    }
+
+    /**
+     * @return Connection
+     */
+    protected function getConnection(){
+        return Ioc::get(Connection::class);
     }
 
     public function setDbData($items){
@@ -89,8 +95,7 @@ class Record{
         if(property_exists(get_called_class(),$create_time)){
             $data[$create_time]=time();
         }
-        $pk_value=DB::insert($this->getTable(),$data);
-
+        $pk_value=DB::insert($this->getTable(),$data,$this->getConnection());
         $this->$pk=$pk_value;
     }
 
@@ -106,7 +111,7 @@ class Record{
         if(property_exists(get_called_class(),$update_time)){
             $data[$update_time]=time();
         }
-        DB::update($this->getTable(),$data,$where);
+        DB::update($this->getTable(),$data,$where,$this->getConnection());
         $cacheKeys=$this->cacheKeys();
         if($cacheKeys){
             foreach ($cacheKeys as $cacheKey) {
@@ -143,7 +148,7 @@ class Record{
                     return;
                 }
             }
-            DB::delete($this->getTable())->where($pk,$id)->excuse();
+            DB::delete($this->getTable(),$this->getConnection())->where($pk,$id)->excuse();
         }
         $cacheKeys=$this->cacheKeys();
         if($cacheKeys){
@@ -192,7 +197,7 @@ class Record{
                 }
             }
         }
-        $data=DB::select($t->getTable())->where($where)->setItemClass($model)->find();
+        $data=DB::select($t->getTable(),$t->getConnection())->where($where)->setItemClass($model)->find();
         if($cache_key&&$data){
             Cache::set($cache_key,json_encode($data));
         }
@@ -266,7 +271,7 @@ class Record{
         $model= get_called_class();
         /* @var $model Record  */
         $model=new $model;
-        $select=DB::select($model->getTable())->setItemClass(get_called_class());
+        $select=DB::select($model->getTable(),$model->getConnection())->setItemClass(get_called_class());
         if($fields){
             if(!$contain){
                 $fieldAll=$model->getFields();
@@ -290,8 +295,7 @@ class Record{
      * @return mixed
      */
     public function getFields(){
-        /* @var $connection  Connection */
-        $connection=Ioc::get(Connection::class);
+        $connection=$this->getConnection();
         return $connection->getFields($this->getTable());
     }
 
@@ -300,7 +304,7 @@ class Record{
      * @return mixed
      */
     public function getPkField(){
-        $connection=Ioc::get(Connection::class);
+        $connection=$this->getConnection();
         return $connection->getPkField($this->getTable());
     }
 

@@ -41,10 +41,20 @@ class AutoFindHandlerMapping implements HandlerMapping{
         $path = substr($path,strlen($prefix));
         $path = str_replace($this->separator, '|', $path);
         $array=explode('|',$path);
+        $items=[];
+        $search=[];
+        foreach ($array as $item) {
+            if($item==(int)$item){
+                $search[]=$item;
+            }else{
+                $items[]=$item;
+            }
+        }
+        $request->search($search);
+        $array=$items;
         if(count($array)!=2){
             array_splice($array,count($array)-2,0,[$this->controllerDir]);
         }
-
         $method=array_pop($array);
         if(count($array)!=1) {
             $array[count($array)-1]=ucfirst($array[count($array)-1]);

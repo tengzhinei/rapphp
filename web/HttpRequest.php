@@ -481,4 +481,12 @@ class HttpRequest{
         }
         return $requestUri;
     }
+
+    private $search=[];
+    public function search($search){
+        if($search){
+            $this->search=$search;
+        }
+        return $this->search;
+    }
 }

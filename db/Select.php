@@ -84,6 +84,11 @@ use Comment;
         $this->distinct="DISTINCT";
    }
     private $having='';
+
+    /**
+     * @param string/Where $having
+     * @return $this
+     */
     public function having($having){
         if($having instanceof Where){
             $sql=$having->whereChildSql();
@@ -206,6 +211,9 @@ use Comment;
         return $this->connection->value($this->getSql(),$this->whereParams());
     }
     public function count($field = '*'){
+        if(!$this->group){
+            $this->limit="";
+        }
         return (int) $this->value('COUNT(' . $field . ') AS count');
     }
 

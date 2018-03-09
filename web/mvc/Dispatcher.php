@@ -17,10 +17,7 @@ class Dispatcher{
      * @var array
      */
     private $handlerMappings=[];
-    /**
-     * @var ViewResolver
-     */
-    private $viewResolverDefault;
+
     public function addHandlerMapping(HandlerMapping $handlerMapping){
         $this->handlerMappings[]=$handlerMapping;
     }
@@ -38,6 +35,12 @@ class Dispatcher{
         $adapter=$adapters[0];
         $value=$adapter->handle($request,$response);
         if(is_string($value)){
+            if(strpos($value,'redirect:')===0){
+                $value=substr($value,strlen('redirect:'));
+                http_response_code(200);
+                header("location: $value");
+                return;
+            }
             /* @var View $view  */
             $view=Ioc::get(View::class);
             $view->assign($response->data());

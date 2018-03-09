@@ -17,6 +17,7 @@ class Where{
     static $exp=["eq"=>"=",
         "neq"=>"<>",
         "gt"=>">",
+        "egt"=>">=",
         "lt"=>">",
         "elt"=>">",
     ];
@@ -263,7 +264,6 @@ class Where{
         }else{
             $order=func_get_args();
         }
-
         $order =  implode(',', $order);
         $this->order=!empty($order) ? ' ORDER BY ' . $order : '';
         return $this;

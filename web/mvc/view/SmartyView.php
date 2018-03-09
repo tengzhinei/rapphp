@@ -21,6 +21,7 @@ class SmartyView implements View{
     }
 
     public function fetch($tpl){
+        
       return  $this->smarty->fetch($tpl);
     }
 

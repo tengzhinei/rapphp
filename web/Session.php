@@ -8,36 +8,57 @@
 
 namespace rap\web;
 
-
+/**
+ * Class Session
+ * @package rap\web
+ */
 class Session {
 
+    /**
+     * @var bool
+     */
+    private static $start=false;
 
-    public function start(){
 
+    public static function registerHandler(\SessionHandler $sessionHandler){
+        session_set_save_handler($sessionHandler);
     }
 
-    public function pause(){
-
+    public static function sessionId(){
+        self::start();
+        return session_id();
     }
 
-    public function set($key,$value){
-
-    }
-    public function get($key){
-
-    }
-
-    public function del(){
-
+    public static function start(){
+        if(!self::$start){
+            session_start();
+            self::$start=true;
+        }
     }
 
-    public function clear(){
-
+    public static  function pause(){
+        session_write_close();
+        self::$start=false;
     }
 
-    public function has(){
-
+    public static function set($key,$value){
+        self::start();
+        $_SESSION[$key]=$value;
     }
 
+    public static function get($key){
+        self::start();
+        return $_SESSION[$key];
+    }
+
+    public static function del($key){
+        self::start();
+        unset($_SESSION[$key]);
+    }
+
+    public static function clear(){
+        self::start();
+        $_SESSION = [];
+    }
 
 }

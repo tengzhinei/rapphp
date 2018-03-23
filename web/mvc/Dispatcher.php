@@ -1,6 +1,7 @@
 <?php
 namespace rap\web\mvc;
 use rap\ioc\Ioc;
+use rap\log\Log;
 use rap\web\HttpRequest;
 use rap\web\HttpResponse;
 use rap\web\mvc\view\View;
@@ -34,6 +35,7 @@ class Dispatcher{
         /* @var $adapter HandlerAdapter  */
         $adapter=$adapters[0];
         $value=$adapter->handle($request,$response);
+        Log::save();
         if(is_string($value)){
             if(strpos($value,'redirect:')===0){
                 $value=substr($value,strlen('redirect:'));

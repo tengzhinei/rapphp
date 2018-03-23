@@ -9,30 +9,64 @@
 namespace rap\log;
 
 
+use rap\cache\Cache;
 use rap\ioc\Ioc;
+use rap\web\Session;
 
 class Log {
 
     /**
      * @var bool 自动保存
      */
-    static private $autoSave=true;
-    static private $debug=true;
-    static private $logs=[];
+    private static  $autoSave=false;
+    private static  $logs=[];
 
+    /**
+     * 记录同一 session 下的debug日志
+     */
+    public static function debugSession(){
+        Cache::set(md5('Log.debugSession'),Session::sessionId(),60);
+    }
 
     /**
      * 日志记录 等级debug
      * @param $message
      */
     public static function debug($message){
-        self::log('debug',$message);
+        $session_id=Cache::get(md5('Log.debugSession'));
+        if($session_id==Session::sessionId()){
+           $msg=[
+               'time'=>time(),
+               'msg'=>$message
+           ];
+          $msgs=Cache::get(md5("Log.debugMsg"));
+          if($msgs){
+              $msgs=json_decode($msgs,true);
+          }else{
+              $msgs=[];
+          }
+          $msgs[]=$msg;
+            Cache::set(md5("Log.debugMsg"),$msgs,60);
+        }
     }
 
-    public static function log($level,$message){
-        if(static::$debug){
-            return;
+    /**
+     * 获取debug日志
+     * @return array|mixed
+     */
+    public static function  debugMsg(){
+        $msgs=Cache::get(md5("Log.debugMsg"));
+        if($msgs){
+            $msgs=json_decode($msgs,true);
+        }else{
+            $msgs=[];
         }
+        Cache::remove(md5("Log.debugMsg"));
+        return $msgs;
+    }
+
+
+    public static function log($level,$message){
         if(static::$autoSave){
             /* @var $log LogInterface */
             $log=Ioc::get(LogInterface::class);
@@ -113,8 +147,10 @@ class Log {
      */
     public static function save(){
         /* @var $log LogInterface */
-        $log=Ioc::get(LogInterface::class);
-        $log->writeLogs(static::$logs);
-        static::$logs=[];
+        if(static::$logs){
+            $log=Ioc::get(LogInterface::class);
+            $log->writeLogs(static::$logs);
+            static::$logs=[];
+        }
     }
 }

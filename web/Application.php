@@ -59,6 +59,7 @@ abstract class Application{
         //注册应用异常处理
      //   ErrorHandler::register();
             $this->dispatcher->doDispatch($this->request,$this->response);
+
     }
 
 

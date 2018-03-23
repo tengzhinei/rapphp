@@ -13,7 +13,7 @@ class FileLog implements LogInterface{
 
     private $options=[
         'path'=>"/runtime/log/",
-        'logFormat'=>"%TIME% '%LEVEL%' '%MESSAGE%'",
+        'logFormat'=>"%TIME% '%LEVEL%' '%MESSAGE%'\n",
         'splitFormat'=>'Y-m-d'
     ];
 

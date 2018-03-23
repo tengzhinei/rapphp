@@ -26,15 +26,17 @@ class RedisSession extends SessionHandler
         $this->config = array_merge($this->config, $config);
     }
 
+
+
     /**
      * 打开Session
      * @access public
      * @param string $savePath
-     * @param mixed  $sessName
+     * @param mixed  $sessionName
      * @return bool
      * @throws Exception
      */
-    public function open($savePath, $sessName)
+    public function open($savePath, $sessionName)
     {
         // 检测php环境
         if (!extension_loaded('redis')) {
@@ -53,7 +55,6 @@ class RedisSession extends SessionHandler
         if (0 != $this->config['select']) {
             $this->handler->select($this->config['select']);
         }
-
         return true;
     }
 
@@ -105,6 +106,7 @@ class RedisSession extends SessionHandler
     public function destroy($sessID)
     {
         $this->handler->delete($this->config['session_name'] . $sessID);
+        return true;
     }
 
     /**

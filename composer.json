@@ -33,7 +33,7 @@
             "rap\\": ""
         },
         "files": [
-            "src/helper.php"
+            "common.php"
         ]
     }   
 }

@@ -33,6 +33,7 @@ class Storage{
      * @throws SystemException
      */
     public static function getStorage($name=StorageInterface::class){
+        if($name=='default')$name=StorageInterface::class;
         if(static::$storageArr[$name]){
             return static::$storageArr[$name];
         }
@@ -75,10 +76,11 @@ class Storage{
      * @param int $height
      * @param bool $water
      * @param int $crop
+     * @param int $blur
      * @return string
      */
-    public function getPicUrl($file_id,$width=0,$height=0,$water=false,$crop=1){
-        return  $this->storage->getPicUrl($file_id,$width,$height,$crop,$water);
+    public function getPicUrl($file_id,$width=0,$height=0,$water=false,$crop=1,$blur){
+        return  $this->storage->getPicUrl($file_id,$width,$height,$water,$crop,$blur);
     }
 
     /**
@@ -87,6 +89,10 @@ class Storage{
      */
     public function delete($file_id){
         $this->storage->delete($file_id);
+    }
+
+    public function getDomain(){
+        return $this->storage->getDomain();
     }
 
 }

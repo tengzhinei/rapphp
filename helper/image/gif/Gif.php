@@ -63,6 +63,7 @@ class Gif
             return false === $current ? reset($this->frames) : $current;
         }
         $this->frames[key($this->frames)] = $stream;
+        return true;
     }
 
     /**

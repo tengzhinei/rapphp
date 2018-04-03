@@ -54,7 +54,7 @@ class Dispatcher{
            }
             $value=$view->fetch($value);
             $response->setContent($value);
-        }else if($value){
+        }else if($value!==null){
             $response->contentType("application/json");
             $value=json_encode($value);
             $response->setContent($value);

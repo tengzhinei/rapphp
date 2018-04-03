@@ -51,6 +51,7 @@ class Cache{
     /**
      * 获取数据
      * @param $key
+     * @param $default
      * @return mixed
      */
     public  static function get($key,$default=""){

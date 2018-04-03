@@ -174,6 +174,7 @@ class Aop{
      * @return array
      */
     public static function getAroundActions($clazz, $action){
+        $actions=null;
         if (isset(static::$aroundActions[ $clazz ]) && static::$aroundActions[ $clazz ]) {
             $actions = static::buildActions(static::$aroundActions[ $clazz ], $action);
         }

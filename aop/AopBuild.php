@@ -7,7 +7,6 @@
  */
 
 namespace rap\aop;
-use rap\aop\Aop;
 
 class AopBuild {
     private  $method;

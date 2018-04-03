@@ -9,10 +9,8 @@
 namespace rap\config;
 
 
-use rap\db\Connection;
 use rap\db\Select;
 use rap\db\Update;
-use rap\ioc\Ioc;
 
 class DBFileConfig implements ConfigInterface{
     private $options=[

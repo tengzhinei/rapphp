@@ -10,14 +10,14 @@ interface ConfigInterface{
 
     /**
      * 获取缓存
-     * @param $key
+     * @param $module
      */
     public  function get($module);
 
 
     /**
      * 设置配置
-     * @param $key
+     * @param $module
      * @param $value
      */
     public function set($module,$value);

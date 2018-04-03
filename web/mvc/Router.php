@@ -9,8 +9,6 @@
 namespace rap\web\mvc;
 
 
-use MongoDB\Driver\Cursor;
-use rap\ioc\Ioc;
 use rap\web\HttpRequest;
 
 class Router{

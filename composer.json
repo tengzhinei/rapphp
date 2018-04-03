@@ -31,6 +31,9 @@
     },"autoload": {
         "psr-4": {
             "rap\\": ""
-        }
+        },
+        "files": [
+            "src/helper.php"
+        ]
     }   
 }

@@ -72,14 +72,12 @@ abstract class Connection{
      */
     public function query($sql, $bind = [])
     {
-        Log::info($sql);
         $this->execute($sql,$bind);
         $procedure = in_array(strtolower(substr(trim($sql), 0, 4)), ['call', 'exec']);
         if ($procedure){
             $item = [];
             do {
                 $result = $this->PDOStatement->fetchAll(PDO::FETCH_ASSOC);
-
                 if ($result) {
                     $item[] = $result;
                 }

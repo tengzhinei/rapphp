@@ -2,6 +2,7 @@
 namespace rap\db;
 use rap\cache\Cache;
 use rap\ioc\Ioc;
+use rap\storage\Storage;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -32,14 +33,57 @@ class Record{
                     $this->_db_data[$item]=$value;
                     $value=json_decode($value,true);
                 }else{
-                    $this->_db_data[$item]=json_decode($value);
+                    $this->_db_data[$item]=json_encode($value);
                 }
+            }else if($type=='attach'){
+                if(is_string($value)){
+                    $this->_db_data[$item]=$value;
+                    $value=json_decode($value,true);
+                }else{
+                    $this->_db_data[$item]=json_encode($value);
+                }
+                $values=[];
+                foreach ($value as $v) {
+                    $type='default';
+                    if(key_exists('type',$v)){
+                        $type=$v['type'];
+                    }
+                    $url=$v['url'];
+                    $domian=Storage::getStorage($type)->getDomain();
+                    if(!(strpos($url, 'http') === 0)){
+                        $v['url']=$domian.$url;
+
+
+                    }
+                    $values[]=$v;
+                }
+                $value=$values;
             }else if($type=='int'){
                 $value=(int)$value;
                 $this->_db_data[$item]=$value;
+            }else if($type=='boolean'){
+                $value=(int)$value;
+                $this->_db_data[$item]=$value;
+                $value=$value==1?true:false;
             }else if($type=='float'){
                 $value=(float)$value;
                 $this->_db_data[$item]=$value;
+            }else if($type=='time'){
+                $time=(int)$value;
+                if($time.""==$value.""){
+                    $this->_db_data[$item]=(int)$value;
+                    $value=date("Y-m-d H:i",$this->_db_data[$item]);
+                }else{
+                    $this->_db_data[$item]=strtotime($value);
+                }
+            }else if($type=='date'){
+                $time=(int)$value;
+                if($time.""==$value){
+                    $this->_db_data[$item]=(int)$value;
+                    $value=date("Y-m-d",$this->_db_data[$item]);
+                }else{
+                    $this->_db_data[$item]=strtotime($value);
+                }
             }
             $this->$item=$value;
         }
@@ -67,17 +111,43 @@ class Record{
         $fields=$this->getFields();
         foreach ($fields as $field=>$type){
             $value = $this->$field;
+            if($value===null)continue ;
             $oldValue=$this->_db_data[$field];
-            if($type=='json'&&!is_string($value)){
+            if($type=='json'||$type=='attach'&&!is_string($value)){
                $value=json_encode($value);
             }
-            if($value==$oldValue)continue;
+            if($value==$oldValue&&$oldValue!=null)continue;
             if(!is_null($value)){
-                if($type=='int'){
-                    $value=(int)$value;
-                }else
-                if($type=='float'){
-                    $value=(float)$value;
+                if($value==='null'){
+                    $value=null;
+                }else{
+                    if($type=='int'){
+                        $value=(int)$value;
+                    }else if($type=='float'){
+                            $value=(float)$value;
+                    } else if($type=='time'||$type=='date'){
+                        $time=(int)$value;
+                        if($time.""!=$value){
+                            $value=strtotime($value);
+                        }
+                    }else if($type=='attach'){
+                       $attach=json_decode($value,true);
+                        $values=[];
+                        foreach ($attach as $item) {
+                            $type='default';
+                            if(key_exists('type',$item)){
+                                $type=$item['type'];
+                            }
+                            $url=$item['url'];
+                            $domian=Storage::getStorage($type)->getDomain();
+                            if($domian){
+                                $url=str_replace($domian,"",$url);
+                            }
+                            $item['url']=$url;
+                            $values[]=$item;
+                        }
+                        $value=json_encode($values);
+                    }
                 }
                 $data[$field]=$value;
             }
@@ -126,7 +196,7 @@ class Record{
                 Cache::remove($cache_key);
             }
         }
-        $cache_key="record_".get_called_class().$pk;
+        $cache_key="record_".get_called_class().$this->$pk;
         Cache::remove($cache_key);
     }
 
@@ -148,7 +218,7 @@ class Record{
                     return;
                 }
             }
-            DB::delete($this->getTable(),$this->getConnection())->where($pk,$id)->excuse();
+            DB::delete($this->getTable(),null,$this->getConnection())->where($pk,$id)->excuse();
         }
         $cacheKeys=$this->cacheKeys();
         if($cacheKeys){
@@ -238,10 +308,10 @@ class Record{
      *  根据主键获取对象
      * @param $id
      * @param bool $cache   是否使用缓存
-     * @param null $cache_time 缓存时间
-     * @return mixed|Record|string
+     * @param int $cache_time 缓存时间
+     * @return $this;
      */
-    public static function get($id,$cache= false,$cache_time=null){
+    public static function get($id,$cache= false,$cache_time=0){
         $model= get_called_class();
         $cache_key="record_".$model.$id;
         $data=Cache::get($cache_key);

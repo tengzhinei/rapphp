@@ -10,7 +10,6 @@ namespace rap\config;
 
 
 use rap\cache\Cache;
-use rap\help\ArrayHelper;
 use rap\ioc\Ioc;
 
 class ConfigHandler{
@@ -22,9 +21,10 @@ class ConfigHandler{
     private $config;
 
     private $cacheName="";
+
     /**
      * ConfigHandler constructor.
-     * @param $moudle
+     * @param $module
      */
     public function __construct($module){
         $this->module = $module;

@@ -5,7 +5,6 @@
  * Date: 17/9/21
  * Time: 下午4:04
  */
-
 namespace rap\db;
 
 
@@ -48,7 +47,7 @@ class Update extends Where{
      */
     public function set($key,$value){
         if(is_array($key)){
-            $this->fields = array_merge($this->data,$key);
+            $this->data = array_merge($this->data,$key);
         }else{
             $this->data[$key]=$value;
         }

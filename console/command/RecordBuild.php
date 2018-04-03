@@ -46,10 +46,16 @@ class RecordBuild extends Command{
     public function run($s='', $p='', $n=''){
         set_time_limit(0);
         $tables=$this->connection->getTables();
+
         foreach ($tables as $table) {
-            if(strpos($table,$s)>-1){
+            if($s){
+                if(strpos($table,$s)>-1){
+                    $this->create($table,$p,$n);
+                }
+            }else{
                 $this->create($table,$p,$n);
             }
+
         }
     }
 
@@ -92,6 +98,7 @@ EOF;
         $txt.= <<<EOF
         ];
     }
+
 EOF;
         foreach ($fields as $key=>$value) {
             $txt.="    public $$key;\r\n";

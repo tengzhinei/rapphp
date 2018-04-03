@@ -1,7 +1,5 @@
 <?php
 namespace rap\config;
-use rap\cache\Cache;
-use rap\ioc\Ioc;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -26,15 +24,13 @@ class Config{
         return self::$configs[$module];
     }
 
-
-
     /**
      * 获取缓存
      * @param $key
      * @param $default
      * @return mixed
      */
-    public static function get($key,$default){
+    public static function get($key,$default=""){
        return self::getConfig()->get($key,$default);
     }
 

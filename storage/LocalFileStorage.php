@@ -44,7 +44,12 @@ class LocalFileStorage implements StorageInterface{
             throw new FileUploadException('非法上传文件');
         }
         if(!$name){
-            $name=md5_file($file->path_tmp).".".$file->ext;
+            $size='';
+            if(in_array($file->ext,['jpg','png','jpeg'])){
+                $img_info = getimagesize($file->path_tmp);
+                $size="_".$img_info[0]."_".$img_info[1];
+            }
+            $name=md5_file($file->path_tmp).$size.".".$file->ext;
         }
         $file_id=$category.DIRECTORY_SEPARATOR.date("Ymd").DIRECTORY_SEPARATOR . $name;
         // 文件保存命名规则
@@ -80,9 +85,10 @@ class LocalFileStorage implements StorageInterface{
      * @param int $height
      * @param int $crop
      * @param bool $water
+     * @param int $blur
      * @return string
      */
-    public function getPicUrl($file_id, $width = 0, $height = 0,$water=false, $crop = 1){
+    public function getPicUrl($file_id, $width = 0, $height = 0,$water=false, $crop = self::resize_rect_in,$blur=-1){
         $path=$this->config['base_path'].DIRECTORY_SEPARATOR.$file_id;
         $image=Image::open(getcwd().$path);
         $p=explode(DIRECTORY_SEPARATOR,$file_id);
@@ -141,4 +147,9 @@ class LocalFileStorage implements StorageInterface{
             return false;
         }
     }
+
+    public function getDomain(){
+        return $this->config['cdn'];
+    }
+
 }

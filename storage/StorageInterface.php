@@ -15,13 +15,11 @@ namespace rap\storage;
  */
 interface StorageInterface{
 
-    const THUMB_SCALING   = 1; //常量，标识缩略图等比例缩放类型
-    const THUMB_FILLED    = 2; //常量，标识缩略图缩放后填充类型
-    const THUMB_CENTER    = 3; //常量，标识缩略图居中裁剪类型
-    const THUMB_NORTHWEST = 4; //常量，标识缩略图左上角裁剪类型
-    const THUMB_SOUTHEAST = 5; //常量，标识缩略图右下角裁剪类型
-    const THUMB_FIXED     = 6; //常量，标识缩略图固定尺寸缩放类型
-
+    const resize_fix_w=1;
+    const resize_fix_h=2;
+    const resize_rect_in=3;
+    const resize_rect_out=4;
+    const resize_fix=5;
     /**
      * 上传文件
      * @param File $file 文件地址
@@ -38,6 +36,7 @@ interface StorageInterface{
      */
     public function getUrl($file_id);
 
+    public function getDomain();
     /**
      * 获取图片可访问地址
      * 如果是视频请返回视频的封面图片
@@ -46,9 +45,10 @@ interface StorageInterface{
      * @param int $height
      * @param bool $water
      * @param int $crop
+     * @param int $blur
      * @return string
      */
-    public function getPicUrl($file_id,$width=0,$height=0,$water=false,$crop=self::THUMB_SCALING);
+    public function getPicUrl($file_id,$width=0,$height=0,$water=false,$crop=self::resize_rect_in,$blur=-1);
 
 
     /**

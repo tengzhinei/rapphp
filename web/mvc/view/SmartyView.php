@@ -10,19 +10,25 @@ class SmartyView implements View{
 
     private $smarty;
 
+
     public function __construct(){
         $this->smarty = new \Smarty();
-        $this->smarty->setTemplateDir('.' . DIRECTORY_SEPARATOR.'tpl');
+      //  $this->smarty->setTemplateDir(ROOT_PATH . DS.'tpl');
         $this->smarty
-            ->setCompileDir('.' . DIRECTORY_SEPARATOR . 'runtime/templates_x' . DIRECTORY_SEPARATOR);
+            ->setTemplateDir([''])
+            ->setCompileDir(RUNTIME.'templates_x' . DS);
     }
+
+    public function config($config){
+
+    }
+
     public function assign($array){
         $this->smarty ->assign($array);
     }
 
     public function fetch($tpl){
-        
-      return  $this->smarty->fetch($tpl);
+      return  $this->smarty->fetch($tpl.".html");
     }
 
 }

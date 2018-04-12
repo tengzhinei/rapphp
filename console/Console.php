@@ -9,8 +9,11 @@
 namespace rap\console;
 
 
+use rap\config\Config;
+use rap\console\command\AopFileBuild;
 use rap\console\command\RecordBuild;
 use rap\ioc\Ioc;
+use rap\swoole\web\SwooleHttpServer;
 
 class Console{
 
@@ -18,15 +21,26 @@ class Console{
 
 
     public function _initialize(){
-        $this->addConsole(RecordBuild::class);
+        $this->addConsole(Ioc::get(RecordBuild::class));
+        $this->addConsole(Ioc::get(SwooleHttpServer::class));
+        $this->addConsole(Ioc::get(AopFileBuild::class));
+        $cmds= Config::get('cmds');
+        if($cmds){
+            foreach ($cmds as $cmd) {
+                try{
+                    $this->addConsole(Ioc::get($cmd));
+                }catch (\Error $exception) {
+                    echo "对应的".$cmd."命令不存在,请检查 config.php的 cmds配置
+";
+                }
+            }
+        }
     }
-
     /**
-     * @param $class
+     * @param $command
      */
-    public function addConsole($class){
+    public function addConsole($command){
         /* @var $command Command  */
-        $command=Ioc::get($class);
         $command->configure();
          $name=$command->name();
         $this->defaultCommand[$name]=$command;
@@ -43,9 +57,16 @@ class Console{
         for ($i=0;$i<count($argv);$i+=2){
             $key=$argv[$i];
             $value=$argv[$i+1];
+            if($value===null||strpos('-',$value)===0){
+                $params[substr($key,1)]=true;
+                $i--;
+                continue;
+            }
+            if($value=='true')$value=true;
+            if($value=='false')$value=false;
             $params[substr($key,1)]=$value;
         }
-        if($command=='-h'){
+        if(strpos($command,'-')===0){
             $this->help();
             return;
         }
@@ -82,14 +103,16 @@ class Console{
     }
 
     public function help(){
-        $this->writeln("欢迎使用 rap 命令行工具");
-        $this->writeln("命令行结构语法  php rap 命令 参数格式(-s xxx -m ssss)");
-        $this->writeln("php rap 查看所有命令");
-        $this->writeln("php rap 命令 -h 查看命令的帮助");
+        $this->writeln("           欢迎使用 rap 命令行工具");
+        $this->writeln("");
+        $this->writeln("语法结构:php index.php 命令 参数格式(-s xxx -m ssss)");
+        $this->writeln("         php index.php 查看所有命令");
+        $this->writeln("         php index.php 命令 -h 查看命令的帮助");
+        $this->writeln("");
         $this->writeln("所有命令:");
         /* @var $command Command  */
         foreach ($this->defaultCommand as $command) {
-            $this->writeln($command->name().'  '.$command->asName);
+            $this->writeln("        ".$command->name().'  '.$command->asName);
         }
     }
 

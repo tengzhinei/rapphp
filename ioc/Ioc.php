@@ -5,17 +5,20 @@ namespace rap\ioc;
 use rap\aop\Aop;
 
 class Ioc  {
+
     //所有对象
     static private $instances;
     //类衍射定义
     static private $beansConfig=[];
-    //类中衍射
-    static private $beanInClazzConfig;
+
     //初始化对象时用于存储
     static private $injectBeans=[];
 
-
-
+    public static function clear(){
+        self::$instances=[];
+        self::$beansConfig=[];
+        self::$injectBeans=[];
+    }
     /**
      * 根据类名,别名获取对象
      * @param $who
@@ -26,19 +29,16 @@ class Ioc  {
         //与类名无关的
         if(!$name){
             $name=$who;
-        }else{
-            //判断类中是否有衍射
-            $config= static::$beanInClazzConfig[$who];
-            if($config&&$config[$name]){
-                $name=$config[$name];
-            }
         }
+
         //判断是否有实例
         if(isset(static::$instances[$name])&&static::$instances[$name]){
             return static::$instances[$name];
         }
+
         $closure=null;
-        //判断是否有配置
+
+       //判断是否有配置
         if(isset(static::$beansConfig[$name])&&static::$beansConfig[$name]){
             //构造对象
             /* @var $beanDefine BeanDefine  */
@@ -54,7 +54,6 @@ class Ioc  {
         //再初始化
         static::prepareBean($bean);
         //初始化回调
-
         if($closure){
             $closure($bean);
         }
@@ -84,7 +83,6 @@ class Ioc  {
 
 
 
-
     /**
      * 绑定对象
      * @param $nameOrClazz string
@@ -92,24 +90,9 @@ class Ioc  {
      * @param $closure
      */
     public static function bind($nameOrClazz,$toClazz,\Closure $closure=null){
+        unset(static::$instances[$nameOrClazz]);
         static::$beansConfig[$nameOrClazz]= new BeanDefine($toClazz,$closure);
     }
-
-    /**
-     * 设置类中的衍射
-     * @param $bean
-     * @param $name
-     * @param $toClazz
-     * @param $closure
-     */
-    public static function bindSpecial($bean, $name, $toClazz,\Closure $closure=null){
-        if(!static::$beanInClazzConfig[$bean]){
-            static::$beanInClazzConfig[$bean]=array();
-        }
-        static::$beanInClazzConfig[$bean][$name]= new BeanDefine($toClazz,$closure);
-    }
-
-
 
     /**
      * 调用方法 并绑定对象
@@ -128,7 +111,6 @@ class Ioc  {
                 if ($class) {
                     $className = $class->getName();
                     $bean= Ioc::get($className);
-
                     if(!$bean){
                         $args[] = method_exists($className, 'instance') ? $className::instance() : new $className();
                     }else{
@@ -142,4 +124,8 @@ class Ioc  {
         $val= $method->invokeArgs($obj,$args);
         return $val;
     }
+
+
+
+
 }

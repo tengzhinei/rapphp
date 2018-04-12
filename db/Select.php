@@ -207,6 +207,7 @@ use Comment;
 
     public function value($field){
         $this->fields=[];
+        $this->order("");
         $this->fields($field);
         return $this->connection->value($this->getSql(),$this->whereParams());
     }

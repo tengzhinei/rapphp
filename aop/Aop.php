@@ -20,7 +20,6 @@ class Aop{
      * @param null $call
      */
     public static function around($clazz, $actions, $aroundClazz, $warpAction, $call = null){
-
         $actions = static::actionsBuild($actions);
         if (!isset(static::$aroundActions[ $clazz ])) {
             static::$aroundActions[ $clazz ] = array();
@@ -198,7 +197,7 @@ class Aop{
 
     public static function warpBean($clazz){
         if (self::needWarp($clazz)) {
-            $name = "rap\\build\\" . $clazz . "_PROXY";
+            $name = "rap\\aop\\build\\" . $clazz . "_PROXY";
             $who = new $name;
         } else {
             $who = new $clazz;
@@ -241,8 +240,8 @@ class Aop{
      * 创建代理文件
      */
     public static function buildProxy(){
-        self::deleteAll(str_replace(DS."Aop.php", DS."build", __FILE__));
-        $dir = str_replace(DS."Aop.php", DS."build", __FILE__);
+        $dir=RUNTIME.'aop';
+        self::deleteAll($dir);
         if (!file_exists($dir)) {
             mkdir($dir, 0777, true);
         }
@@ -252,6 +251,9 @@ class Aop{
             $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
             $methodsStr = "";
             foreach ($methods as $method) {
+                if($method->getName()=='_initialize'||$method->getName()=='_prepared'){
+                    continue;
+                }
                 $around = self::getAroundActions($clazz, $method->getName());
                 $after = self::getAfterActions($clazz, $method->getName());
                 $before = self::getBeforeActions($clazz, $method->getName());
@@ -267,7 +269,7 @@ class Aop{
                 foreach ($params as $param) {
                     if ($methodArgs) {
                         $methodArgs .= ",";
-                        $pointArgs = ",";
+                        $pointArgs .= ",";
                     }
                     $paramClazz = $param->getClass();
                     if ($paramClazz) {
@@ -282,7 +284,7 @@ class Aop{
                         if ($isStr) {
                             $methodArgs .= "\"";
                         }
-                        $methodArgs . $param->getDefaultValue();
+                        $methodArgs .= $param->getDefaultValue();
                         if ($isStr) {
                             $methodArgs .= "\"";
                         }
@@ -310,9 +312,12 @@ class Aop{
             if(\$actions){
                 foreach (\$actions as \$action) {
                     if (\$action[ 'call' ]) {
-                        return \$action[ 'call' ]($pointArgs);
+                        \$value = \$action[ 'call' ](\$point);
                     } else {
-                        Ioc::get(\$action[ 'class' ])->\$action[ 'action' ](\$point);
+                       \$value =  Ioc::get(\$action[ 'class' ])->\$action[ 'action' ](\$point);
+                    }
+                    if(\$value !==null){
+                        return \$value;                     
                     }
                 }
             }
@@ -341,16 +346,16 @@ EOF;
             $clazzExtend = "\\" . $clazz;
             $clazzStr = <<<EOF
 <?php
-namespace rap\build$nameSpace;
-use rap\Aop;
+namespace rap\aop\build$nameSpace;
+use rap\aop\Aop;
 use rap\Aop\JoinPoint;
-use rap\Ioc;
+use rap\ioc\Ioc;
 class $clazzSimpleName extends $clazzExtend{
          $methodsStr
 }
 EOF;
 
-            $dir = str_replace(DS."Aop.php", DS."build" . str_replace("\\", DS, $nameSpace), __FILE__);
+            $dir = $dir . str_replace("\\", DS, $nameSpace);
             if (!file_exists($dir)) {
                 mkdir($dir, 0777, true);
             }
@@ -359,6 +364,11 @@ EOF;
             fwrite($file, $clazzStr);
         }
 
+    }
+
+    public static function clear(){
+        $dir=RUNTIME.'aop';
+        self::deleteAll($dir);
     }
 
 }

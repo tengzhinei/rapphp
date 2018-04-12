@@ -8,6 +8,8 @@
 
 namespace rap\exception;
 
+class ImageException extends MsgException{
 
-class ImageException extends \RuntimeException{
+
+
 }

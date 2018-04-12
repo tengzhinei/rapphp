@@ -1,12 +1,12 @@
 <?php
-
+namespace rap\session;
 /**
  * 南京灵衍信息科技有限公司
  * User: jinghao@duohuo.net
  * Date: 18/1/12
  * Time: 下午2:01
  */
-class RedisSession extends SessionHandler
+class RedisSession extends \SessionHandler
 {
     /** @var \Redis */
     protected $handler = null;
@@ -34,13 +34,13 @@ class RedisSession extends SessionHandler
      * @param string $savePath
      * @param mixed  $sessionName
      * @return bool
-     * @throws Exception
+     * @throws \Exception
      */
     public function open($savePath, $sessionName)
     {
         // 检测php环境
         if (!extension_loaded('redis')) {
-            throw new Exception('not support:redis');
+            throw new \Exception('not support:redis');
         }
         $this->handler = new \Redis;
 

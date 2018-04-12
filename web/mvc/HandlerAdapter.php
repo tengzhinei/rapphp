@@ -1,7 +1,8 @@
 <?php
 namespace rap\web\mvc;
 
-use rap\ioc\Ioc;
+use rap\exception\MsgException;
+use rap\session\Session;
 use rap\storage\File;
 use rap\web\HttpRequest;
 use rap\web\HttpResponse;
@@ -66,12 +67,18 @@ abstract class HandlerAdapter{
      * 调用方法 并绑定对象
      * @param $obj mixed 对象
      * @param $method string 方法名
-     * @param $request HttpRequest 方法名
+     * @param $request HttpRequest 请求
+     * @param $response HttpResponse 回复
+     * @throws MsgException
      * @return mixed
      */
     public static function invokeRequest($obj, $method,HttpRequest $request,HttpResponse $response)
     {
-        $method =   new \ReflectionMethod(get_class($obj), $method);
+        try{
+            $method =   new \ReflectionMethod(get_class($obj), $method);
+        }catch(\Exception $e){
+            throw new MsgException("对应的路径不存在方法");
+        }
         $args=[];
         if ($method->getNumberOfParameters() > 0) {
             $params = $method->getParameters();
@@ -89,6 +96,8 @@ abstract class HandlerAdapter{
                         $args[]=$request;
                     }else if($className == HttpResponse::class){
                         $args[]=$response;
+                    }else if($className == Session::class){
+                        $args[]=$request->session();
                     }else if($className == File::class){
                         $args[]=$request->file($name);
                     }else{
@@ -134,6 +143,8 @@ abstract class HandlerAdapter{
                         $args[]=$request;
                     }else if($className == HttpResponse::class){
                         $args[]=$response;
+                    }else if($className == Session::class){
+                        $args[]=$request->session();
                     }else if($className == File::class){
                         $args[]=$request->file($name);
                     }else{

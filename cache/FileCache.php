@@ -15,7 +15,7 @@ namespace rap\cache;
  */
 class FileCache implements CacheInterface{
     private $options=[
-        'path'=>"./runtime/cache/",
+        'path'=>RUNTIME."cache/",
         'data_compress'=>false
     ];
 

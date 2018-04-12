@@ -1,5 +1,8 @@
 <?php
 namespace rap\config;
+use rap\cache\Cache;
+use rap\db\Select;
+use rap\db\Update;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -9,36 +12,30 @@ namespace rap\config;
  */
 class Config{
 
+    private static $fileDate=[];
 
-    private static $configs=[];
-
-    /**
-     * @param string $module
-     * @return ConfigHandler
-     */
-    public static function getConfig($module="default"){
-        if(!self::$configs[$module]){
-            $config=new ConfigHandler($module);
-            self::$configs[$module]=$config;
-        }
-        return self::$configs[$module];
-    }
 
     /**
      * 获取缓存
+     * @param $module
      * @param $key
      * @param $default
      * @return mixed
      */
-    public static function get($key,$default=""){
-       return self::getConfig()->get($key,$default);
-    }
-
-    /**
-     * 清空配置缓存
-     */
-    public static function removeCache(){
-         self::getConfig()->removeCache();
+    public static function get($module, $key="", $default=""){
+        $data=self::getFileConfig()[$module];
+        if($data===null){
+            $data=self::getModuleFromDB($module);
+        }
+        if($key){
+            $value = $data[$key];
+        }else{
+            $value =$data;
+        }
+        if($value===null){
+            $value=$default;
+        }
+        return $value;
     }
 
     /**
@@ -46,7 +43,52 @@ class Config{
      * @param $key
      * @param $value
      */
-    public static function set($key,$value){
-        self::getConfig()->set($key,$value);
+    public static function set($module,$key,$value=null){
+        $data=Cache::get(md5("config_".$module));
+        if($data){
+            $data=json_decode($data,true);
+        }else{
+            $data=[];
+        }
+        if($value!==null){
+            $data[$key]=$value;
+        }else{
+            $data=array_merge($data,$key);
+        }
+        $data=json_encode($data);
+        $config=self::get("config");
+        $table=$config&&key_exists('db_table',$config)?$config['db_table']:"config";
+        $module_key=$config&&key_exists('module_field',$config)?$config['module_field']:"module";
+        $content=$config&&key_exists('content_field',$config)?$config['content_field']:"content";
+        Update::table($table)->set($content,$data)
+            ->where($module_key,$module)
+            ->excuse();
+        Cache::remove(md5("config_".$module));
+    }
+
+
+    private static function getModuleFromDB($module){
+        $data=Cache::get(md5("config_".$module));
+        if(!$data){
+            $config=self::get("config");
+            $table=$config&&key_exists('db_table',$config)?$config['db_table']:"config";
+            $module=$config&&key_exists('module_field',$config)?$config['module_field']:"module";
+            $content=$config&&key_exists('content_field',$config)?$config['content_field']:"content";
+            $data= Select::table($table)
+                ->where($module,$module)
+                ->value($content);
+            Cache::set(md5("config_".$module),$data);
+        }
+        if($data){
+            $data=json_decode($data,true);
+        }
+        return $data;
+    }
+
+    private static function getFileConfig(){
+        if(!static::$fileDate){
+            static::$fileDate=include APP_PATH.'config.php';
+        }
+        return static::$fileDate;
     }
 }

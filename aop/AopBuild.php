@@ -9,6 +9,7 @@
 namespace rap\aop;
 
 class AopBuild {
+
     private  $method;
     private  $rule="all";
     private  $wave;
@@ -65,6 +66,7 @@ class AopBuild {
     }
 
     public function methodsAll(){
+        $this->rule="except";
         $this->method=array("1___");
         return $this;
     }

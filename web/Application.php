@@ -9,7 +9,15 @@
 namespace rap\web;
 
 
+use rap\config\Config;
 use rap\console\Console;
+use rap\exception\ErrorException;
+use rap\exception\handler\ApiExceptionHandler;
+use rap\exception\handler\ApiExceptionReport;
+use rap\exception\handler\ExceptionHandler;
+use rap\exception\handler\PageExceptionHandler;
+use rap\exception\handler\PageExceptionReport;
+use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\web\mvc\AutoFindHandlerMapping;
 use rap\web\mvc\Dispatcher;
@@ -19,31 +27,23 @@ use rap\web\mvc\RouterHandlerMapping;
 abstract class Application{
 
     /**
-     * @var HttpRequest
+     * swoole_server_http
      */
-    private $request;
-
-    /**
-     * @var HttpResponse
-     */
-    private $response;
-
+    public $server;
     /**
      * @var Dispatcher
      */
     private $dispatcher;
 
-    public function _initialize(Dispatcher $dispatcher,HttpRequest $request,HttpResponse $response){
-        $this->request=$request;
-        $this->response=$response;
+    public function _initialize(Dispatcher $dispatcher){
         $this->dispatcher=$dispatcher;
+        include_once __DIR__."/../".'common.php';
     }
-
 
     public function _prepared(){
         $this->addHandlerMapping();
-        $this->aop();
     }
+
 
     public function addHandlerMapping(){
         $autoMapping=new AutoFindHandlerMapping();
@@ -51,29 +51,43 @@ abstract class Application{
         $router=new Router();
         $routerMapping=new RouterHandlerMapping($router);
         $this->dispatcher->addHandlerMapping($routerMapping);
-
-        $this->init($this->request,$this->response,$autoMapping,$router);
-    }
-
-    public function start(){
-        //注册应用异常处理
-     //   ErrorHandler::register();
-            $this->dispatcher->doDispatch($this->request,$this->response);
-
+        $this->init($autoMapping,$router);
     }
 
 
-    public abstract function init(HttpRequest $request,HttpResponse $response,AutoFindHandlerMapping $autoMapping,Router $router);
+    public function start(HttpRequest $request,HttpResponse $response){
+        try{
+            $this->dispatcher->doDispatch($request,$response);
+        }catch (\Exception $exception){
+            $this->handlerException( $request, $response,$exception);
+        }catch (\Error $error){
+            $this->handlerException( $request, $response, new ErrorException($error));
+        }
+    }
 
-    /**
-     * 应用配置aop
-     * @return mixed
-     */
-    public abstract function aop();
+    public function handlerException(HttpRequest $request,HttpResponse $response,\Exception $exception){
+        $ext = $request->ext();
+        $debug=Config::get("app","debug");
+        //没有后缀的或者后缀为 json 的认定返回类型为api的
+        if(!($exception instanceof MsgException)&&$debug){
+                if(!$ext||$ext=='json'){
+                    $handler=Ioc::get(ApiExceptionReport::class);
+                }else{
+                    $handler=Ioc::get(PageExceptionReport::class);
+                }
+        }else{
+            /* @var ExceptionHandler  */
+            $handler=Ioc::get((!$ext||$ext=='json')?ApiExceptionHandler::class:PageExceptionHandler::class);
+        }
+        $handler->handler( $request, $response,$exception);
+    }
+
+    public abstract function init(AutoFindHandlerMapping $autoMapping,Router $router);
 
     public function console($argv){
         /* @var $console Console  */
         $console=Ioc::get(Console::class);
         $console->run($argv);
     }
+
 }

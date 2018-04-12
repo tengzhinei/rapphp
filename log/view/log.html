@@ -1,0 +1,49 @@
+<html>
+<head>
+
+</head>
+<body>
+<div style="border: 1px solid #888;">
+     <div style="    line-height: 20px;
+    padding: 10px;    border-bottom: 1px solid #888;">调试信息</div>
+     <ul id="info">
+     </ul>
+     </div>
+
+</body>
+<script>
+
+    function ajax(url) {
+        var xhr;
+        if (window.XMLHttpRequest) {
+            xhr = new XMLHttpRequest();//W3C
+        } else {
+            xhr = new ActiveXObject('MicroSoft.XMLHTTP');//IE
+        }
+        xhr.open('get', url, false);
+        xhr.send(null);
+        if (xhr.status == 200) {
+            return xhr.responseText;
+        }
+        return "";
+    }
+    var info = document.getElementById('info');
+    setInterval(function () {
+         var page=location.href;
+       var url= page.replace("/page",'/logMsg');
+        var content=ajax(url);
+        if(!content){
+            return;
+        }
+        content=JSON.parse(content);
+        for(var index in content){
+             var item=content[index];
+          var li=document.createElement('li');
+             li.innerHTML="<span>["+item.type+"]"+item.time+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+item.name+"("+item.session+") : "+item.msg+"</span>";
+            info.appendChild(li);
+        }
+    },1000)
+
+</script>
+
+</html>

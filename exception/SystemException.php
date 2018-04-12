@@ -6,6 +6,12 @@ namespace rap\exception;
  * Date: 17/9/6
  * Time: 上午10:28
  */
+
+/**
+ * 系统配置的异常有异常时 debug 模式会显示异常信息,生产环境会记录日常
+ * Class SystemException
+ * @package rap\exception
+ */
 class SystemException extends \Exception{
 
 

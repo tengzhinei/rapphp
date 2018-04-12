@@ -104,8 +104,8 @@ EOF;
             $txt.="    public $$key;\r\n";
         }
         $txt.="}";
-        mkdir(getcwd().'/runtime/model/');
-        file_put_contents(getcwd().'/runtime/model/'.$name.'.php',$txt);
+        mkdir(RUNTIME."model".DS);
+        file_put_contents(RUNTIME.'model'.DS.$name.'.php',$txt);
     }
 
 }

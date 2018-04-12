@@ -37,6 +37,19 @@ class RedisCache implements CacheInterface{
         }
     }
 
+    public function ping(){
+        if($this->redis){
+            try{
+                $this->redis->ping();
+            }catch (\Exception $e){
+                $this->redis=null;
+                $this->open();
+            }
+        }else{
+            $this->open();
+        }
+    }
+
     public function open(){
         if(!$this->redis){
             if (!extension_loaded('redis')) {
@@ -75,7 +88,7 @@ class RedisCache implements CacheInterface{
         $this->open();
         $value=$this->redis->get($name);
         if (is_null($value)) {
-            return null;
+            return $default;
         }
         return   unserialize($value);
     }

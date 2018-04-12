@@ -29,8 +29,8 @@ class Storage{
     /**
      * 根据名称获取一个存储引擎
      * @param $name
-     * @return StorageInterface
      * @throws SystemException
+     * @return StorageInterface
      */
     public static function getStorage($name=StorageInterface::class){
         if($name=='default')$name=StorageInterface::class;

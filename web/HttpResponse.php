@@ -9,6 +9,9 @@
 namespace rap\web;
 
 
+use rap\session\HttpSession;
+use rap\session\Session;
+
 class HttpResponse{
 
     // 当前的contentType
@@ -20,22 +23,23 @@ class HttpResponse{
     //状态
     protected $code = 200;
 
-    private $content;
+    protected $content;
 
-    private $data=[];
+    protected $data=[];
     // header参数
     protected $header = [];
 
+
+
     public function send(){
+        $this->header['Content-Type'] = $this->contentType . '; charset=' . $this->charset;
         if (!headers_sent() && !empty($this->header)) {
-            // 发送状态码
             http_response_code($this->code);
             // 发送头部信息
             foreach ($this->header as $name => $val) {
-                header($name . ':' . $val);
+                    header($name . ':' . $val);
             }
         }
-        $this->header['Content-Type'] = $this->contentType . '; charset=' . $this->charset;
         echo $this->content;
         if (function_exists('fastcgi_finish_request')) {
             // 提高页面响应
@@ -109,7 +113,6 @@ class HttpResponse{
         }
     }
 
-
     public function data($key=""){
         if($key){
             return $this->data[$key];
@@ -117,15 +120,24 @@ class HttpResponse{
         return $this->data;
     }
 
+    public function cookie(string $key, string $value = '', int $expire = 0 , string $path = '/', string $domain = '', bool $secure = false , bool $httponly = false){
+            setcookie($key,$value,$expire,$path,$domain,$secure,$httponly);
+    }
 
     /**
-     * 重定向
-     * @param $url
-     * @param int $code
+     * @var Session
      */
-    public function redirect($url,$code=200){
-        http_response_code($code);
-        header("location: $url");
-        die;
+    protected $session;
+
+    /**
+     *
+     * @return Session
+     */
+    public function session(){
+        if(!$this->session){
+            $this->session=new HttpSession();
+        }
+        return $this->session;
     }
+
 }

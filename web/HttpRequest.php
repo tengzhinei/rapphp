@@ -1,6 +1,7 @@
 <?php
 namespace rap\web;
 use rap\ioc\Ioc;
+use rap\session\Session;
 use rap\storage\File;
 
 /**
@@ -11,31 +12,31 @@ use rap\storage\File;
  */
 class HttpRequest{
 
-    /**
-     * @var ValueFilter
-     */
-    private $valueFilter;
-
 
     /**
      * @var array
      */
-    private $server;
+    protected $server;
 
-    private $domain;
+    protected $domain;
 
-    private $baseFile;
+    protected $url;
 
-    private $url;
+    protected $put;
 
-    private $put;
+    protected $header;
 
-    private $body;
+    /**
+     * @var HttpResponse
+     */
+    public  $response;
 
-    private $header;
-
-    public function _initialize(ValueFilter $valueFilter){
-        $this->valueFilter=$valueFilter;
+    /**
+     * HttpRequest constructor.
+     * @param $response
+     */
+    public function __construct($response){
+        $this->response = $response;
     }
 
     /**
@@ -108,10 +109,9 @@ class HttpRequest{
      * @return mixed
      */
     public function get($name = '', $default = null, $filter = null){
-        if(!$name){
-            $value=$_GET;
-        }else{
-            $value=$_GET[$name];
+        $value=$_GET;
+        if($name){
+            $value=$value[$name];
         }
         return $this->value($value,$default,$filter);
     }
@@ -124,10 +124,9 @@ class HttpRequest{
      * @return mixed|null
      */
     public function post($name = '', $default = null, $filter = null){
-        if(!$name){
-            $value=$_POST;
-        }else{
-            $value=$_POST[$name];
+        $value=$_POST;
+        if($name){
+            $value=$value[$name];
         }
        return $this->value($value,$default,$filter);
     }
@@ -162,10 +161,7 @@ class HttpRequest{
      * @return string
      */
     public function body(){
-        if(!isset($this->body)){
-            $this->body = file_get_contents('php://input');
-        }
-        return $this->body;
+        return file_get_contents('php://input');
     }
     /**
      * 获取DELETE参数
@@ -201,10 +197,10 @@ class HttpRequest{
      * @param null $filter
      * @return mixed|null
      */
-    public function server($name, $default = null, $filter = null)
+    public function server($name="", $default = null, $filter = null)
     {
         if (empty($this->server)) {
-            $this->server = $_SERVER;
+                $this->server = $_SERVER;
         }
         if(!$name){
             $value=$this->server;
@@ -295,35 +291,6 @@ class HttpRequest{
 
 
     /**
-     * 获取当前执行的文件 SCRIPT_NAME
-     * @access public
-     * @return string
-     */
-    public function baseFile()
-    {
-        if (!$this->baseFile) {
-            $url = '';
-            $script_name = basename($_SERVER['SCRIPT_FILENAME']);
-            if (basename($_SERVER['SCRIPT_NAME']) === $script_name) {
-                $url = $_SERVER['SCRIPT_NAME'];
-            } elseif (basename($_SERVER['PHP_SELF']) === $script_name) {
-                $url = $_SERVER['PHP_SELF'];
-            } elseif (isset($_SERVER['ORIG_SCRIPT_NAME']) && basename($_SERVER['ORIG_SCRIPT_NAME']) === $script_name) {
-                $url = $_SERVER['ORIG_SCRIPT_NAME'];
-            } elseif (($pos = strpos($_SERVER['PHP_SELF'], '/' . $script_name)) !== false) {
-                $url = substr($_SERVER['SCRIPT_NAME'], 0, $pos) . '/' . $script_name;
-            } elseif (isset($_SERVER['DOCUMENT_ROOT']) && strpos($_SERVER['SCRIPT_FILENAME'], $_SERVER['DOCUMENT_ROOT']) === 0) {
-                $url = str_replace('\\', '/', str_replace($_SERVER['DOCUMENT_ROOT'], '', $_SERVER['SCRIPT_FILENAME']));
-            }
-            $this->baseFile = $url;
-        }
-        return $this->baseFile;
-    }
-
-
-
-
-    /**
      * 当前URL地址中的scheme参数
      * @access public
      * @return string
@@ -339,7 +306,7 @@ class HttpRequest{
      */
     public function isSsl()
     {
-        $server = array_merge($_SERVER, $this->server);
+        $server = $this->server();
         if (isset($server['HTTPS']) && ('1' == $server['HTTPS'] || 'on' == strtolower($server['HTTPS']))) {
             return true;
         } elseif (isset($server['REQUEST_SCHEME']) && 'https' == $server['REQUEST_SCHEME']) {
@@ -426,6 +393,18 @@ class HttpRequest{
         return $float ? $_SERVER['REQUEST_TIME_FLOAT'] : $_SERVER['REQUEST_TIME'];
     }
 
+
+
+    public function file($name){
+            $upload_file=$_FILES["$name"];
+            return  File::fromRequest($upload_file);
+    }
+
+    /**
+     * @var ValueFilter
+     */
+    private $valueFilter;
+
     /**
      * 字段过滤
      * @param  array $value
@@ -433,11 +412,14 @@ class HttpRequest{
      * @param null $filter
      * @return mixed|null
      */
-    private function value($value,$default = null,$filter = null){
+    protected function value($value,$default = null,$filter = null){
+        if($this->valueFilter==null){
+            $this->valueFilter=Ioc::get(ValueFilter::class);
+        }
         if(is_array($value)){
             $data=array();
             foreach ($value as $key=>$val) {
-                 $data[$key]=$this->valueFilter->filter($val);
+                  $data[$key]=$this->valueFilter->filter($val);
             }
             return $data;
         }
@@ -448,45 +430,30 @@ class HttpRequest{
         return $value;
     }
 
-    public function file($name){
-        return  File::fromRequest($name);
+    public function cookie($name="",$default=''){
+        if(!$name){
+            return $_COOKIE;
+        }
+        $value= $_COOKIE[$name];
+        if(!$value){
+            $value=$default;
+        }
+        return $value;
     }
 
 
+
+    public function response(){
+        return $this->response;
+    }
+
     /**
-     * 获取session
+     *
      * @return Session
      */
     public function session(){
-        return Ioc::get(Session::class);
-
+        return $this->response->session();
     }
 
 
-    function getRequestUri() {
-        if (isset($_SERVER['HTTP_X_REWRITE_URL'])) {
-            // check this first so IIS will catch
-            $requestUri = $_SERVER['HTTP_X_REWRITE_URL'];
-        } elseif (isset($_SERVER['REDIRECT_URL'])) {
-            // Check if using mod_rewrite
-            $requestUri = $_SERVER['REDIRECT_URL'];
-        } elseif (isset($_SERVER['REQUEST_URI'])) {
-            $requestUri = $_SERVER['REQUEST_URI'];
-        } elseif (isset($_SERVER['ORIG_PATH_INFO'])) {
-            // IIS 5.0, PHP as CGI
-            $requestUri = $_SERVER['ORIG_PATH_INFO'];
-            if (!empty($_SERVER['QUERY_STRING'])) {
-                $requestUri .= '?' . $_SERVER['QUERY_STRING'];
-            }
-        }
-        return $requestUri;
-    }
-
-    private $search=[];
-    public function search($search){
-        if($search){
-            $this->search=$search;
-        }
-        return $this->search;
-    }
 }

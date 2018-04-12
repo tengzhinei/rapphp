@@ -16,7 +16,7 @@ class ValueFilter{
 
 
     /**
-     * 默认不尽兴安全过滤
+     * 默认直接返回
      * @param $value
      * @param $filter
      * @return mixed

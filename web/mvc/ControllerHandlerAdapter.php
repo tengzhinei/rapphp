@@ -9,6 +9,7 @@
 namespace rap\web\mvc;
 
 
+use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\web\HttpRequest;
 use rap\web\HttpResponse;
@@ -30,7 +31,11 @@ class ControllerHandlerAdapter extends HandlerAdapter{
     }
 
     public function handle(HttpRequest $request, HttpResponse $response){
-        $clazzInstance=Ioc::get($this->controllerClass);
+        try{
+            $clazzInstance=Ioc::get($this->controllerClass);
+        }catch (\Error $exception){
+            throw new MsgException("对应的路径不存在控制器");
+        }
         $value=$this->invokeRequest($clazzInstance,$this->method,$request,$response);
         return $value;
     }

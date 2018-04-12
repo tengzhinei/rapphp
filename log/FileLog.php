@@ -12,7 +12,7 @@ namespace rap\log;
 class FileLog implements LogInterface{
 
     private $options=[
-        'path'=>"/runtime/log/",
+        'path'=>RUNTIME."log".DS,
         'logFormat'=>"%TIME% '%LEVEL%' '%MESSAGE%'\n",
         'splitFormat'=>'Y-m-d'
     ];

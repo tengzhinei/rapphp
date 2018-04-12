@@ -16,10 +16,8 @@ class File{
     public $size="";
     public $path_tmp="";
     public $error="";
-
     public $ext="";
-    public static function fromRequest($name){
-        $upload_file=$_FILES["$name"];
+    public static function fromRequest($upload_file){
         $file=new File();
         $file->name=$upload_file['name'];
         $file->type=$upload_file['type'];

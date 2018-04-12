@@ -1,6 +1,7 @@
 <?php
 namespace rap\db;
 use \PDO;
+use rap\config\Config;
 use rap\log\Log;
 
 /**
@@ -33,7 +34,9 @@ abstract class Connection{
         PDO::ATTR_ERRMODE           => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_ORACLE_NULLS      => PDO::NULL_NATURAL,
         PDO::ATTR_STRINGIFY_FETCHES => false,
+        PDO::ATTR_PERSISTENT=>true,
         PDO::ATTR_EMULATE_PREPARES  => false,
+        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY=>true
     ];
 
     /** @var \PDOStatement PDO操作实例 */
@@ -115,7 +118,7 @@ abstract class Connection{
     {
         $pdo=$this->connect();
         // 根据参数绑定组装最终的SQL语句
-        $this->queryStr = $this->getRealSql($sql, $bind);
+         $this->logSql($sql, $bind);
         //释放前次的查询结果
         $this->PDOStatement=null;
 
@@ -126,10 +129,38 @@ abstract class Connection{
             // 参数绑定
             $this->bindValue($bind);
             // 执行查询
+
             $this->PDOStatement->execute();
         } catch (\PDOException $e) {
-            throw $e;
+            $error=$e->errorInfo;
+            //2006和2013表示表示连接失败,需要重连接
+            if($error[1]==2006||$error[1]==2013){
+                $this->pdo=null;
+                 $this->connect();
+                $this->execute($sql,$bind);
+            }else{
+                throw $e;
+            }
         }
+    }
+
+    public function userDb($db){
+        $pdo=$this->connect();
+        // 根据参数绑定组装最终的SQL语句
+        try {
+             $pdo->exec("use ".$db);
+              } catch (\PDOException $e) {
+            $error=$e->errorInfo;
+            //2006和2013表示表示连接失败,需要重连接
+            if($error[1]==2006||$error[1]==2013){
+                $this->pdo=null;
+                $this->connect();
+                $this->userDb($db);
+            }else{
+                throw $e;
+            }
+        }
+
     }
 
     public function rowCount(){
@@ -143,8 +174,11 @@ abstract class Connection{
      * @param array     $bind 参数绑定列表
      * @return string
      */
-    private function getRealSql($sql, array $bind = [])
+    private function logSql($sql, array $bind = [])
     {
+        if(!Config::get('app','debug')){
+            return;
+        }
         if ($bind) {
             foreach ($bind as $key => $val) {
                 $value = is_array($val) ? $val[0] : $val;
@@ -163,9 +197,10 @@ abstract class Connection{
                         $sql . ' ');
             }
         }
-        return rtrim($sql);
+        $this->queryStr =rtrim($sql);
+        Log::debug($this->queryStr,'sql');
+        return;
     }
-
 
     /**
      * 参数绑定

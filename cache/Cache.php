@@ -1,6 +1,5 @@
 <?php
 namespace rap\cache;
-use rap\exception\SystemException;
 use rap\ioc\Ioc;
 
 /**
@@ -29,7 +28,6 @@ class Cache{
      * 根据name获取
      * @param string $name 根据名字获取缓存
      * @return CacheInterface
-     * @throws SystemException
      */
     public static function getCache($name=''){
         if($name){

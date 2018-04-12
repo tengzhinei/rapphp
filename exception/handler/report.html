@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <META NAME="ROBOTS" CONTENT="NOINDEX,NOFOLLOW"/>
+    <style>
+        body{font-size: 14px;font-family: 'helvetica neue',tahoma,arial,'hiragino sans gb','microsoft yahei','Simsun',sans-serif; background-color:#fff; color:#808080;}
+    </style>
+    <script src="//cdn.bootcss.com/prettify/r298/prettify.min.js" type="application/javascript"></script>
+    <link href="//cdn.bootcss.com/prettify/r298/prettify.min.css" rel="stylesheet">
+    <style>
+        .msg-line{
+            line-height: 20px;
+            padding: 10px;
+            border: 1px solid #888;
+            border-bottom: 0;
+        }
+
+
+    </style>
+</head>
+<body>
+<div class="wrap">
+        <div class="msg-line">
+            <div>
+                {$info}
+            </div>
+            <div> {$msg}
+        </div>
+
+        </div>
+        <pre style="margin-top: 0"  class="prettyprint lang-php">
+  {$code}
+</pre>
+    <div class="msg-line"> trace调用栈</div>
+    <pre  style="margin-top: 0" class="prettyprint lang-php">
+    {$trace}
+</pre>
+
+
+</div>
+</body>
+<script>
+    window.onload = function ()
+    {
+        // Load Prettify
+        prettyPrint();
+    }
+</script>
+</html>

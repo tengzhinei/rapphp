@@ -12,7 +12,6 @@ namespace rap\storage;
 use OSS\Core\OssException;
 use OSS\OssClient;
 use rap\config\Config;
-use rap\helper\image\Image;
 
 class OssStorage implements StorageInterface{
 
@@ -81,7 +80,7 @@ class OssStorage implements StorageInterface{
             $url.="/blur,r_$blur,s_3";
         }
         if($water){
-            $watermark=  Config::get("watermark");
+            $watermark=  Config::get("pic","watermark");
             if($watermark){
                 $url.="/watermark,image_$watermark,t_70,g_se,x_5,y_5";
             }

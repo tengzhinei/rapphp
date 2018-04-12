@@ -72,7 +72,7 @@ class Record{
                 $time=(int)$value;
                 if($time.""==$value.""){
                     $this->_db_data[$item]=(int)$value;
-                    $value=date("Y-m-d H:i",$this->_db_data[$item]);
+                    $value=date("Y-m-d H:i:s",$this->_db_data[$item]);
                 }else{
                     $this->_db_data[$item]=strtotime($value);
                 }

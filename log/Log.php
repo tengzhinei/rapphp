@@ -11,7 +11,6 @@ namespace rap\log;
 
 use rap\cache\Cache;
 use rap\ioc\Ioc;
-use rap\web\Session;
 
 class Log {
 
@@ -23,31 +22,39 @@ class Log {
 
     /**
      * 记录同一 session 下的debug日志
+     * @param string $name
      */
-    public static function debugSession(){
-        Cache::set(md5('Log.debugSession'),Session::sessionId(),60);
+    public static function debugSession($name=""){
+        session_start();
+        $sessionIds=Cache::get(md5('Log.debugSession'),[]);
+        $sessionIds[session_id()]=$name;
+        Cache::set(md5('Log.debugSession'),$sessionIds);
     }
 
     /**
      * 日志记录 等级debug
-     * @param $message
+     * @param $message string 消息
+     * @param string $type   类型
+     * @param bool $force    是否强制记录
      */
-    public static function debug($message){
-        $session_id=Cache::get(md5('Log.debugSession'));
-        if($session_id==Session::sessionId()){
+    public static function debug($message,$type='user',$force=false){
+        $session_ids=Cache::get(md5('Log.debugSession'));
+        session_start();
+        if(key_exists(session_id(),$session_ids)||$force){
+            $name=$session_ids[session_id()];
            $msg=[
-               'time'=>time(),
+               'name'=>$name,
+               'session'=>session_id(),
+               'type'=>$type,
+               'time'=>date("H:i",time()),
                'msg'=>$message
            ];
-          $msgs=Cache::get(md5("Log.debugMsg"));
-          if($msgs){
-              $msgs=json_decode($msgs,true);
-          }else{
-              $msgs=[];
-          }
-          $msgs[]=$msg;
+            $msgs=Cache::get(md5("Log.debugMsg"),[]);
+            $msgs[]=$msg;
             Cache::set(md5("Log.debugMsg"),$msgs,60);
         }
+        self::log('debug',$message);
+
     }
 
     /**
@@ -55,16 +62,10 @@ class Log {
      * @return array|mixed
      */
     public static function  debugMsg(){
-        $msgs=Cache::get(md5("Log.debugMsg"));
-        if($msgs){
-            $msgs=json_decode($msgs,true);
-        }else{
-            $msgs=[];
-        }
+        $msgs=Cache::get(md5("Log.debugMsg"),[]);
         Cache::remove(md5("Log.debugMsg"));
         return $msgs;
     }
-
 
     public static function log($level,$message){
         if(static::$autoSave){

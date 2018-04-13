@@ -36,7 +36,7 @@ class RapApplication extends Application{
               }
             }
         }
-        $map= Config::get("map");
+        $map= Config::get("mapping");
         if($map){
             foreach ($map as $key=>$value) {
                 $autoMapping->prefix($key,$value);

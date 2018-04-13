@@ -9,9 +9,9 @@
 namespace rap\swoole\web;
 
 
-use rap\web\HttpResponse;
+use rap\web\Response;
 
-class SwooleResponse extends HttpResponse{
+class SwooleResponse extends Response{
 
 
     private $swooleResponse;

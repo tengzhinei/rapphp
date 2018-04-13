@@ -1,7 +1,7 @@
 <?php
 namespace rap\exception\handler;
-use rap\web\HttpRequest;
-use rap\web\HttpResponse;
+use rap\web\Request;
+use rap\web\Response;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -10,5 +10,5 @@ use rap\web\HttpResponse;
  * Time: 上午11:28
  */
 interface ExceptionHandler{
-     function handler(HttpRequest $request,HttpResponse $response,\Exception $exception);
+     function handler(Request $request, Response $response, \Exception $exception);
 }

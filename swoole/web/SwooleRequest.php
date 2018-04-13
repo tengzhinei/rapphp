@@ -10,9 +10,9 @@ namespace rap\swoole\web;
 
 
 use rap\storage\File;
-use rap\web\HttpRequest;
+use rap\web\Request;
 
-class SwooleRequest extends HttpRequest{
+class SwooleRequest extends Request{
 
     private $swooleRequest;
 

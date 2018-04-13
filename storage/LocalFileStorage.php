@@ -10,7 +10,6 @@ namespace rap\storage;
 
 
 use rap\exception\FileUploadException;
-use rap\helper\image\Image;
 
 class LocalFileStorage implements StorageInterface{
 
@@ -53,7 +52,7 @@ class LocalFileStorage implements StorageInterface{
         }
         $file_id=$category.DIRECTORY_SEPARATOR.date("Ymd").DIRECTORY_SEPARATOR . $name;
         // 文件保存命名规则
-        $filename = getcwd().$path.$file_id;
+        $filename = ROOT_PATH.$path.$file_id;
         // 检测目录
         if (false === $this->checkPath(dirname($filename))) {
             throw new FileUploadException("目录创建失败");
@@ -90,19 +89,19 @@ class LocalFileStorage implements StorageInterface{
      */
     public function getPicUrl($file_id, $width = 0, $height = 0,$water=false, $crop = self::resize_rect_in,$blur=-1){
         $path=$this->config['base_path'].DIRECTORY_SEPARATOR.$file_id;
-        $image=Image::open(getcwd().$path);
+        $image=\think\Image::open(ROOT_PATH.$path);
         $p=explode(DIRECTORY_SEPARATOR,$file_id);
         $name=array_pop($p);
         $name_ext=explode(".",$name);
         $save_name=$this->config['base_path'].DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR,$p).DIRECTORY_SEPARATOR
             .$name_ext[0].DIRECTORY_SEPARATOR;
-        mkdir(getcwd().$save_name);
+        mkdir(ROOT_PATH.$save_name);
         $save_name.=$width."_".$height."_".$crop."_".($water?1:"").".".$name_ext[1];
         $image->thumb($width,$height,$crop);
-        if($water&&is_file(getcwd().$this->config['water'])){
-            $image->water(getcwd().$this->config['water']);
+        if($water&&is_file(ROOT_PATH.$this->config['water'])){
+            $image->water(ROOT_PATH.$this->config['water']);
         }
-        $image ->save(getcwd().$save_name);
+        $image ->save(ROOT_PATH.$save_name);
         return $this->config['cdn'].$save_name;
     }
 
@@ -113,11 +112,11 @@ class LocalFileStorage implements StorageInterface{
      */
     public function delete($file_id){
         $filename=$this->config['base_path'].DIRECTORY_SEPARATOR.$file_id;
-        unlink(getcwd().$filename);
+        unlink(ROOT_PATH.$filename);
         $p=explode(DIRECTORY_SEPARATOR,$file_id);
         $name=array_pop($p);
         $name_ext=explode(".",$name);
-        $save_name=getcwd().$this->config['base_path'].DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR,$p).DIRECTORY_SEPARATOR
+        $save_name=ROOT_PATH.$this->config['base_path'].DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR,$p).DIRECTORY_SEPARATOR
             .$name_ext[0].DIRECTORY_SEPARATOR;
         $files = (array) glob($save_name . '*');
         var_dump($save_name);

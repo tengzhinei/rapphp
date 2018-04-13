@@ -103,6 +103,7 @@ class Console{
     }
 
     public function help(){
+        $this->writeln("");
         $this->writeln("           欢迎使用 rap 命令行工具");
         $this->writeln("");
         $this->writeln("语法结构:php index.php 命令 参数格式(-s xxx -m ssss)");
@@ -114,10 +115,11 @@ class Console{
         foreach ($this->defaultCommand as $command) {
             $this->writeln("        ".$command->name().'  '.$command->asName);
         }
+        $this->writeln("");
     }
 
     protected function writeln($msg){
-        echo $msg;
+        echo "  ".$msg;
         echo "\n";
     }
 }

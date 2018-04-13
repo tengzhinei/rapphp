@@ -4,8 +4,8 @@ namespace rap\web\mvc;
 use rap\exception\MsgException;
 use rap\session\Session;
 use rap\storage\File;
-use rap\web\HttpRequest;
-use rap\web\HttpResponse;
+use rap\web\Request;
+use rap\web\Response;
 
 
 /**
@@ -57,7 +57,7 @@ abstract class HandlerAdapter{
         return  $this->method;
     }
 
-    public abstract function handle(HttpRequest $request,HttpResponse $response);
+    public abstract function handle(Request $request, Response $response);
 
     public function addParam($key,$value){
         $this->params[$key]=$value;
@@ -67,12 +67,12 @@ abstract class HandlerAdapter{
      * 调用方法 并绑定对象
      * @param $obj mixed 对象
      * @param $method string 方法名
-     * @param $request HttpRequest 请求
-     * @param $response HttpResponse 回复
+     * @param $request Request 请求
+     * @param $response Response 回复
      * @throws MsgException
      * @return mixed
      */
-    public static function invokeRequest($obj, $method,HttpRequest $request,HttpResponse $response)
+    public static function invokeRequest($obj, $method, Request $request, Response $response)
     {
         try{
             $method =   new \ReflectionMethod(get_class($obj), $method);
@@ -92,9 +92,9 @@ abstract class HandlerAdapter{
                 $class = $param->getClass();
                 if ($class) {
                     $className = $class->getName();
-                    if($className == HttpRequest::class){
+                    if($className == Request::class){
                         $args[]=$request;
-                    }else if($className == HttpResponse::class){
+                    }else if($className == Response::class){
                         $args[]=$response;
                     }else if($className == Session::class){
                         $args[]=$request->session();
@@ -124,7 +124,7 @@ abstract class HandlerAdapter{
 
 
 
-    public function invokeClosure(\Closure $closure,HttpRequest $request,HttpResponse $response){
+    public function invokeClosure(\Closure $closure, Request $request, Response $response){
         $method = new \ReflectionFunction($closure);
         $args=[];
         if ($method->getNumberOfParameters() > 0) {
@@ -139,9 +139,9 @@ abstract class HandlerAdapter{
                 $class = $param->getClass();
                 if ($class) {
                     $className = $class->getName();
-                    if($className == HttpRequest::class){
+                    if($className == Request::class){
                         $args[]=$request;
-                    }else if($className == HttpResponse::class){
+                    }else if($className == Response::class){
                         $args[]=$response;
                     }else if($className == Session::class){
                         $args[]=$request->session();

@@ -9,8 +9,8 @@
 namespace rap\web\mvc;
 
 
-use rap\web\HttpRequest;
-use rap\web\HttpResponse;
+use rap\web\Request;
+use rap\web\Response;
 
 class ClosureHandlerAdapter  extends HandlerAdapter{
 
@@ -28,7 +28,7 @@ class ClosureHandlerAdapter  extends HandlerAdapter{
         $this->closure=$closure;
     }
 
-    public function handle(HttpRequest $request, HttpResponse $response){
+    public function handle(Request $request, Response $response){
 
         $closure=$this->closure;
         $value=$this->invokeClosure($closure,$request,$response);

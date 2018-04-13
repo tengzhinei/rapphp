@@ -25,7 +25,7 @@ class SwooleHttpServer extends Command{
     private $confog=[
         'ip'=>'0.0.0.0',
         'port'=>9501,
-        'document_root'=>'/',
+        'document_root'=>"",
         'enable_static_handler'=>true,
         'task_worker_num'=>100,
         'task_max_request'=>0
@@ -37,6 +37,7 @@ class SwooleHttpServer extends Command{
         $this->confog=array_merge($this->confog,Config::get('swoole_http'));
         $http = new \swoole_http_server($this->confog['ip'], $this->confog['port']);
         $http->set([
+            'buffer_output_size' => 32 * 1024 *1024, //必须为数字
             'worker_num'=>1,
             'document_root' => $this->confog['document_root'],
             'enable_static_handler' => $this->confog['enable_static_handler'],

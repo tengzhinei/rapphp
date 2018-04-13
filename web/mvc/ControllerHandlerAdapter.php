@@ -11,8 +11,8 @@ namespace rap\web\mvc;
 
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
-use rap\web\HttpRequest;
-use rap\web\HttpResponse;
+use rap\web\Request;
+use rap\web\Response;
 
 class ControllerHandlerAdapter extends HandlerAdapter{
 
@@ -30,7 +30,7 @@ class ControllerHandlerAdapter extends HandlerAdapter{
         $this->method=$method;
     }
 
-    public function handle(HttpRequest $request, HttpResponse $response){
+    public function handle(Request $request, Response $response){
         try{
             $clazzInstance=Ioc::get($this->controllerClass);
         }catch (\Error $exception){

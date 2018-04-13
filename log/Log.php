@@ -38,6 +38,9 @@ class Log {
      * @param bool $force    是否强制记录
      */
     public static function debug($message,$type='user',$force=false){
+        if(!(is_string($message)||is_int($message))){
+            $message=json_decode($message);
+        }
         $session_ids=Cache::get(md5('Log.debugSession'));
         session_start();
         if(key_exists(session_id(),$session_ids)||$force){
@@ -96,7 +99,7 @@ class Log {
         self::log('notice',$message);
     }
     /**
-     * 日志记录 等级debug
+     * 日志记录 等级warning
      * @param $message
      */
     public static function warning($message){
@@ -132,16 +135,6 @@ class Log {
         self::log('emergency',$message);
     }
 
-    /**
-     * 自动保存
-     * @param bool $autoSave
-     */
-    public static function autoSave($autoSave=true){
-        static::$autoSave=$autoSave;
-        if($autoSave){
-            self::save();
-        }
-    }
 
     /**
      * 保存所有未保存的日志

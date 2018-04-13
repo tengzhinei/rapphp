@@ -19,8 +19,8 @@ class AopFileBuild extends Command{
             ->asName("生成AOP需要的文件")
             ->param("-d",true,'删除文件',false)
             ->des("会根据search去查数据库生成所有表前缀为search的record模型文件,
-生成的类文件前缀去除prefix
-生成的文件在 runtime/model
+  生成的类文件前缀去除prefix
+  生成的文件在 runtime/model
             ");
     }
     public function run($d){

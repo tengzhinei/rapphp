@@ -7,8 +7,8 @@
  */
 namespace rap\web\mvc;
 
-use rap\web\HttpRequest;
-use rap\web\HttpResponse;
+use rap\web\Request;
+use rap\web\Response;
 
 class AutoFindHandlerMapping implements HandlerMapping{
 
@@ -22,7 +22,7 @@ class AutoFindHandlerMapping implements HandlerMapping{
         $this->prefixArr[$prefix]=$dir;
     }
 
-    public function map(HttpRequest $request,HttpResponse $response){
+    public function map(Request $request, Response $response){
         $path=$request->path();
         $prefix="";
         $dir="";

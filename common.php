@@ -29,6 +29,12 @@ function cache($key,$value = '',$expire=0){
     }
 }
 
+function exception($msg,$code){
+    throw new \rap\exception\MsgException($msg,$code);
+}
+
+
+
 
 
 

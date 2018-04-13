@@ -45,16 +45,20 @@ abstract class Command{
     public abstract function configure();
 
     public function help(){
-        $this->writeln($this->name."     ".$this->asName);
+        $this->writeln("");
+        $this->writeln($this->name."  ".$this->asName);
+        $this->writeln("参数说明");
         foreach ($this->params as $param) {
             $this->writeln("     -".$param['name'].' '.$param['des'].' '.($param['opt']?'可选':'必选').($param['default']?(' 默认:'.$param['default']):''));
         }
+        $this->writeln("描述");
         $this->writeln($this->des);
+        $this->writeln("");
     }
 
 
     protected function writeln($msg){
-        echo $msg;
+        echo "  ".$msg;
         echo "\n";
     }
 

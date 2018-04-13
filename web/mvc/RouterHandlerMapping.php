@@ -9,8 +9,8 @@
 namespace rap\web\mvc;
 
 
-use rap\web\HttpRequest;
-use rap\web\HttpResponse;
+use rap\web\Request;
+use rap\web\Response;
 
 class RouterHandlerMapping implements HandlerMapping{
 
@@ -27,7 +27,7 @@ class RouterHandlerMapping implements HandlerMapping{
         $this->router = $router;
     }
 
-    public function map(HttpRequest $request, HttpResponse $response){
+    public function map(Request $request, Response $response){
             $path=$request->path();
             $pathArray=explode('/',$path);
             array_shift($pathArray);

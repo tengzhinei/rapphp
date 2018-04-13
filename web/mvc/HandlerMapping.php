@@ -1,7 +1,7 @@
 <?php
 namespace rap\web\mvc;
-use rap\web\HttpRequest;
-use rap\web\HttpResponse;
+use rap\web\Request;
+use rap\web\Response;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -12,10 +12,10 @@ use rap\web\HttpResponse;
 interface  HandlerMapping{
 
     /**
-     * @param HttpRequest $request
-     * @param HttpResponse $response
+     * @param Request $request
+     * @param Response $response
      * @return HandlerAdapter
      */
-    public function map(HttpRequest $request,HttpResponse $response);
+    public function map(Request $request, Response $response);
 
 }

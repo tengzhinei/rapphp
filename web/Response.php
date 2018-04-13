@@ -12,7 +12,7 @@ namespace rap\web;
 use rap\session\HttpSession;
 use rap\session\Session;
 
-class HttpResponse{
+class Response{
 
     // 当前的contentType
     protected $contentType = 'text/html';

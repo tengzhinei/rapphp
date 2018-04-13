@@ -3,8 +3,8 @@ namespace rap\web\mvc;
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\log\Log;
-use rap\web\HttpRequest;
-use rap\web\HttpResponse;
+use rap\web\Request;
+use rap\web\Response;
 use rap\web\mvc\view\View;
 
 /**
@@ -24,7 +24,7 @@ class Dispatcher{
         $this->handlerMappings[]=$handlerMapping;
     }
 
-    public function doDispatch(HttpRequest $request, HttpResponse $response){
+    public function doDispatch(Request $request, Response $response){
         $adapters=[];
         /* @var $handlerMapping HandlerMapping  */
         foreach ($this->handlerMappings as $handlerMapping) {

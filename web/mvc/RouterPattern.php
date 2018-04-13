@@ -9,7 +9,7 @@
 namespace rap\web\mvc;
 
 
-use rap\web\HttpRequest;
+use rap\web\Request;
 
 class RouterPattern{
 
@@ -33,11 +33,11 @@ class RouterPattern{
     }
 
     /**
-     * @param HttpRequest $request
+     * @param Request $request
      * @param $pathArray
      * @return null|HandlerAdapter
      */
-    public function match(HttpRequest $request,$pathArray){
+    public function match(Request $request, $pathArray){
 
         $urlArray=explode('/',$this->url);
         if(count($urlArray)!=count($pathArray))return null;

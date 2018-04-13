@@ -9,7 +9,7 @@
 namespace rap\web\mvc;
 
 
-use rap\web\HttpRequest;
+use rap\web\Request;
 
 class Router{
 
@@ -98,7 +98,7 @@ class Router{
 
     }
 
-    public function match(HttpRequest $request,$pathArray){
+    public function match(Request $request, $pathArray){
         //拥有分组
         /* @var $group RouterGroup */
         $group=$this->groups[$pathArray[0]];

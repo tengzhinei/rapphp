@@ -10,7 +10,7 @@ use rap\storage\File;
  * Date: 17/8/31
  * Time: 下午9:33
  */
-class HttpRequest{
+class Request{
 
 
     /**
@@ -27,7 +27,7 @@ class HttpRequest{
     protected $header;
 
     /**
-     * @var HttpResponse
+     * @var Response
      */
     public  $response;
 

@@ -29,7 +29,7 @@ if(IS_CLI){
 }else{
     //正常模式
     \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);
-    $response=new \rap\web\HttpResponse();
-    $request=new \rap\web\HttpRequest($response);
+    $response=new \rap\web\Response();
+    $request=new \rap\web\Request($response);
     \rap\ioc\Ioc::get(\rap\web\Application::class)->start($request,$response);
 }

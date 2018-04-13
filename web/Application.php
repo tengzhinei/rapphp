@@ -19,6 +19,7 @@ use rap\exception\handler\PageExceptionHandler;
 use rap\exception\handler\PageExceptionReport;
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
+use rap\log\Log;
 use rap\web\mvc\AutoFindHandlerMapping;
 use rap\web\mvc\Dispatcher;
 use rap\web\mvc\Router;
@@ -55,7 +56,7 @@ abstract class Application{
     }
 
 
-    public function start(HttpRequest $request,HttpResponse $response){
+    public function start(Request $request, Response $response){
         try{
             $this->dispatcher->doDispatch($request,$response);
         }catch (\Exception $exception){
@@ -65,7 +66,8 @@ abstract class Application{
         }
     }
 
-    public function handlerException(HttpRequest $request,HttpResponse $response,\Exception $exception){
+    public function handlerException(Request $request, Response $response, \Exception $exception){
+        Log::save();
         $ext = $request->ext();
         $debug=Config::get("app","debug");
         //没有后缀的或者后缀为 json 的认定返回类型为api的

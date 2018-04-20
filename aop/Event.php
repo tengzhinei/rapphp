@@ -3,7 +3,7 @@ namespace rap\aop;
 use rap\ioc\Ioc;
 
 
-class   EventHook  {
+class   Event  {
 
     private static $wares=[];
 

@@ -18,7 +18,7 @@ class RedisCache implements CacheInterface{
     /**
      * @var \Redis
      */
-    private $redis;
+    public $redis;
 
     protected $options = [
         'host'       => '127.0.0.1',
@@ -29,6 +29,7 @@ class RedisCache implements CacheInterface{
         'expire'     => 0,
         'persistent' => false
     ];
+
 
 
     public function config($options = []){
@@ -100,26 +101,31 @@ class RedisCache implements CacheInterface{
 
     public function inc($name, $step = 1){
         $this->open();
-        return $this->redis->incrby($name, $step);
+        return $this->redis->incrBy($name, $step);
     }
 
     public function dec($name, $step = 1){
         $this->open();
-        return $this->redis->decrby($name, $step);
+        return $this->redis->decrBy($name, $step);
     }
 
     public function remove($name){
         $this->open();
-        return $this->redis->delete($name);
+        return $this->redis->del($name);
     }
 
     public function hashSet($name, $key, $value){
         $this->open();
+        $value=serialize($value);
          $this->redis->hSet($name,$key,$value);
     }
     public function hashGet($name, $key,$default){
         $this->open();
-        return $this->redis->hGet($name,$key);
+        $value=$this->redis->hGet($name,$key);
+        if($value===false){
+            return null;
+        }
+        return unserialize($value);
     }
 
     public function hashRemove($name, $key){
@@ -131,6 +137,8 @@ class RedisCache implements CacheInterface{
         $this->open();
         $this->redis->flushDB();
     }
+
+
 
 
 }

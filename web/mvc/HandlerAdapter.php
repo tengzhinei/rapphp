@@ -108,6 +108,7 @@ abstract class HandlerAdapter{
                             $name=$property->getName();
                             $val= $request->param($name);
                             if(isset($val)){
+
                                 $bean->$name=$val;
                             }
                         }

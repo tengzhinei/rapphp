@@ -29,12 +29,14 @@ function cache($key,$value = '',$expire=0){
     }
 }
 
-function exception($msg,$code){
+function exception($msg,$code=200){
     throw new \rap\exception\MsgException($msg,$code);
 }
 
+function pickArrayByPre(&$array,$pre){
 
 
+}
 
 
 

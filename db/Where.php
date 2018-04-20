@@ -228,13 +228,28 @@ class Where{
                     $sql.= " ".$where['field'].' '.$op. ' ? and ? ';
                     $data[]=$where['condition'][0];
                     $data[]=$where['condition'][1];
+                }else if($op=='day'){
+                        if(is_array($where['condition'])){
+                            $sql.= " ".$where['field'].' '.'between'. ' ? and ? ';
+                            $data[]=strtotime($where['condition'][0]);
+                            $data[]=strtotime($where['condition'][1]);
+                        }else{
+                            $sql.= " ".$where['field'].' '.'>'. ' ?  ';
+                            $day= $where['condition'];
+                            $time=strtotime(date("Y-m-d",time()));
+                            $data[]=$time-$day*24*60*60;
+                        }
                 }else{
                     if(key_exists($op,Where::$exp)){
                         $op=Where::$exp[$op];
                     }
                     $sql.= " ".$where['field'].' '.$op;
-                    $sql.=' ? ';
-                    $data[]=$where['condition'];
+                    if($where['condition']==='now'){
+                        $sql.=" unix_timestamp(now()) ";
+                    }else{
+                        $sql.=' ? ';
+                        $data[]=$where['condition'];
+                    }
                 }
             }
         }

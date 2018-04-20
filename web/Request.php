@@ -369,6 +369,12 @@ class Request{
         if(!isset($value)){
             $value=$this->put($name);
         }
+        if($value==='false'){
+            $value=false;
+        }
+        if($value==='true'){
+            $value=true;
+        }
         return $this->value($value,$default,$filter);
     }
 
@@ -451,7 +457,15 @@ class Request{
      *
      * @return Session
      */
-    public function session(){
+    public function session($key=null,$value=null){
+        if($key){
+            if($value){
+                return $this->response->session()->set($key,$value);
+            }else{
+                return $this->response->session()->get($key);
+            }
+
+        }
         return $this->response->session();
     }
 

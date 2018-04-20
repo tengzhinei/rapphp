@@ -2,6 +2,7 @@
 namespace rap\db;
 use \PDO;
 use rap\config\Config;
+use rap\ioc\Ioc;
 use rap\log\Log;
 
 /**
@@ -25,6 +26,7 @@ abstract class Connection{
         $this->dsn=$config['dsn'];
         $this->username=$config['username'];
         $this->password=$config['password'];
+
     }
 
 
@@ -66,31 +68,45 @@ abstract class Connection{
     }
 
 
+
     /**
      * 执行查询 返回数据集
      * @param $sql
      * @param array $bind
+     * @param bool $cache
      * @return array
      * @throws \Exception
      */
-    public function query($sql, $bind = [])
+    public function query($sql, $bind = [],$cache=false)
     {
-        $this->execute($sql,$bind);
-        $procedure = in_array(strtolower(substr(trim($sql), 0, 4)), ['call', 'exec']);
-        if ($procedure){
-            $item = [];
-            do {
-                $result = $this->PDOStatement->fetchAll(PDO::FETCH_ASSOC);
-                if ($result) {
-                    $item[] = $result;
-                }
-            } while ($this->PDOStatement->nextRowset());
-
-        }else{
-            $item=$this->PDOStatement->fetchAll(PDO::FETCH_ASSOC);
+        $items=null;
+        $dbCache=null;
+        if($cache){
+            /* @var $dbCache DBCache  */
+            $dbCache=Ioc::get(DBCache::class);
+            $items=$dbCache->queryCache($sql,$bind);
         }
-        $this->PDOStatement=null;
-        return $item;
+        if(!$items){
+            $items = [];
+            $this->execute($sql,$bind,false);
+            $procedure = in_array(strtolower(substr(trim($sql), 0, 4)), ['call', 'exec']);
+            if ($procedure){
+                do {
+                    $result = $this->PDOStatement->fetchAll(PDO::FETCH_ASSOC);
+                    if ($result) {
+                        $items[] = $result;
+                    }
+                } while ($this->PDOStatement->nextRowset());
+
+            }else{
+                $items=$this->PDOStatement->fetchAll(PDO::FETCH_ASSOC);
+            }
+            $this->PDOStatement=null;
+            if($cache){
+                $dbCache->saveCache($sql,$bind,$items);
+            }
+        }
+        return $items;
     }
 
 
@@ -103,25 +119,70 @@ abstract class Connection{
         $pdo->quote($str);
     }
 
-    public function value($sql, $bind ){
-        $this->execute($sql,$bind);
-        return $this->PDOStatement->fetchColumn();
+    public function value($sql, $bind ,$cache=false){
+        $value=null;
+        $dbCache=null;
+        if($cache){
+            /* @var $dbCache DBCache  */
+            $dbCache=Ioc::get(DBCache::class);
+            $value=$dbCache->queryCache($sql,$bind);
+        }
+        if($value==null){
+            $this->execute($sql,$bind);
+            $value= $this->PDOStatement->fetchColumn();
+            if($cache){
+                $dbCache->saveCache($sql,$bind,$value);
+            }
+        }
+        return $value;
+    }
+
+    public function values($sql, $bind,$cache=false){
+        $values=null;
+        $dbCache=null;
+        if($cache){
+            /* @var $dbCache DBCache  */
+            $dbCache=Ioc::get(DBCache::class);
+            $values=$dbCache->queryCache($sql,$bind);
+        }
+        if($values==null){
+            $items=$this->query($sql,$bind);
+            if($items&&count($items)>0){
+                $item = $items[0];
+                $key=array_keys($item)[0];
+                $values=[];
+                foreach ($items as $item) {
+                    $values[]=$item[$key];
+                }
+                if($cache){
+                    $dbCache->saveCache($sql,$bind,$values);
+                }
+            }
+        }
+        if(!$values){
+            $values=[];
+        }
+        return $values;
     }
 
     /**
      * 执行sql
      * @param $sql
      * @param array $bind
+     * @param bool $clear_cache 清除缓存
      * @throws \Exception
      */
-    public function execute($sql, $bind = [])
-    {
+    public function execute($sql, $bind = [], $clear_cache=true){
         $pdo=$this->connect();
         // 根据参数绑定组装最终的SQL语句
          $this->logSql($sql, $bind);
         //释放前次的查询结果
         $this->PDOStatement=null;
-
+        if($clear_cache){
+            /* @var $dbCache DBCache  */
+            $dbCache=Ioc::get(DBCache::class);
+            $dbCache->deleteCache($sql);
+        }
         try {
             // 调试开始
             // 预处理
@@ -367,6 +428,8 @@ abstract class Connection{
         // 关闭连接
         $this->pdo=null;
     }
+
+
 
     /**
      * 获取数据字段

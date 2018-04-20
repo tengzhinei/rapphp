@@ -116,7 +116,7 @@ class Cache{
      * @param string $default
      */
     public static function hashGet($name, $key,$default=""){
-        self::getCache()->hashGet($name,$key,$default);
+       return self::getCache()->hashGet($name,$key,$default);
     }
 
     /**
@@ -127,4 +127,18 @@ class Cache{
     public static function hashRemove($name, $key){
         self::getCache()->hashRemove($name,$key);
     }
+
+    /**
+     * 获取redis
+     * @return null|\Redis
+     */
+    public static function redis(){
+         $redisCache=self::getCache();
+          if($redisCache instanceof RedisCache){
+              $redisCache->open();
+              return $redisCache->redis;
+          }
+          return null;
+    }
+
 }

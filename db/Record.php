@@ -1,6 +1,5 @@
 <?php
 namespace rap\db;
-use rap\cache\Cache;
 use rap\ioc\Ioc;
 use rap\storage\Storage;
 
@@ -12,7 +11,26 @@ use rap\storage\Storage;
  */
 class Record{
 
+    public static function table($as=""){
+        $model= get_called_class();
+        /* @var $model Record */
+        $model=new $model;
+        $table=$model->getTable();
+        if($as){
+            $table.=" ".$as;
+        }
+        return $table;
+    }
+
+    public static function fields(){
+        $model= get_called_class();
+        /* @var $model Record */
+        $model=new $model;
+        return array_keys($model->getFields());
+    }
+
     private $_db_data=[];
+
     public function cacheKeys(){
         return [];
     }
@@ -23,71 +41,73 @@ class Record{
     protected function getConnection(){
         return Ioc::get(Connection::class);
     }
+    public function isUpdate($update=true){
+        $this->to_updata=$update;
+    }
 
-    public function setDbData($items){
+    public function fromDbData($items){
+        $this->to_updata=true;
         $_fields= $this->getFields();
+        $this->_db_data=$items;
         foreach ($items as $item=>$value) {
             $type=$_fields[$item];
+            if(is_array($type)){
+                $type=$type['type'];
+            }
             if($type=='json'){
-                if(is_string($value)){
-                    $this->_db_data[$item]=$value;
-                    $value=json_decode($value,true);
-                }else{
-                    $this->_db_data[$item]=json_encode($value);
+                $value=json_decode($value,true);
+            }else if($type=='int'){
+                $value=(int)$value;
+            }else if($type=='boolean'){
+                $value=(int)$value;
+                $value=$value==1?true:false;
+            }else if($type=='float'){
+                $value=(float)$value;
+            }else if($type=='time'){
+                $time=(int)$value;
+                if($time.""==$value.""){
+                    $value=date("Y-m-d H:i:s",$this->_db_data[$item]);
+                }
+            }else if($type=='date'){
+                $time=(int)$value;
+                if($time.""==$value){
+                    $value=date("Y-m-d",$this->_db_data[$item]);
                 }
             }else if($type=='attach'){
-                if(is_string($value)){
-                    $this->_db_data[$item]=$value;
-                    $value=json_decode($value,true);
-                }else{
-                    $this->_db_data[$item]=json_encode($value);
+                $attach_s=json_decode($value,true);
+                $value="";
+                if(count($attach_s)>0){
+                    $url=$attach_s[0]['url'];
+                    $type='default';
+                    if(key_exists('type',$attach_s)){
+                        $type=$attach_s['type'];
+                    }
+                    $domian=Storage::getStorage($type)->getDomain();
+                    if(!(strpos($url, 'http') === 0)&&$url){
+                        $url=$domian.$url;
+                    }
+                    $value=$url;
                 }
+            }else if( $type=='attach_s'){
+                $value=json_decode($value,true);
                 $values=[];
+
                 foreach ($value as $v) {
                     $type='default';
                     if(key_exists('type',$v)){
                         $type=$v['type'];
                     }
-                    $url=$v['url'];
                     $domian=Storage::getStorage($type)->getDomain();
+                    $url=$v['url'];
                     if(!(strpos($url, 'http') === 0)){
                         $v['url']=$domian.$url;
-
-
                     }
                     $values[]=$v;
                 }
                 $value=$values;
-            }else if($type=='int'){
-                $value=(int)$value;
-                $this->_db_data[$item]=$value;
-            }else if($type=='boolean'){
-                $value=(int)$value;
-                $this->_db_data[$item]=$value;
-                $value=$value==1?true:false;
-            }else if($type=='float'){
-                $value=(float)$value;
-                $this->_db_data[$item]=$value;
-            }else if($type=='time'){
-                $time=(int)$value;
-                if($time.""==$value.""){
-                    $this->_db_data[$item]=(int)$value;
-                    $value=date("Y-m-d H:i:s",$this->_db_data[$item]);
-                }else{
-                    $this->_db_data[$item]=strtotime($value);
-                }
-            }else if($type=='date'){
-                $time=(int)$value;
-                if($time.""==$value){
-                    $this->_db_data[$item]=(int)$value;
-                    $value=date("Y-m-d",$this->_db_data[$item]);
-                }else{
-                    $this->_db_data[$item]=strtotime($value);
-                }
             }
             $this->$item=$value;
         }
-
     }
 
     /**
@@ -95,13 +115,15 @@ class Record{
      */
     public function save(){
         $pk=$this->getPkField();
-        if($this->$pk){
+        //主键是id
+        if(($pk=='id'&&$this->$pk)||$this->to_updata){
             $this->update();
         }else{
             $this->insert();
         }
     }
 
+    private $to_updata=false;
     /**
      * 获取保存的对象
      * @return array
@@ -111,46 +133,52 @@ class Record{
         $fields=$this->getFields();
         foreach ($fields as $field=>$type){
             $value = $this->$field;
-            if($value===null)continue ;
+            if($value===null)continue;
             $oldValue=$this->_db_data[$field];
-            if($type=='json'||$type=='attach'&&!is_string($value)){
+            if(is_array($type)){
+                $type=$type['type'];
+            }
+            if($type=='json'&&!is_string($value)){
                $value=json_encode($value);
             }
+            //值没有变不保存
             if($value==$oldValue&&$oldValue!=null)continue;
-            if(!is_null($value)){
-                if($value==='null'){
-                    $value=null;
-                }else{
-                    if($type=='int'){
-                        $value=(int)$value;
-                    }else if($type=='float'){
-                            $value=(float)$value;
-                    } else if($type=='time'||$type=='date'){
-                        $time=(int)$value;
-                        if($time.""!=$value){
-                            $value=strtotime($value);
-                        }
-                    }else if($type=='attach'){
-                       $attach=json_decode($value,true);
-                        $values=[];
-                        foreach ($attach as $item) {
-                            $type='default';
-                            if(key_exists('type',$item)){
-                                $type=$item['type'];
-                            }
-                            $url=$item['url'];
-                            $domian=Storage::getStorage($type)->getDomain();
-                            if($domian){
-                                $url=str_replace($domian,"",$url);
-                            }
-                            $item['url']=$url;
-                            $values[]=$item;
-                        }
-                        $value=json_encode($values);
-                    }
+
+            if($value==='null'){
+                $value=null;
+            }else if($type=='int'){
+                $value=(int)$value;
+            }else if($type=='float'){
+                    $value=(float)$value;
+            } else if($type=='time'||$type=='date'){
+                $time=(int)$value;
+                if($time.""!=$value){
+                    $value=strtotime($value);
                 }
-                $data[$field]=$value;
+            }else if($type=='attach'||$type=='attach_s'){
+                if(is_string($value)){
+                    $attach=[['url'=>$value]];
+                }else{
+                    $attach=$value;
+                }
+                $values=[];
+                foreach ($attach as $item) {
+                    $type='default';
+                    if(key_exists('type',$item)){
+                        $type=$item['type'];
+                    }
+                    $url=$item['url'];
+                    $domian=Storage::getStorage($type)->getDomain();
+                    if($domian){
+                        $url=str_replace($domian,"",$url);
+                    }
+                    $item['url']=$url;
+                    $values[]=$item;
+                }
+                $value=json_encode($values);
+                if($value==$oldValue&&$oldValue!=null)continue;
             }
+            $data[$field]=$value;
         }
         return $data;
     }
@@ -173,6 +201,7 @@ class Record{
      * 更新
      */
     public function update(){
+        $model=get_called_class();
         $pk=$this->getPkField();
         $where[$pk]=$this->$pk;
         $data=$this->getDBData();
@@ -182,22 +211,11 @@ class Record{
             $data[$update_time]=time();
         }
         DB::update($this->getTable(),$data,$where,$this->getConnection());
-        $cacheKeys=$this->cacheKeys();
-        if($cacheKeys){
-            foreach ($cacheKeys as $cacheKey) {
-                $cks=explode(',',$cacheKey);
-                sort($cks);
-                $oldV=[];
-                foreach ($cks as $ck) {
-                    $oldV[]=$this->_db_data[$ck];
-                }
-                $cacheKey=implode(",",$cks);
-                $cache_key="record_".get_called_class()."_".$cacheKey."_".implode(",",$oldV);
-                Cache::remove($cache_key);
-            }
-        }
-        $cache_key="record_".get_called_class().$this->$pk;
-        Cache::remove($cache_key);
+        //删除缓存
+        /* @var $db_cache DBCache  */
+        $db_cache=Ioc::get(DBCache::class);
+        $db_cache->recordWhereCacheDel($this->cacheKeys(),$this->_db_data);
+        $db_cache->recordCacheDel($model,$this->$pk);
     }
 
 
@@ -206,12 +224,13 @@ class Record{
      * @param $force
      */
     public  function delete($force=false){
+        $model=get_called_class();
         $pk=$this->getPkField();
         $id=$this->$pk;
         if(isset($id)) {
             $where[ $pk ] = $id;
             $delete_time="delete_time";
-            if(property_exists(get_called_class(),$delete_time)){
+            if(property_exists($model,$delete_time)){
                 if(!$force){
                     $this->$delete_time=time();
                     $this->update();
@@ -220,21 +239,11 @@ class Record{
             }
             DB::delete($this->getTable(),null,$this->getConnection())->where($pk,$id)->excuse();
         }
-        $cacheKeys=$this->cacheKeys();
-        if($cacheKeys){
-            foreach ($cacheKeys as $cacheKey) {
-                $cks=sort(explode(',',$cacheKey));
-                $oldV=[];
-                foreach ($cks as $ck) {
-                    $oldV[]=$this->_db_data[$ck];
-                }
-                $cacheKey=implode(",",$cks);
-                $cache_key="record_".get_called_class()."_".$cacheKey."_".implode(",",$oldV);
-                Cache::remove($cache_key);
-            }
-        }
-        $cache_key="record_".get_called_class().$id;
-        Cache::remove($cache_key);
+        //删除缓存
+        /* @var $db_cache DBCache  */
+        $db_cache=Ioc::get(DBCache::class);
+        $db_cache->recordWhereCacheDel($this->cacheKeys(),$this->_db_data);
+        $db_cache->recordCacheDel($model,$id);
     }
 
     /**
@@ -246,31 +255,13 @@ class Record{
         $model= get_called_class();
         /* @var $t Record  */
         $t=new $model;
-        $cacheKeys=$t->cacheKeys();
-        ksort($where);
-        $key=implode(",",array_keys($where));
-        $cache_key=null;
-        if($cacheKeys){
-            foreach ($cacheKeys as $cacheKey) {
-                $m=explode(',',$cacheKey);
-                sort($m);
-                $cacheKey=implode(",",$m);
-                if($key==$cacheKey){
-                    $cache_key="record_".$model."_".$key."_".implode(",",array_values($where));
-                    $data=Cache::get($cache_key);
-                    if($data){
-                        $data=json_decode($data,true);
-                        $t->setDbData($data);
-                        return $t;
-                    }
-                    break;
-                }
-            }
-        }
-        $data=DB::select($t->getTable(),$t->getConnection())->where($where)->setItemClass($model)->find();
-        if($cache_key&&$data){
-            Cache::set($cache_key,json_encode($data));
-        }
+        /* @var $db_cache DBCache  */
+        $db_cache =Ioc::get(DBCache::class);
+        $data= $db_cache->recordWhereCache($model,$where);
+        if($data)return $data;
+        /* @var $data Record  */
+        $data=DB::select($t->getTable(),$t->getConnection())->where($where)->setRecord($model)->find();
+        $db_cache->recordWhereCacheSave($model,$where,$data->_db_data);
         return $data;
     }
     /**
@@ -308,26 +299,40 @@ class Record{
      *  根据主键获取对象
      * @param $id
      * @param bool $cache   是否使用缓存
-     * @param int $cache_time 缓存时间
      * @return $this;
      */
-    public static function get($id,$cache= false,$cache_time=0){
-        $model= get_called_class();
-        $cache_key="record_".$model.$id;
-        $data=Cache::get($cache_key);
+    public static function get($id,$cache= true){
+        $model = get_called_class();
+        $db_cache=null;
+        if($cache){
+            /* @var $db_cache DBCache  */
+            $db_cache=Ioc::get(DBCache::class);
+            $data=$db_cache->recordCache($model,$id);
+            if($data){
+                return $data;
+            }
+        }
         /* @var $model Record  */
         $model=new $model;
-        if($cache&&$data){
-            $data=json_decode($data,true);
-            $model->setDbData($data);
-            return $model;
-        }
         $pk=$model->getPkField();
         $where[ $pk ] = $id;
         $data= $model::find($where);
         if($cache&&$data){
-            Cache::set($cache_key,json_encode($data),$cache_time);
+            $db_cache->recordCacheSave(get_called_class(),$id,$data->_db_data);
         }
+        return $data;
+    }
+
+    /**
+     * 查询对象并获取对象的事务锁
+     * @param $id
+     * @return mixed|null
+     */
+    public static function getLock($id){
+        $model = get_called_class();
+        /* @var $t Record  */
+        $t=new $model;
+        $data=DB::select($t->getTable(),$t->getConnection())->where($t->getPkField(),$id)->lock()->setRecord($model)->find();
         return $data;
     }
 
@@ -339,9 +344,14 @@ class Record{
      */
     public static function select($fields='', $contain=true){
         $model= get_called_class();
+        preg_match_all('/([A-Z]{1})/', substr($model,strrpos($model,'\\')+1), $matches);
+        $as= strtolower(implode("",$matches[0]));
+        if($as=='or'){
+            $as='o_r';
+        }
         /* @var $model Record  */
         $model=new $model;
-        $select=DB::select($model->getTable(),$model->getConnection())->setItemClass(get_called_class());
+        $select=DB::select($model->getTable()." ".$as,$model->getConnection())->setRecord(get_called_class());
         if($fields){
             if(!$contain){
                 $fieldAll=$model->getFields();
@@ -396,6 +406,7 @@ class Record{
     }
 
     /**
+     *
      * @param $array
      */
     public  function fromArray($array){
@@ -406,6 +417,68 @@ class Record{
          }
     }
 
+    public function toArray($key,$contain=true){
+        $keys=explode(',',$key);
+        $data=[];
+        if($contain){
+            foreach ($keys as $key) {
+                $data[$key]=$this->$key;
+            }
+        }else{
+           $data=json_encode($this,true);
+            foreach ($data as $key=>$value) {
+                if(in_array($key,$keys)){
+                    unset($data[$key]);
+                }
+            }
+        }
+        return $data;
+    }
 
+    public function renderConst(){
+        $fields=$this->getFields();
+        foreach ($fields as $field=>$type) {
+            if(is_array($type)){
+                $con=$type['const'];
+                $value=$this->$field;
+                if(is_int($value)){
+                    $value-=1;
+                }
+                $field_show=$field."_show";
+                $this->$field_show=$con[$value];
+            }
+        }
+    }
+
+    /**
+     * 删除附件
+     */
+    public function deleteAttach(){
+        $model=get_called_class();
+        /* @var $model Record  */
+        $model=new $model;
+        $model=$model::get($this->getPk());
+        $fields=$this->getFields();
+        foreach ($fields as $field) {
+            if($field=='attach'||$field=='attach_s'){
+                $value=$model->_db_data[$field];
+                if(!$value)continue;
+                $attach_s=json_encode($value,true);
+                foreach ($attach_s as $attach) {
+                    $type=$attach['type'];
+                    $url=$attach['url'];
+                    if(!$type){
+                        $type='default';
+                    }
+                    Storage::getStorage($type)->delete($url);
+                }
+            }
+        }
+    }
+
+    public function getPk(){
+        $pk=$this->getPkField();
+        return $this->$pk;
+    }
 
 }

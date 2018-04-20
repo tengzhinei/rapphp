@@ -1,13 +1,27 @@
 <html>
 <head>
-
+     <style>
+          table{
+               width: 100%;
+          }
+          th{
+               text-align: left;
+               padding: 10px;
+          }
+          td{
+               vertical-align: top;
+               padding: 10px;
+               border-bottom: 1px solid #ebeef5;
+          }
+     </style>
 </head>
 <body>
 <div style="border: 1px solid #888;">
      <div style="    line-height: 20px;
-    padding: 10px;    border-bottom: 1px solid #888;">调试信息</div>
-     <ul id="info">
-     </ul>
+    padding: 10px;    border-bottom: 1px solid #888;"><span>调试信息</span><a style="float: right" href="javascript:clear()">清空</a></div>
+          <table id="info">
+
+          </table>
      </div>
 
 </body>
@@ -28,6 +42,11 @@
         return "";
     }
     var info = document.getElementById('info');
+
+    function clear() {
+         info.innerHTML="<thead><tr><th width='50px'>类型</th><th width='50px'>时间</th><th width='100px'>用户</th><th >内容</th></tr></thead>";
+    }
+    clear();
     setInterval(function () {
          var page=location.href;
        var url= page.replace("/page",'/logMsg');
@@ -38,9 +57,11 @@
         content=JSON.parse(content);
         for(var index in content){
              var item=content[index];
-          var li=document.createElement('li');
-             li.innerHTML="<span>["+item.type+"]"+item.time+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+item.name+"("+item.session+") : "+item.msg+"</span>";
-            info.appendChild(li);
+             var li=document.createElement('tr');
+             var tr="<td>"+item.type+"</td><td>"+item.time+"</td><td>"+item.name+"</td><td>"+item.msg+"</td>";
+//           li.innerHTML="<span>["++"]"++"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+" : "++"</span>";
+             li.innerHTML=tr;
+             info.appendChild(li);
         }
     },1000)
 

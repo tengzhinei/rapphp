@@ -24,7 +24,6 @@ interface CacheInterface{
 
     public function hashSet($name, $key, $value);
     public function hashGet($name, $key,$default);
-
     public function hashRemove($name, $key);
 
 

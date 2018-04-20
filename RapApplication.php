@@ -81,6 +81,10 @@ class RapApplication extends Application{
                 });
             }
         }
+
+
+
+
         $item=Config::get("log");
         if($item){
             if($item['type']=='file'){

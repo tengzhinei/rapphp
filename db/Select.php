@@ -9,6 +9,7 @@
 namespace rap\db;
 
 
+use rap\cache\Cache;
 use rap\ioc\Ioc;
 
 class Select extends Where{
@@ -25,6 +26,7 @@ use Comment;
      */
     private $connection;
 
+
     /**
      * @param $table
      * @param Connection|null $connection
@@ -39,6 +41,8 @@ use Comment;
         $select->connection=$connection;
         return $select;
     }
+
+
 
     /**
      * @param $field
@@ -120,23 +124,63 @@ use Comment;
         return [$sql,$params];
     }
 
+    private $all_do=[];
+    public function allDo($all_do){
+        $this->all_do=array_merge($this->all_do,explode(',',$all_do));
+        return $this;
+    }
+    public function renderConst(){
+        $this->allDo("renderConst");
+        return $this;
+    }
 
     public function findAll(){
         $sql = $this->getSql();
         $params=array_merge($this->whereParams(),$this->having_params);
-        $data = $this->connection->query($sql,$params);
+        $data = $this->connection->query($sql,$params,$this->cache);
         if($this->clazz){
             $results=[];
             /* @var $item   */
             foreach ($data as $item) {
                 $clazz=$this->clazz;
                 $result=new $clazz;
+                foreach ($this->subRecord as $pre=>$sub) {
+                    $pre.="_";
+                    $values=[];
+                    $length=count($pre)+1;
+                    foreach ($item as $key=>$value) {
+                        if(strpos($key,$pre)===0){
+                            unset($item[$key]);
+                            $key=substr($key,$length);
+                            $values[$key]=$value;
+                        }
+                    }
+                    $clazz=$sub['class'];
+                    $field=$sub['field'];
+                    /* @var $subRecord Record  */
+                    $subRecord=new $clazz;
+                    $subRecord->fromDbData($values);
+                    if($sub['all_do']){
+                        foreach ($sub['all_do'] as $do) {
+                            $subRecord->$do();
+                        }
+                    }
+                    $result->$field=$subRecord;
+                }
                 if($result instanceof Record){
-                    $result->setDbData($item);
+                    $result->fromDbData($item);
                 }else{
                     foreach ($item as $key=>$value) {
                         $result->$key=$value;
                     }
+                }
+                if($this->all_do){
+                    foreach ($this->all_do as $do) {
+                        $result->$do();
+                    }
+                }
+                if($this->to_array&&$result instanceof Record){
+                    $result=$result->toArray($this->to_array,$this->to_array_contain);
                 }
                 $results[]=$result;
             }
@@ -151,13 +195,33 @@ use Comment;
      * @param $class
      * @return $this
      */
-    public function setItemClass($class){
+    public function setRecord($class){
             $this->clazz=$class;
         return $this;
     }
 
+    private $subRecord=[];
 
+    /**
+     * @param $field
+     * @param $pre
+     * @param $class
+     * @param string $all_do
+     * @return $this
+     */
+    public function setSubRecord($field,$pre,$class,$all_do=''){
+            $this->subRecord[$pre]=[
+                'class'=>$class,
+                'field'=>$field,
+                'all_do'=>explode(',',$all_do)
+            ];
+        return $this;
+    }
 
+    /**
+     *
+     * @return string
+     */
     private function getSql(){
         $sql = str_replace(
             ['%TABLE%', '%DISTINCT%', '%FIELD%', '%JOIN%', '%WHERE%', '%GROUP%', '%HAVING%', '%ORDER%', '%LIMIT%', '%LOCK%', '%COMMENT%', '%FORCE%'],
@@ -209,8 +273,26 @@ use Comment;
         $this->fields=[];
         $this->order("");
         $this->fields($field);
-        return $this->connection->value($this->getSql(),$this->whereParams());
+        return $this->connection->value($this->getSql(),$this->whereParams(),$this->cache);
     }
+
+    public function values($field){
+        $this->fields=[];
+        $this->order("");
+        $this->fields($field);
+        return $this->connection->values($this->getSql(),$this->whereParams(),$this->cache);
+    }
+
+    private $cache=false;
+    /**
+     * 开启二级缓存
+     * @return $this
+     */
+    public function cache(){
+        $this->cache=true;
+        return $this;
+    }
+
     public function count($field = '*'){
         if(!$this->group){
             $this->limit="";
@@ -255,4 +337,17 @@ use Comment;
         return $joinStr;
     }
 
+    private $to_array;
+    private $to_array_contain;
+
+    /**
+     * @param $key
+     * @param bool $contain
+     * @return Select
+     */
+    public function toArray($key,$contain=true){
+          $this->to_array=$key;
+          $this->to_array_contain=$contain;
+        return $this;
+    }
 }

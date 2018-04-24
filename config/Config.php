@@ -40,6 +40,7 @@ class Config{
 
     /**
      * 设置配置
+     * @param $module
      * @param $key
      * @param $value
      */
@@ -72,10 +73,10 @@ class Config{
         if(!$data){
             $config=self::get("config");
             $table=$config&&key_exists('db_table',$config)?$config['db_table']:"config";
-            $module=$config&&key_exists('module_field',$config)?$config['module_field']:"module";
+            $module_key=$config&&key_exists('module_field',$config)?$config['module_field']:"module";
             $content=$config&&key_exists('content_field',$config)?$config['content_field']:"content";
             $data= Select::table($table)
-                ->where($module,$module)
+                ->where($module_key,$module)
                 ->value($content);
             Cache::set(md5("config_".$module),$data);
         }

@@ -273,6 +273,7 @@ use Comment;
         $this->fields=[];
         $this->order("");
         $this->fields($field);
+        $this->limit(0,1);
         return $this->connection->value($this->getSql(),$this->whereParams(),$this->cache);
     }
 
@@ -294,9 +295,6 @@ use Comment;
     }
 
     public function count($field = '*'){
-        if(!$this->group){
-            $this->limit="";
-        }
         return (int) $this->value('COUNT(' . $field . ') AS count');
     }
 

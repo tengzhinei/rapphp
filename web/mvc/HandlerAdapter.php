@@ -1,6 +1,7 @@
 <?php
 namespace rap\web\mvc;
 
+use rap\aop\Event;
 use rap\exception\MsgException;
 use rap\session\Session;
 use rap\storage\File;
@@ -72,7 +73,7 @@ abstract class HandlerAdapter{
      * @throws MsgException
      * @return mixed
      */
-    public static function invokeRequest($obj, $method, Request $request, Response $response)
+    public  function invokeRequest($obj, $method, Request $request, Response $response)
     {
         try{
             $method =   new \ReflectionMethod(get_class($obj), $method);

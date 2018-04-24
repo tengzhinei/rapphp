@@ -195,6 +195,11 @@ class Record{
         }
         $pk_value=DB::insert($this->getTable(),$data,$this->getConnection());
         $this->$pk=$pk_value;
+        //数据放入缓存防止立马拿,由于主从库延迟拿不到
+        $data[$pk]=$pk_value;
+        /* @var $db_cache DBCache  */
+        $db_cache=Ioc::get(DBCache::class);
+        $db_cache->recordCacheSave(get_called_class(),$pk_value,$data);
     }
 
     /**
@@ -326,7 +331,7 @@ class Record{
     /**
      * 查询对象并获取对象的事务锁
      * @param $id
-     * @return mixed|null
+     * @return $this
      */
     public static function getLock($id){
         $model = get_called_class();
@@ -480,5 +485,15 @@ class Record{
         $pk=$this->getPkField();
         return $this->$pk;
     }
+
+    public function checkHas(){
+        /* @var $model Record  */
+        $model=get_called_class();
+        $model=$model::get($this->getPk());
+        if($model){
+            $this->isUpdate(true);
+        }
+    }
+
 
 }

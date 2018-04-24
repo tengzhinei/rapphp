@@ -20,6 +20,8 @@ use rap\exception\handler\PageExceptionReport;
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\log\Log;
+use rap\storage\File;
+use rap\web\filter\Filter;
 use rap\web\mvc\AutoFindHandlerMapping;
 use rap\web\mvc\Dispatcher;
 use rap\web\mvc\Router;
@@ -58,6 +60,26 @@ abstract class Application{
 
     public function start(Request $request, Response $response){
         try{
+            $filers=Config::get('filters');
+            if($filers){
+                /* @var $filer Filter  */
+                $url=$request->url();
+                $except=Config::get('filters_except');
+                $is_filter=true;
+                foreach ($except as $item) {
+                    if(strpos($url,$item)===0){
+                        $is_filter=false;
+                        break;
+                    }
+                }
+                if($is_filter){
+                    foreach ($filers as $filer) {
+                        $filer=Ioc::get($filer);
+                        $filer->handler($request,$response);
+                    }
+                }
+
+            }
             $this->dispatcher->doDispatch($request,$response);
         }catch (\Exception $exception){
             $this->handlerException( $request, $response,$exception);

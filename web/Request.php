@@ -469,5 +469,32 @@ class Request{
         return $this->response->session();
     }
 
+    private $holders=[];
+
+    /**
+     * @param $name
+     * @param null $value
+     * @return mixed|null
+     */
+    public function holder($name=null,$value=null){
+        if($name===null&&$value===null){
+           return $this->holders['default'];
+        }
+        if($value===null){
+            $value=$name;
+            $name='default';
+        }
+        $this->holders[$name]=$value;
+        return null;
+    }
+
+
+    public function userId($user_id=null){
+        if($user_id==null){
+            return   $this->session('user_id');
+        }
+        $this->session('user_id',$user_id);
+        return null;
+    }
 
 }

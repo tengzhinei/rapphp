@@ -26,14 +26,14 @@ use rap\web\mvc\view\View;
 class RapApplication extends Application{
 
     public function init( AutoFindHandlerMapping $autoMapping, Router $router){
-        $file=APP_PATH.DS."common.php";
-        if(file_exists($file)){
-            include_once $file;
-            if(function_exists('rap_app_init')){
-              $ret=rap_app_init($this,$autoMapping,$router);
-              if($ret===null||$ret==true){
-                  return;
-              }
+        $app= Config::get('app');
+        if($app['init']){
+            Ioc::bind(Init::class,$app['init']);
+            /* @var $init Init  */
+            $init=Ioc::get(Init::class);
+            $ret=$init->appInit($autoMapping,$router);
+            if($ret==true){
+                return;
             }
         }
         $map= Config::get("mapping");

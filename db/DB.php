@@ -22,7 +22,7 @@ class DB{
      * @return Insert|string
      */
     public static function insert($table,$data=null,Connection $connection=null){
-        if($data){
+        if($data!==null){
              return  Insert::insert($table,$data,$connection);
         }else{
             return  Insert::table($table,$connection);
@@ -76,11 +76,12 @@ class DB{
     /**
      * 事务中运行
      * @param \Closure $closure
+     * @return mixed
      */
     public static function runInTrans(\Closure $closure){
         /* @var $connection Connection  */
         $connection=Ioc::get(Connection::class);
-        $connection->runInTrans($closure);
+         return   $connection->runInTrans($closure);
     }
 
     /**

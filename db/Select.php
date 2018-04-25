@@ -129,6 +129,14 @@ use Comment;
         $this->all_do=array_merge($this->all_do,explode(',',$all_do));
         return $this;
     }
+
+    private $each=[];
+    public function each($each){
+        $this->each[]=$each;
+        return $this;
+    }
+
+
     public function renderConst(){
         $this->allDo("renderConst");
         return $this;
@@ -161,9 +169,8 @@ use Comment;
                     $subRecord=new $clazz;
                     $subRecord->fromDbData($values);
                     if($sub['all_do']){
-                        foreach ($sub['all_do'] as $do) {
-                            $subRecord->$do();
-                        }
+                        $call=$sub['all_do'];
+                        $call($subRecord);
                     }
                     $result->$field=$subRecord;
                 }
@@ -177,6 +184,11 @@ use Comment;
                 if($this->all_do){
                     foreach ($this->all_do as $do) {
                         $result->$do();
+                    }
+                }
+                if($this->each){
+                    foreach ($this->each as $each) {
+                        $each($result);
                     }
                 }
                 if($this->to_array&&$result instanceof Record){
@@ -206,14 +218,14 @@ use Comment;
      * @param $field
      * @param $pre
      * @param $class
-     * @param string $all_do
+     * @param  $all_do \Closure
      * @return $this
      */
-    public function setSubRecord($field,$pre,$class,$all_do=''){
+    public function setSubRecord($field,$pre,$class,$all_do=null){
             $this->subRecord[$pre]=[
                 'class'=>$class,
                 'field'=>$field,
-                'all_do'=>explode(',',$all_do)
+                'all_do'=>$all_do
             ];
         return $this;
     }

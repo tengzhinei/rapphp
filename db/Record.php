@@ -146,6 +146,7 @@ class Record{
 
             if($value==='null'){
                 $value=null;
+                $this->$field=null;
             }else if($type=='int'){
                 $value=(int)$value;
             }else if($type=='float'){
@@ -430,7 +431,8 @@ class Record{
                 $data[$key]=$this->$key;
             }
         }else{
-           $data=json_encode($this,true);
+           $data=json_encode($this);
+            $data=json_decode($data,true);
             foreach ($data as $key=>$value) {
                 if(in_array($key,$keys)){
                     unset($data[$key]);
@@ -492,7 +494,9 @@ class Record{
         $model=$model::get($this->getPk());
         if($model){
             $this->isUpdate(true);
+            return true;
         }
+        return false;
     }
 
 

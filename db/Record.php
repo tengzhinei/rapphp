@@ -119,7 +119,12 @@ class Record{
         if(($pk=='id'&&$this->$pk)||$this->to_updata){
             $this->update();
         }else{
-            $this->insert();
+            $this->checkHas();
+            if($this->to_updata){
+                $this->update();
+            }else{
+                $this->insert();
+            }
         }
     }
 
@@ -195,7 +200,9 @@ class Record{
             $data[$create_time]=time();
         }
         $pk_value=DB::insert($this->getTable(),$data,$this->getConnection());
-        $this->$pk=$pk_value;
+        if(!$this->$pk){
+            $this->$pk=$pk_value;
+        }
         //数据放入缓存防止立马拿,由于主从库延迟拿不到
         $data[$pk]=$pk_value;
         /* @var $db_cache DBCache  */

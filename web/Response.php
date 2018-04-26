@@ -120,7 +120,7 @@ class Response{
         return $this->data;
     }
 
-    public function cookie(string $key, string $value = '', int $expire = 0 , string $path = '/', string $domain = '', bool $secure = false , bool $httponly = false){
+    public function cookie( $key,  $value = '',  $expire = 0 ,  $path = '/',  $domain = '',  $secure = false ,  $httponly = false){
             setcookie($key,$value,$expire,$path,$domain,$secure,$httponly);
     }
 

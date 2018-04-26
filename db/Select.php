@@ -9,7 +9,6 @@
 namespace rap\db;
 
 
-use rap\cache\Cache;
 use rap\ioc\Ioc;
 
 class Select extends Where{

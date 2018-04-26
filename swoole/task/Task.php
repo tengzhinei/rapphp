@@ -20,7 +20,7 @@ class Task{
      * @param array $params
      * @param int $task_id
      */
-    public function doTask(string $clazz,$method="run",array $params=[],$task_id=-1){
+    public function doTask( $clazz,$method="run",array $params=[],$task_id=-1){
         $app=Ioc::get(Application::class);
         $bean=[
             'clazz'=>$clazz,

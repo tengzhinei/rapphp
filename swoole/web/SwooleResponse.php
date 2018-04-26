@@ -34,7 +34,7 @@ class SwooleResponse extends Response{
         $this->swooleResponse->end($this->content);
     }
 
-    public function cookie(string $key, string $value = '', int $expire = 0 , string $path = '/', string $domain = '', bool $secure = false , bool $httponly = false){
+    public function cookie( $key,  $value = '',  $expire = 0 ,  $path = '/',  $domain = '',  $secure = false ,  $httponly = false){
             $this->swooleResponse->cookie($key,$value,$expire,$path,$domain,$secure,$httponly);
     }
 

@@ -1,7 +1,6 @@
 <?php
 namespace rap\web\mvc;
 
-use rap\aop\Event;
 use rap\exception\MsgException;
 use rap\session\Session;
 use rap\storage\File;

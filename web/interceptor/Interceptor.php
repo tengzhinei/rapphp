@@ -1,5 +1,5 @@
 <?php
-namespace rap\web\Interceptor;
+namespace rap\web\interceptor;
 use rap\web\Request;
 use rap\web\Response;
 

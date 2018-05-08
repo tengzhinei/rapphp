@@ -73,20 +73,26 @@ class Record{
                 if($time.""==$value){
                     $value=date("Y-m-d",$this->_db_data[$item]);
                 }
-            }else if($type=='attach'){
-                $attach_s=json_decode($value,true);
-                $value="";
-                if(count($attach_s)>0){
-                    $url=$attach_s[0]['url'];
-                    $type='default';
-                    if(key_exists('type',$attach_s)){
-                        $type=$attach_s['type'];
-                    }
-                    $domian=Storage::getStorage($type)->getDomain();
-                    if(!(strpos($url, 'http') === 0)&&$url){
-                        $url=$domian.$url;
-                    }
-                    $value=$url;
+            }else if($type=='attach'||$type=='attach_i'){
+                $attach=json_decode($value,true);
+                if(count($attach)>0){
+                    $attach=$attach[0];
+                }else{
+                    continue;
+                }
+                $url=$attach['url'];
+                $image_type='default';
+                if(key_exists('type',$attach)){
+                    $image_type=$attach['type'];
+                }
+                $domian=Storage::getStorage($image_type)->getDomain();
+                if(!(strpos($url, 'http') === 0)&&$url){
+                    $attach['url']=$domian.$url;
+                }
+                if($type=='attach'){
+                    $value=$attach;
+                }else{
+                    $value=$attach['url'];
                 }
             }else if( $type=='attach_s'){
                 $value=json_decode($value,true);
@@ -119,7 +125,9 @@ class Record{
         if(($pk=='id'&&$this->$pk)||$this->to_updata){
             $this->update();
         }else{
-            $this->checkHas();
+            if($this->$pk){
+                $this->checkHas();
+            }
             if($this->to_updata){
                 $this->update();
             }else{
@@ -161,7 +169,7 @@ class Record{
                 if($time.""!=$value){
                     $value=strtotime($value);
                 }
-            }else if($type=='attach'||$type=='attach_s'){
+            }else if($type=='attach_s'){
                 if(is_string($value)){
                     $attach=[['url'=>$value]];
                 }else{
@@ -182,6 +190,25 @@ class Record{
                     $values[]=$item;
                 }
                 $value=json_encode($values);
+                if($value==$oldValue&&$oldValue!=null)continue;
+            }else if($type=='attach'||$type=='attach_i'){
+                if(is_string($value)){
+                    $item=['url'=>$value];
+                }else{
+                    $item=$value;
+                }
+                $type='default';
+                if(key_exists('type',$item)){
+                    $type=$item['type'];
+                }
+                $url=$item['url'];
+                $domian=Storage::getStorage($type)->getDomain();
+                if($domian){
+                    $url=str_replace($domian,"",$url);
+                }
+                $item['url']=$url;
+                $item=[$item];
+                $value=json_encode($item);
                 if($value==$oldValue&&$oldValue!=null)continue;
             }
             $data[$field]=$value;

@@ -24,7 +24,8 @@ class File{
         $file->size=$upload_file['size'];
         $file->path_tmp=$upload_file['tmp_name'];
         $file->error=$upload_file['error'];
-        $file->ext= explode(".",$file->name)[1];
+        $x=explode(".",$file->name);
+        $file->ext= $x[count($x)-1];
         return $file;
     }
     /**

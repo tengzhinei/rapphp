@@ -86,7 +86,7 @@ class Config{
         return $data;
     }
 
-    private static function getFileConfig(){
+    public static function getFileConfig(){
         if(!static::$fileDate){
             static::$fileDate=include APP_PATH.'config.php';
         }

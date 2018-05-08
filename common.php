@@ -5,6 +5,13 @@
  * @param $value
  */
 
+function success($msg=""){
+    return ['success'=>true,'msg'=>$msg];
+}
+function fail($msg=""){
+    return ['success'=>false,'msg'=>$msg];
+}
+
 /**
  * 重定向
  * @param $url

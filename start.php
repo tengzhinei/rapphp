@@ -16,7 +16,7 @@ define('IS_SWOOLE_HTTP', IS_CLI&&$argv[1]=='http');
 $loader = require ROOT_PATH . '/vendor/autoload.php';
 $loader->setPsr4(APP_DIR."\\", APP_DIR);
 $loader->setPsr4("rap\\aop\\build\\", RUNTIME.'aop');
-
+include_once 'common.php';
 //swoole 模式
 if(IS_CLI){
     if(IS_SWOOLE_HTTP){

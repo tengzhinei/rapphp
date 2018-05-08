@@ -34,24 +34,15 @@ class AutoFindHandlerMapping implements HandlerMapping{
                 $find=true;
             }
         }
+        //没有找到为默认
         if(!$find){
-            //内有定义直接返回
-            return null;
+            $prefix="/";
+            $dir="app\\";
         }
         $path = substr($path,strlen($prefix));
         $path = str_replace($this->separator, '|', $path);
         $array=explode('|',$path);
-//        $items=[];
-//        $search=[];
-//        foreach ($array as $item) {
-//            if($item==(int)$item){
-//                $search[]=$item;
-//            }else{
-//                $items[]=$item;
-//            }
-//        }
-//        $request->search($search);
-//        $array=$items;
+
         if(count($array)!=2){
             array_splice($array,count($array)-2,0,[$this->controllerDir]);
         }
@@ -61,6 +52,9 @@ class AutoFindHandlerMapping implements HandlerMapping{
             $classPath = $dir . implode('\\', $array) . $this->controllerPostfix;
         }else{
             $classPath = $dir . implode('\\', $array);
+        }
+        if(!class_exists($classPath)){
+            return null;
         }
         $handlerAdapter=new ControllerHandlerAdapter($classPath,$method);
         $handlerAdapter->pattern($path);

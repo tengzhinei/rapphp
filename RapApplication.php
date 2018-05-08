@@ -26,7 +26,8 @@ use rap\web\mvc\view\View;
 class RapApplication extends Application{
 
     public function init( AutoFindHandlerMapping $autoMapping, Router $router){
-        $app= Config::get('app');
+        $config=Config::getFileConfig();
+        $app= $config['app'];
         if($app['init']){
             Ioc::bind(Init::class,$app['init']);
             /* @var $init Init  */
@@ -36,13 +37,15 @@ class RapApplication extends Application{
                 return;
             }
         }
-        $map= Config::get("mapping");
+
+
+        $map=$config["mapping"];
         if($map){
             foreach ($map as $key=>$value) {
                 $autoMapping->prefix($key,$value);
             }
         }
-        $item=Config::get("db");
+        $item=$config["db"];
         if($item){
             if($item['type']=='mysql'){
                 unset($item['type']);
@@ -51,7 +54,7 @@ class RapApplication extends Application{
                 });
             }
         }
-        $item=Config::get("storage");
+        $item=$config["storage"];
         if($item){
             if($item['type']=='oss'){
                 unset($item['type']);
@@ -60,7 +63,7 @@ class RapApplication extends Application{
                 });
             }
         }
-        $item=Config::get("view");
+        $item=$config["view"];
         if($item){
             if($item['type']=='smarty'){
                 unset($item['type']);
@@ -69,7 +72,7 @@ class RapApplication extends Application{
                 });
             }
         }
-        $item=Config::get("cache");
+        $item=$config["cache"];
         if($item){
             if($item['type']=='file'){
                 Ioc::bind(CacheInterface::class,FileCache::class,function(FileCache $fileCache) use($item){
@@ -82,10 +85,7 @@ class RapApplication extends Application{
             }
         }
 
-
-
-
-        $item=Config::get("log");
+        $item=$config["log"];
         if($item){
             if($item['type']=='file'){
                 Ioc::bind(LogInterface::class,FileLog::class,function(FileLog $fileLog )use ($item){

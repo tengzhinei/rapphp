@@ -369,6 +369,7 @@ class Record{
      * @return $this
      */
     public static function getLock($id){
+
         $model = get_called_class();
         /* @var $t Record  */
         $t=new $model;

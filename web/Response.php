@@ -52,6 +52,13 @@ class Response{
     }
 
 
+
+    public function redirect($url,$code=200){
+        $this->code($code);
+        $this->header("location",$url);
+        $this->send();
+    }
+
     /**
      * 获取头部信息
      * @param string $name 头部名称

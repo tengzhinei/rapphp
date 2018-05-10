@@ -43,9 +43,10 @@ class Dispatcher{
         if(is_string($value)){
             if(strpos($value,'redirect:')===0){
                 $value=substr($value,strlen('redirect:'));
-                $response->code(200);
+                $response->code(302);
                 $response->header("location",$value);
                 $response->send();
+                $response->redirect($value,302);
                 return;
             }else
             if(strpos($value,'body:')===0){

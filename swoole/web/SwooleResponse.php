@@ -30,7 +30,7 @@ class SwooleResponse extends Response{
                     $this->swooleResponse->header($name,$val);
             }
         }
-        $this->swooleResponse->  gzip(1);
+       // $this->swooleResponse->  gzip(1);
         $this->swooleResponse->end($this->content);
     }
 

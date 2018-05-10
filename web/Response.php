@@ -53,7 +53,7 @@ class Response{
 
 
 
-    public function redirect($url,$code=200){
+    public function redirect($url,$code=302){
         $this->code($code);
         $this->header("location",$url);
         $this->send();

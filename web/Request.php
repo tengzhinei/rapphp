@@ -319,13 +319,20 @@ class Request{
         return false;
     }
 
+    private $host;
+
     /**
-     * 获取当前包含协议的域名
-     * @access public
-     * @return string
+     * @param string $host
+     * @return mixed|null|string
      */
-    public function host(){
-        return self::server('HTTP_HOST');
+    public function host($host=''){
+        if($host){
+            $this->host=$host;
+        }
+        if(!$this->host){
+            $this->host=self::server('HTTP_HOST');
+        }
+        return  $this->host;
     }
 
 

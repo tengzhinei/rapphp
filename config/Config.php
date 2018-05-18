@@ -48,7 +48,8 @@ class Config{
         $data=Cache::get(md5("config_".$module));
         if($data){
             $data=json_decode($data,true);
-        }else{
+        }
+        if(!$data){
             $data=[];
         }
         if($value!==null){

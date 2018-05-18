@@ -390,6 +390,9 @@ class Record{
         if($as=='or'){
             $as='o_r';
         }
+        if($as=='and'){
+            $as='a_n_d';
+        }
         /* @var $model Record  */
         $model=new $model;
         $select=DB::select($model->getTable()." ".$as,$model->getConnection())->setRecord(get_called_class());

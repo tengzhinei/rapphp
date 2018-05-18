@@ -1,6 +1,7 @@
 <?php
 namespace rap\exception\handler;
 use rap\exception\MsgException;
+use rap\log\Log;
 use rap\web\Request;
 use rap\web\Response;
 /**
@@ -18,6 +19,7 @@ class ApiExceptionHandler implements ExceptionHandler{
             'code'=>$exception instanceof MsgException?'100000':'101010',
             'msg'=>$msg
         ]);
+        Log::debug($value);
         $response->setContent($value);
         $response->send();
     }

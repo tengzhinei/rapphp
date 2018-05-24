@@ -2,6 +2,7 @@
 namespace rap\console\command;
 use rap\console\Command;
 use rap\db\Connection;
+use rap\ioc\Ioc;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -11,15 +12,7 @@ use rap\db\Connection;
  */
 class RecordBuild extends Command{
 
-    /**
-     * @var Connection
-     */
-    private $connection;
 
-
-    public function _initialize(Connection $connection){
-        $this->connection=$connection;
-    }
 
 
     public function configure(){
@@ -45,7 +38,9 @@ class RecordBuild extends Command{
 
     public function run($s='', $p='', $n=''){
         set_time_limit(0);
-        $tables=$this->connection->getTables();
+        /*  @var Connection $connection  */
+        $connection=Ioc::get(Connection::class);
+        $tables=$connection->getTables();
 
         foreach ($tables as $table) {
             if($s){
@@ -60,13 +55,14 @@ class RecordBuild extends Command{
     }
 
     public function create($table_name,$prefix,$namespace){
+        $connection=Ioc::get(Connection::class);
         /* @var Connection $connection  */
         $name=$table_name;
         if($prefix){
             $name=str_replace($prefix.'_',"",$table_name);
         }
         $name=$this->convertUnderline($name);
-        $fields=$this->connection->getFields($table_name);
+        $fields=$connection->getFields($table_name);
         $txt = <<<EOF
 <?php
 namespace $namespace;

@@ -9,16 +9,18 @@
 namespace rap\swoole\web;
 
 
+use rap\session\Session;
 use rap\web\Response;
 
 class SwooleResponse extends Response{
 
 
+    private $request;
     private $swooleResponse;
-    public function swooleResponse($response){
+    public function swoole($request, $response){
         $this->swooleResponse=$response;
+        $this->request=$request;
     }
-
 
     public function send(){
         // 发送状态码
@@ -38,5 +40,15 @@ class SwooleResponse extends Response{
             $this->swooleResponse->cookie($key,$value,$expire,$path,$domain,$secure,$httponly);
     }
 
+    /**
+     *
+     * @return Session
+     */
+    public function session(){
+        if(!$this->session){
+            $this->session=new SwooleSession($this->request,$this);
+        }
+        return $this->session;
+    }
 
 }

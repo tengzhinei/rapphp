@@ -504,4 +504,14 @@ class Request{
         return null;
     }
 
+    /**
+     * 判断是否ajax
+     * @return bool
+     */
+    public function isAjax(){
+        $value  = $this->server('HTTP_X_REQUESTED_WITH', '', 'strtolower');
+        $result = ('xmlhttprequest' == $value) ? true : false;
+        return $result;
+    }
+
 }

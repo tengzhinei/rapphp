@@ -37,8 +37,6 @@ class RapApplication extends Application{
                 return;
             }
         }
-
-
         $map=$config["mapping"];
         if($map){
             foreach ($map as $key=>$value) {

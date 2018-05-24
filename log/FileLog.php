@@ -23,7 +23,7 @@ class FileLog implements LogInterface{
 
     public function writeLog($level, $message){
         $log=  $this->logStr(time(),$level,$message);
-        $file = fopen(getcwd().$this->options['path'].date($this->options['splitFormat'],time()).'.log', "a");
+        $file = fopen(ROOT_PATH.$this->options['path'].date($this->options['splitFormat'],time()).'.log', "a");
         fwrite($file, $log);
         fclose($file);
     }

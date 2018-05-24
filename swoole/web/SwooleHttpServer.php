@@ -3,6 +3,7 @@ namespace rap\swoole\web;
 
 
 use rap\aop\AopBuild;
+use rap\aop\Event;
 use rap\cache\CacheInterface;
 use rap\cache\RedisCache;
 use rap\config\Config;
@@ -11,6 +12,7 @@ use rap\console\command\AopFileBuild;
 use rap\db\Connection;
 use rap\ioc\Ioc;
 use rap\RapApplication;
+use rap\session\Session;
 use rap\web\Application;
 
 
@@ -57,6 +59,7 @@ class SwooleHttpServer extends Command{
         $application= Ioc::get(Application::class);
         $application->server=$serv;
         $application->task_id=$id;
+        Event::trigger('onHttpWorkStart','');
     }
 
     public function onTask($serv, $task_id, $from_id, $data){
@@ -82,8 +85,9 @@ class SwooleHttpServer extends Command{
             $application=Ioc::get(Application::class);
             $rep=new SwooleResponse();
             $req=new SwooleRequest($rep);
-            $req->swooleRequest($request);
-            $rep->swooleResponse($response);
+            $req->swoole($request);
+
+            $rep->swoole($req,$response);
             //redis 20s ping 一次
             static $last_redis_ping_time=0;
             if(time()-$last_redis_ping_time>20){

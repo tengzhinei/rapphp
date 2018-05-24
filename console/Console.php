@@ -21,10 +21,10 @@ class Console{
 
 
     public function _initialize(){
+         $this->addConsole(Ioc::get(SwooleHttpServer::class));
         $this->addConsole(Ioc::get(RecordBuild::class));
-        $this->addConsole(Ioc::get(SwooleHttpServer::class));
         $this->addConsole(Ioc::get(AopFileBuild::class));
-        $cmds= Config::get('cmds');
+        $cmds= Config::getFileConfig()['cmds'];
         if($cmds){
             foreach ($cmds as $cmd) {
                 try{

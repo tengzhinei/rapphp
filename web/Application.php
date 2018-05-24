@@ -59,11 +59,11 @@ abstract class Application{
 
     public function start(Request $request, Response $response){
         try{
-            $interceptors=Config::get('interceptors');
+            $interceptors=Config::getFileConfig()['interceptors'];
             if($interceptors){
                 /* @var $interceptor Interceptor  */
                 $url=$request->url();
-                $except=Config::get('interceptors_except');
+                $except=Config::getFileConfig()['interceptors_except'];
                 $is_interceptor=true;
                 foreach ($except as $item) {
                     if(strpos($url,$item)===0){
@@ -90,7 +90,7 @@ abstract class Application{
     public function handlerException(Request $request, Response $response, \Exception $exception){
         Log::save();
         $ext = $request->ext();
-        $debug=Config::get("app","debug");
+        $debug=Config::getFileConfig()["app"]["debug"];
         //没有后缀的或者后缀为 json 的认定返回类型为api的
         if(!($exception instanceof MsgException)&&$debug){
                 if(!$ext||$ext=='json'){

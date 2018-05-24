@@ -16,9 +16,7 @@ class SwooleRequest extends Request{
 
     private $swooleRequest;
 
-
-
-    public function swooleRequest($request){
+    public function swoole($request){
         $this->swooleRequest=$request;
     }
 

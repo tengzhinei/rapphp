@@ -16,4 +16,5 @@ namespace rap\exception;
  */
 class MsgException extends \Exception{
 
+
 }

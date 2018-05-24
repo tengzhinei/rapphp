@@ -38,7 +38,7 @@ abstract class Connection{
         PDO::ATTR_STRINGIFY_FETCHES => false,
         PDO::ATTR_PERSISTENT=>true,
         PDO::ATTR_EMULATE_PREPARES  => false,
-        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY=>true
+//        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY=>true//php7.2.4废弃
     ];
 
     /** @var \PDOStatement PDO操作实例 */

@@ -29,9 +29,12 @@ class Response{
     // header参数
     protected $header = [];
 
+    public $hasSend=false;
 
 
     public function send(){
+        if($this->hasSend)return;
+        $this->hasSend=true;
         $this->header['Content-Type'] = $this->contentType . '; charset=' . $this->charset;
         if (!headers_sent() && !empty($this->header)) {
             http_response_code($this->code);

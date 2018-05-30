@@ -81,12 +81,13 @@ class SwooleHttpServer extends Command{
                 $response->end();
                 return;
             }
+            $time=getMillisecond();
             /* @var $application Application  */
             $application=Ioc::get(Application::class);
             $rep=new SwooleResponse();
             $req=new SwooleRequest($rep);
+            $req->holder('rap-start-time',$time);
             $req->swoole($request);
-
             $rep->swoole($req,$response);
             //redis 20s ping 一次
             static $last_redis_ping_time=0;
@@ -101,6 +102,7 @@ class SwooleHttpServer extends Command{
             //生成 session
             $rep->session()->sessionId();
             $application->start($req,$rep);
+
         }catch (\Exception $exception){
             $response->end("");
             return;

@@ -70,6 +70,8 @@ class Dispatcher{
             $value=json_encode($value);
             $response->setContent($value);
         }
+        $time=$request->holderGet('rap-start-time');
+        $response->header('rap-time',getMillisecond()-$time);
         $response->send();
     }
 

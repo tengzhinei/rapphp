@@ -56,7 +56,7 @@ class SwooleSession implements Session{
         $key='php_session'.self::sessionId();
         $session = Cache::get($key,[]);
         $session[$key]=$value;
-        Cache::set($key,$session,3600);
+        Cache::set($key,$session,-1);
     }
 
     public function get($key){
@@ -69,7 +69,7 @@ class SwooleSession implements Session{
         $key = 'php_session' . self::sessionId();
         $session = Cache::get($key, []);
         unset($session[$key]);
-        Cache::set($key,$session,3600);
+        Cache::set($key,$session,-1);
     }
 
     public function clear(){

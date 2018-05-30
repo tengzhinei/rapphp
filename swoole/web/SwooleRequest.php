@@ -9,6 +9,7 @@
 namespace rap\swoole\web;
 
 
+use rap\config\Config;
 use rap\storage\File;
 use rap\web\Request;
 
@@ -96,6 +97,9 @@ class SwooleRequest extends Request{
     {
         if (!$this->url) {
             $this->url=$this->swooleRequest->server['request_uri'];
+            if(strpos($this->url,Config::get('app','url_base'))===0){
+                $this->url=substr($this->url,strlen(Config::get('app','url_base')));
+            }
         }
         return  $this->url;
     }

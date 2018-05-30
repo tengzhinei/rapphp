@@ -123,7 +123,7 @@ class RedisCache implements CacheInterface{
         $this->open();
         $value=$this->redis->hGet($name,$key);
         if($value===false){
-            return null;
+            return $default;
         }
         return unserialize($value);
     }
@@ -137,8 +137,5 @@ class RedisCache implements CacheInterface{
         $this->open();
         $this->redis->flushDB();
     }
-
-
-
 
 }

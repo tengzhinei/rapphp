@@ -1,5 +1,6 @@
 <?php
 namespace rap\web;
+use rap\config\Config;
 use rap\ioc\Ioc;
 use rap\session\Session;
 use rap\storage\File;
@@ -285,6 +286,9 @@ class Request{
             } else {
                 $this->url = '';
             }
+            if(strpos($this->url,Config::get('app','url_base'))===0){
+                $this->url=substr($this->url,strlen(Config::get('app','url_base')));
+            }
         }
         return  $this->url;
     }
@@ -495,6 +499,10 @@ class Request{
         return null;
     }
 
+    public function holderGet($name='default'){
+        return $this->holders[$name];
+    }
+
 
     public function userId($user_id=null){
         if($user_id==null){
@@ -509,8 +517,8 @@ class Request{
      * @return bool
      */
     public function isAjax(){
-        $value  = $this->server('HTTP_X_REQUESTED_WITH', '', 'strtolower');
-        $result = ('xmlhttprequest' == $value) ? true : false;
+        $value  = $this->server('HTTP_X_REQUESTED_WITH');
+        $result = ('xmlhttprequest' == strtolower($value)) ? true : false;
         return $result;
     }
 

@@ -223,8 +223,8 @@ class Record{
         $pk=$this->getPkField();
         $data=$this->getDBData();
         $create_time='create_time';
-        if(property_exists(get_called_class(),$create_time)){
-            $data[$create_time]=time();
+        if(property_exists(get_called_class(),$create_time)&&!$data[$create_time]){
+            $data[$create_time]=time()-10;
         }
         $pk_value=DB::insert($this->getTable(),$data,$this->getConnection());
         if(!$this->$pk){

@@ -16,9 +16,11 @@ class ApiExceptionHandler implements ExceptionHandler{
         $response->contentType("application/json");
         $value=json_encode([
             'success'=>false,
-            'code'=>$exception instanceof MsgException?'100000':'101010',
-            'msg'=>$msg
+            'code'=>$exception->getCode(),
+            'msg'=>$msg,
+            'data'=>$exception instanceof MsgException?$exception->data:''
         ]);
+
         Log::debug($value);
         $response->setContent($value);
         $response->send();

@@ -36,8 +36,8 @@ function cache($key,$value = '',$expire=0){
     }
 }
 
-function exception($msg,$code=200){
-    throw new \rap\exception\MsgException($msg,$code);
+function exception($msg,$code=100000,$data=null){
+    throw new \rap\exception\MsgException($msg,$code,$data);
 }
 
 function pickArrayByPre(&$array,$pre){

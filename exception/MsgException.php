@@ -18,7 +18,7 @@ class MsgException extends \Exception{
 
     public $data;
 
-    public function __construct($message, $code=0, $data  = null) {
+    public function __construct($message, $code=100000, $data  = null) {
         parent::__construct($message, $code );
         $this->data=$data;
         

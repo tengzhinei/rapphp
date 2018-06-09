@@ -25,6 +25,7 @@ class Log {
      * @param string $name
      */
     public static function debugSession($name=""){
+        if(!IS_DEV)return;
         session_start();
         $sessionIds=Cache::get(md5('Log.debugSession'),[]);
         $sessionIds[session_id()]=$name;
@@ -38,6 +39,7 @@ class Log {
      * @param bool $force    是否强制记录
      */
     public static function debug($message,$type='user',$force=false){
+        if(!IS_DEV)return;
         if(!(is_string($message)||is_int($message))){
             $message=json_decode($message);
         }

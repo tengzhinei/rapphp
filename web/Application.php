@@ -74,7 +74,10 @@ abstract class Application{
                 if($is_interceptor){
                     foreach ($interceptors as $interceptor) {
                         $interceptor=Ioc::get($interceptor);
-                        $interceptor->handler($request,$response);
+                        $value=$interceptor->handler($request,$response);
+                        if($value){
+                            return;
+                        }
                     }
                 }
 

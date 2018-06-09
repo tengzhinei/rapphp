@@ -353,6 +353,7 @@ class Request{
         if($index){
             $url=substr($url,0,$index) ;
         }
+        
         return $url;
     }
 

@@ -45,17 +45,14 @@ class Config{
      * @param $value
      */
     public static function set($module,$key,$value=null){
-        $data=Cache::get(md5("config_".$module));
-        if($data){
-            $data=json_decode($data,true);
-        }
+        $data=self::getModuleFromDB($module);
         if(!$data){
             $data=[];
         }
-        if($value!==null){
-            $data[$key]=$value;
-        }else{
+        if(is_array($key)){
             $data=array_merge($data,$key);
+        }else{
+            $data[$key]=$value;
         }
         $data=json_encode($data);
         $config=self::get("config");

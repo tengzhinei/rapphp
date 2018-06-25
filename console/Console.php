@@ -14,6 +14,7 @@ use rap\console\command\AopFileBuild;
 use rap\console\command\RecordBuild;
 use rap\ioc\Ioc;
 use rap\swoole\web\SwooleHttpServer;
+use rap\swoole\websocket\WebSocketServer;
 
 class Console{
 
@@ -22,6 +23,7 @@ class Console{
 
     public function _initialize(){
          $this->addConsole(Ioc::get(SwooleHttpServer::class));
+        $this->addConsole(Ioc::get(WebSocketServer::class));
         $this->addConsole(Ioc::get(RecordBuild::class));
         $this->addConsole(Ioc::get(AopFileBuild::class));
         $cmds= Config::getFileConfig()['cmds'];

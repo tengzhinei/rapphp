@@ -21,14 +21,14 @@ abstract class WebSocketService{
      */
     public $server;
 
-
-
     /**
      * 通过get参数获取当前用户
      * @param $get
      * @return mixed
      */
     public abstract function tokenToUserId($get);
+
+    public abstract function onOpen($user_id);
 
     /**
      * 发送消息
@@ -40,7 +40,22 @@ abstract class WebSocketService{
        return $this->server->sendToUser($user_id,$msg);
     }
 
+    /**
+     * 直接推送
+     * @param $fid
+     * @param $msg
+     */
+    public function push($fid,$msg){
+        if( $this->server->server->exist($fid)){
+            $this->server->server->push($fid,$msg);
+        }
+    }
 
-
+    public function close($fid){
+        if( $this->server->server->exist($fid)){
+            $this->server->server->push($fid,json_encode(['msg_type'=>'error','code'=>'10011','msg'=>'用户已在其他地方登录']));
+            $this->server->server->close($fid);
+        }
+    }
 
 }

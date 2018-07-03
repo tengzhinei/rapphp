@@ -41,7 +41,7 @@ class RedisCache implements CacheInterface{
     public function ping(){
         if($this->redis){
             try{
-                $this->redis->ping();
+              $this->redis->ping();
             }catch (\Exception $e){
                 $this->redis=null;
                 $this->open();

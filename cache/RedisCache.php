@@ -13,127 +13,126 @@ namespace rap\cache;
  * Class RedisCache
  * @package rap\cache
  */
-class RedisCache implements CacheInterface{
+class RedisCache implements CacheInterface {
 
     /**
      * @var \Redis
      */
     public $redis;
 
-    protected $options = [
-        'host'       => '127.0.0.1',
-        'port'       => 6379,
-        'password'   => '',
-        'select'     => 0,
-        'timeout'    => 0,
-        'expire'     => 0,
-        'persistent' => false
-    ];
+    protected $options = ['host' => '127.0.0.1',
+                          'port' => 6379,
+                          'password' => '',
+                          'select' => 0,
+                          'timeout' => 0,
+                          'expire' => 0,
+                          'persistent' => false];
 
 
-
-    public function config($options = []){
+    public function config($options = []) {
         if (!empty($options)) {
             $this->options = array_merge($this->options, $options);
         }
     }
 
-    public function ping(){
-        if($this->redis){
-            try{
-              $this->redis->ping();
-            }catch (\Exception $e){
-                $this->redis=null;
+    public function ping() {
+        if ($this->redis) {
+            try {
+                $this->redis->ping();
+            } catch (\Exception $e) {
+                $this->redis = null;
                 $this->open();
             }
-        }else{
+        } else {
             $this->open();
         }
     }
 
-    public function open(){
-        if(!$this->redis){
+    public function open() {
+        if (!$this->redis) {
             if (!extension_loaded('redis')) {
                 throw new \BadFunctionCallException('not support: redis');
             }
-            $func          = $this->options['persistent'] ? 'pconnect' : 'connect';
+            $func = $this->options[ 'persistent' ] ? 'pconnect' : 'connect';
             $this->redis = new \Redis;
-            $this->redis->$func($this->options['host'], $this->options['port'], $this->options['timeout']);
+            $this->redis->$func($this->options[ 'host' ], $this->options[ 'port' ], $this->options[ 'timeout' ]);
 
-            if ('' != $this->options['password']) {
-                $this->redis->auth($this->options['password']);
+            if ('' != $this->options[ 'password' ]) {
+                $this->redis->auth($this->options[ 'password' ]);
             }
-            if (0 != $this->options['select']) {
-                $this->redis->select($this->options['select']);
+            if (0 != $this->options[ 'select' ]) {
+                $this->redis->select($this->options[ 'select' ]);
             }
         }
     }
 
 
-    public function set($name, $value, $expire){
+    public function set($name, $value, $expire) {
         $this->open();
         if (!$expire) {
-            $expire = $this->options['expire'];
+            $expire = $this->options[ 'expire' ];
         }
         $key = $name;
         //为支持对象类型 进行 serialize化
-        $value=serialize($value);
-        if (is_int($expire) && $expire>-1) {
+        $value = serialize($value);
+        if (is_int($expire) && $expire > -1) {
             $result = $this->redis->setex($key, $expire, $value);
         } else {
             $result = $this->redis->set($key, $value);
         }
         return $result;
     }
-    public function get($name,$default){
+
+    public function get($name, $default) {
         $this->open();
-        $value=$this->redis->get($name);
+        $value = $this->redis->get($name);
         if (is_null($value)) {
-            return $default;
-        }
-        return   unserialize($value);
-    }
-
-    public function has($name){
-        $this->open();
-        return $this->redis->get($name) ? true : false;
-    }
-
-    public function inc($name, $step = 1){
-        $this->open();
-        return $this->redis->incrBy($name, $step);
-    }
-
-    public function dec($name, $step = 1){
-        $this->open();
-        return $this->redis->decrBy($name, $step);
-    }
-
-    public function remove($name){
-        $this->open();
-        return $this->redis->del($name);
-    }
-
-    public function hashSet($name, $key, $value){
-        $this->open();
-        $value=serialize($value);
-         $this->redis->hSet($name,$key,$value);
-    }
-    public function hashGet($name, $key,$default){
-        $this->open();
-        $value=$this->redis->hGet($name,$key);
-        if($value===false){
             return $default;
         }
         return unserialize($value);
     }
 
-    public function hashRemove($name, $key){
+    public function has($name) {
         $this->open();
-        $this->redis->hDel($name,$key);
+        return $this->redis->get($name) ? true : false;
     }
 
-    public function clear(){
+    public function inc($name, $step = 1) {
+        $this->open();
+        return $this->redis->incrBy($name, $step);
+    }
+
+    public function dec($name, $step = 1) {
+        $this->open();
+        return $this->redis->decrBy($name, $step);
+    }
+
+    public function remove($name) {
+        $this->open();
+        return $this->redis->del($name);
+    }
+
+    public function hashSet($name, $key, $value) {
+        $this->open();
+        $value = serialize($value);
+        $this->redis->hSet($name, $key, $value);
+    }
+
+    public function hashGet($name, $key, $default) {
+        $this->open();
+        $value = $this->redis->hGet($name, $key);
+        if ($value === false) {
+            return $default;
+        }
+        return unserialize($value);
+    }
+
+    public function hashRemove($name, $key) {
+        $this->open();
+        $this->redis->hDel($name, $key);
+    }
+
+    public function clear() {
         $this->open();
         $this->redis->flushDB();
     }

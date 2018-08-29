@@ -1,30 +1,56 @@
 <?php
+
 namespace rap\aop;
 
-/**
- *tengzhinei
- */
-class Aop{
 
+/**
+ * AOP 拦截
+ */
+class Aop {
+
+    /**
+     * 所有前置拦截器
+     * @var array
+     */
     static private $beforeActions = array();
+
+    /**
+     * 所有后置拦截器
+     * @var array
+     */
     static private $afterActions  = array();
+
+    /**
+     * 所有包裹拦截器
+     * @var array
+     */
     static private $aroundActions = array();
+
+    /**
+     * 计数用
+     * @var int
+     */
     static private $range         = 0;
 
     /**
      * 包围时只能添加一个以最后一个为准
-     * @param $clazz
-     * @param $actions
-     * @param $aroundClazz
-     * @param $warpAction
+     *
+     * @param      $clazz
+     * @param      $actions
+     * @param      $aroundClazz
+     * @param      $warpAction
      * @param null $call
      */
-    public static function around($clazz, $actions, $aroundClazz, $warpAction, $call = null){
+    public static function around($clazz, $actions, $aroundClazz, $warpAction, $call = null) {
         $actions = static::actionsBuild($actions);
         if (!isset(static::$aroundActions[ $clazz ])) {
             static::$aroundActions[ $clazz ] = array();
         }
-        $info = array('methods' => $actions[ 'methods' ], 'class' => $aroundClazz, 'action' => $warpAction, "call" => $call, "range" => static::$range);
+        $info = array('methods' => $actions[ 'methods' ],
+                      'class' => $aroundClazz,
+                      'action' => $warpAction,
+                      "call" => $call,
+                      "range" => static::$range);
         static::$range++;
         static::$aroundActions[ $clazz ][ $actions[ 'type' ] ] = array();
         static::$aroundActions[ $clazz ][ $actions[ 'type' ] ][] = $info;
@@ -32,13 +58,14 @@ class Aop{
 
     /**
      * 方法执行前调用
-     * @param $clazz
-     * @param $actions
-     * @param $beforeClazz
-     * @param $warpAction
+     *
+     * @param      $clazz
+     * @param      $actions
+     * @param      $beforeClazz
+     * @param      $warpAction
      * @param null $call
      */
-    public static function before($clazz, $actions, $beforeClazz, $warpAction, $call = null){
+    public static function before($clazz, $actions, $beforeClazz, $warpAction, $call = null) {
         $actions = static::actionsBuild($actions);
         if (!isset(static::$beforeActions[ $clazz ])) {
             static::$beforeActions[ $clazz ] = array();
@@ -46,12 +73,16 @@ class Aop{
         if (!isset(static::$beforeActions[ $clazz ][ $actions[ 'type' ] ])) {
             static::$beforeActions[ $clazz ][ $actions[ 'type' ] ] = array();
         }
-        $info = array('methods' => $actions[ 'methods' ], 'class' => $beforeClazz, 'action' => $warpAction, "call" => $call, "range" => static::$range);
+        $info = array('methods' => $actions[ 'methods' ],
+                      'class' => $beforeClazz,
+                      'action' => $warpAction,
+                      "call" => $call,
+                      "range" => static::$range);
         static::$range++;
         static::$beforeActions[ $clazz ][ $actions[ 'type' ] ][] = $info;
     }
 
-    private static function actionsBuild($actions){
+    private static function actionsBuild($actions) {
         if (!array_key_exists('methods', $actions)) {
             $actions = array("type" => "only", "methods" => $actions);
         }
@@ -63,13 +94,14 @@ class Aop{
 
     /**
      * 方法执行后调用
-     * @param $clazz
-     * @param $actions
-     * @param $afterClazz
-     * @param $warpAction
+     *
+     * @param      $clazz
+     * @param      $actions
+     * @param      $afterClazz
+     * @param      $warpAction
      * @param null $call
      */
-    public static function after($clazz, $actions, $afterClazz, $warpAction, $call = null){
+    public static function after($clazz, $actions, $afterClazz, $warpAction, $call = null) {
         $actions = static::actionsBuild($actions);
         if (!isset(static::$afterActions[ $clazz ])) {
             static::$afterActions[ $clazz ] = array();
@@ -77,31 +109,40 @@ class Aop{
         if (!isset(static::$afterActions[ $clazz ][ $actions[ 'type' ] ])) {
             static::$afterActions[ $clazz ][ $actions[ 'type' ] ] = array();
         }
-        $info = array('methods' => $actions[ 'methods' ], 'class' => $afterClazz, 'action' => $warpAction, "call" => $call, "range" => static::$range);
+        $info = array('methods' => $actions[ 'methods' ],
+                      'class' => $afterClazz,
+                      'action' => $warpAction,
+                      "call" => $call,
+                      "range" => static::$range);
         static::$range++;
         static::$afterActions[ $clazz ][ $actions[ 'type' ] ][] = $info;
     }
 
     /**
      * 获取某方法的所有的前置方法
+     *
      * @param $clazz
      * @param $action
+     *
      * @return array|null
      */
-    public static function getBeforeActions($clazz, $action){
+    public static function getBeforeActions($clazz, $action) {
         if (static::$beforeActions[ $clazz ]) {
             return static::buildActions(static::$beforeActions[ $clazz ], $action);
         }
         return null;
     }
 
-    private static function buildActions(&$wareactions, $action){
+    private static function buildActions(&$wareactions, $action) {
         $actions = array();
         if (array_key_exists('only', $wareactions)) {
             $acs = $wareactions[ 'only' ];
             foreach ($acs as $ac) {
                 if (in_array($action, $ac[ 'methods' ])) {
-                    $actions[] = array('class' => $ac[ 'class' ], "action" => $ac[ 'action' ], "call" => $ac[ 'call' ], "range" => $ac[ 'range' ]);
+                    $actions[] = array('class' => $ac[ 'class' ],
+                                       "action" => $ac[ 'action' ],
+                                       "call" => $ac[ 'call' ],
+                                       "range" => $ac[ 'range' ]);
                 }
             }
         }
@@ -109,7 +150,10 @@ class Aop{
             $acs = $wareactions[ 'except' ];
             foreach ($acs as $ac) {
                 if (!in_array($action, $ac[ 'methods' ])) {
-                    $actions[] = array('class' => $ac[ 'class' ], "action" => $ac[ 'action' ], "call" => $ac[ 'call' ], "range" => $ac[ 'range' ]);
+                    $actions[] = array('class' => $ac[ 'class' ],
+                                       "action" => $ac[ 'action' ],
+                                       "call" => $ac[ 'call' ],
+                                       "range" => $ac[ 'range' ]);
                 }
             }
         }
@@ -118,7 +162,10 @@ class Aop{
             foreach ($acs as $ac) {
                 foreach ($ac[ 'methods' ] as $method) {
                     if (strpos($action, $method) === 0) {
-                        $actions[] = array('class' => $ac[ 'class' ], "action" => $ac[ 'action' ], "call" => $ac[ 'call' ], "range" => $ac[ 'range' ]);
+                        $actions[] = array('class' => $ac[ 'class' ],
+                                           "action" => $ac[ 'action' ],
+                                           "call" => $ac[ 'call' ],
+                                           "range" => $ac[ 'range' ]);
                     }
                 }
             }
@@ -128,7 +175,10 @@ class Aop{
             foreach ($acs as $ac) {
                 foreach ($ac[ 'methods' ] as $method) {
                     if (strpos($action, $method) + strlen($method) === strlen($action)) {
-                        $actions[] = array('class' => $ac[ 'class' ], "action" => $ac[ 'action' ], "call" => $ac[ 'call' ], "range" => $ac[ 'range' ]);
+                        $actions[] = array('class' => $ac[ 'class' ],
+                                           "action" => $ac[ 'action' ],
+                                           "call" => $ac[ 'call' ],
+                                           "range" => $ac[ 'range' ]);
                     }
                 }
             }
@@ -138,7 +188,10 @@ class Aop{
             foreach ($acs as $ac) {
                 foreach ($ac[ 'methods' ] as $method) {
                     if (strpos($action, $method) > 0) {
-                        $actions[] = array('class' => $ac[ 'class' ], "action" => $ac[ 'action' ], "call" => $ac[ 'call' ], "range" => $ac[ 'range' ]);
+                        $actions[] = array('class' => $ac[ 'class' ],
+                                           "action" => $ac[ 'action' ],
+                                           "call" => $ac[ 'call' ],
+                                           "range" => $ac[ 'range' ]);
                     }
                 }
             }
@@ -155,11 +208,13 @@ class Aop{
 
     /**
      * 获取某方法的所有的后置方法
+     *
      * @param $clazz
      * @param $action
+     *
      * @return array|null
      */
-    public static function getAfterActions($clazz, $action){
+    public static function getAfterActions($clazz, $action) {
         if (static::$afterActions[ $clazz ]) {
             return static::buildActions(static::$afterActions[ $clazz ], $action);
         }
@@ -168,12 +223,14 @@ class Aop{
 
     /**
      * 获取某方法的包围方法,只有一个
+     *
      * @param $clazz
      * @param $action
+     *
      * @return array
      */
-    public static function getAroundActions($clazz, $action){
-        $actions=null;
+    public static function getAroundActions($clazz, $action) {
+        $actions = null;
         if (isset(static::$aroundActions[ $clazz ]) && static::$aroundActions[ $clazz ]) {
             $actions = static::buildActions(static::$aroundActions[ $clazz ], $action);
         }
@@ -185,17 +242,19 @@ class Aop{
 
     /**
      * 检测是否需要进行对象warp
+     *
      * @param $bean
+     *
      * @return bool
      */
-    public static function needWarp($bean){
+    public static function needWarp($bean) {
         if (array_key_exists($bean, static::$beforeActions) || array_key_exists($bean, static::$afterActions) || array_key_exists($bean, static::$aroundActions)) {
             return true;
         }
         return false;
     }
 
-    public static function warpBean($clazz){
+    public static function warpBean($clazz) {
         if (self::needWarp($clazz)) {
             $name = "rap\\aop\\build\\" . $clazz . "_PROXY";
             $who = new $name;
@@ -205,8 +264,10 @@ class Aop{
         return $who;
     }
 
-    private static function deleteAll($path){
-        if(!file_exists($path))return;
+    private static function deleteAll($path) {
+        if (!file_exists($path)) {
+            return;
+        }
         $op = dir($path);
         while (false != ($item = $op->read())) {
             if ($item == '.' || $item == '..') {
@@ -222,12 +283,12 @@ class Aop{
         }
     }
 
-    public static function init($version){
-        $file=str_replace(DS."Aop.php", DS."build".DS."build", __FILE__);
-        if(file_exists($file)){
+    public static function init($version) {
+        $file = str_replace(DS . "Aop.php", DS . "build" . DS . "build", __FILE__);
+        if (file_exists($file)) {
             $content = file_get_contents($file);
             //版本相同 返回
-            if($content==$version.""){
+            if ($content == $version . "") {
                 return;
             }
         }
@@ -239,8 +300,8 @@ class Aop{
     /**
      * 创建代理文件
      */
-    public static function buildProxy(){
-        $dir=RUNTIME.'aop';
+    public static function buildProxy() {
+        $dir = RUNTIME . 'aop';
         self::deleteAll($dir);
         if (!file_exists($dir)) {
             mkdir($dir, 0777, true);
@@ -251,7 +312,7 @@ class Aop{
             $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
             $methodsStr = "";
             foreach ($methods as $method) {
-                if($method->getName()=='_initialize'||$method->getName()=='_prepared'){
+                if ($method->getName() == '_initialize' || $method->getName() == '_prepared') {
                     continue;
                 }
                 $around = self::getAroundActions($clazz, $method->getName());
@@ -266,6 +327,7 @@ class Aop{
                 $pointArgs = "";
                 $index = 0;
                 $params = $method->getParameters();
+                /* @var $param   \ReflectionParameter */
                 foreach ($params as $param) {
                     if ($methodArgs) {
                         $methodArgs .= ",";
@@ -366,8 +428,8 @@ EOF;
 
     }
 
-    public static function clear(){
-        $dir=RUNTIME.'aop';
+    public static function clear() {
+        $dir = RUNTIME . 'aop';
         self::deleteAll($dir);
     }
 

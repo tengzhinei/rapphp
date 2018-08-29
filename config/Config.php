@@ -17,9 +17,9 @@ class Config{
 
     /**
      * 获取缓存
-     * @param $module
-     * @param $key
-     * @param $default
+     * @param string $module
+     * @param string $key
+     * @param mixed $default
      * @return mixed
      */
     public static function get($module, $key="", $default=""){
@@ -40,9 +40,9 @@ class Config{
 
     /**
      * 设置配置
-     * @param $module
-     * @param $key
-     * @param $value
+     * @param string $module
+     * @param string|array $key
+     * @param string|array $value
      */
     public static function set($module,$key,$value=null){
         $data=self::getModuleFromDB($module);
@@ -65,7 +65,31 @@ class Config{
         Cache::remove(md5("config_".$module));
     }
 
+    /**
+     * 设置配置,不做合并
+     *
+     * @param string $module
+     * @param array $data
+     */
+    public static function setAll($module,$data){
+        $data=json_encode($data);
+        $config=self::get("config");
+        $table=$config&&key_exists('db_table',$config)?$config['db_table']:"config";
+        $module_key=$config&&key_exists('module_field',$config)?$config['module_field']:"module";
+        $content=$config&&key_exists('content_field',$config)?$config['content_field']:"content";
+        Update::table($table)->set($content,$data)
+            ->where($module_key,$module)
+            ->excuse();
+        Cache::remove(md5("config_".$module));
+    }
 
+    /**
+     * 从数据库中获取数据
+     *
+     * @param $module
+     *
+     * @return mixed|null|string
+     */
     private static function getModuleFromDB($module){
         $data=Cache::get(md5("config_".$module));
         if(!$data){
@@ -84,6 +108,11 @@ class Config{
         return $data;
     }
 
+    /**
+     * 获取文件配置
+     *
+     * @return array
+     */
     public static function getFileConfig(){
         if(!static::$fileDate){
             static::$fileDate=include APP_PATH.'config.php';

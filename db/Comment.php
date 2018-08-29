@@ -15,6 +15,10 @@ namespace rap\db;
  */
 trait Comment{
 
+    /**
+     * 备注信息
+     * @var string
+     */
     private $comment="";
 
     /**

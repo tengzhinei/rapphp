@@ -1,10 +1,5 @@
 <?php
 
-/**
- * 格式化输出 json 调试用
- * @param $value
- */
-
 function success($msg=""){
     return ['success'=>true,'msg'=>$msg];
 }
@@ -40,16 +35,7 @@ function exception($msg,$code=100000,$data=null){
     throw new \rap\exception\MsgException($msg,$code,$data);
 }
 
-function pickArrayByPre(&$array,$pre){
-
-
-}
-
 function getMillisecond(){
     list($t1, $t2) = explode(' ', microtime());
     return (float)sprintf('%.0f', (floatval($t1) + floatval($t2)) * 1000);
 }
-
-
-
-

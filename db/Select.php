@@ -14,10 +14,23 @@ use rap\ioc\Ioc;
 class Select extends Where{
 
 use Comment;
+
+    /**
+     * 表
+     * @var string
+     */
     private $table='';
 
+    /**
+     * 字段
+     * @var array
+     */
     private $fields=[];
 
+    /**
+     * join 信息
+     * @var array
+     */
     private $joins=[];
 
     /**

@@ -13,6 +13,7 @@ use rap\db\Connection;
 use rap\ioc\Ioc;
 use rap\RapApplication;
 use rap\session\Session;
+use rap\swoole\task\TaskConfig;
 use rap\web\Application;
 
 
@@ -49,12 +50,19 @@ class SwooleHttpServer extends Command{
             'task_max_request'=>$this->config['task_max_request'],
         ]);
         $http->on('workerstart',[$this,'onWorkStart'] );
+        $http->on('start',[$this,'onStart'] );
         $http->on('task', [$this,'onTask']);
         $http->on('finish', [$this,'onFinish']);
         $http->on('request', [$this,'onRequest'] );
         $this->writeln("http服务启动成功");
         $http->start();
 
+    }
+
+    public function onStart($serv) {
+        $application= Ioc::get(Application::class);
+        $application->server=$serv;
+        Event::trigger('onRapHttpStart','');
     }
 
     public function onWorkStart($serv, $id) {
@@ -68,6 +76,10 @@ class SwooleHttpServer extends Command{
         $clazz=$data['clazz'];
         $method=$data['method'];
         $params=$data['params'];
+        $config=$data['config'];
+        /* @var $deliver TaskConfig  */
+        $deliver = Ioc::get(TaskConfig::class);
+        $deliver->setTaskInit($config);
         $bean=Ioc::get($clazz);
         $method =   new \ReflectionMethod($clazz, $method);
         $method->invokeArgs($bean,$params);

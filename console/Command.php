@@ -8,29 +8,64 @@
 
 namespace rap\console;
 
-
+/**
+ * 命令
+ */
 abstract class Command{
     var $name="";
     var $asName="";
     var $des="";
     var $params=[];
 
+    /**
+     * 名称
+     *
+     * @param string $name
+     *
+     * @return $this|string
+     */
     public function name($name=""){
-        if(!$name)return $this->name;
+        if(!$name){
+            $this->name;
+        }
         $this->name=$name;
         return $this;
     }
 
-
+    /**
+     * 显示名字
+     *
+     * @param $name
+     *
+     * @return $this
+     */
     public function asName($name){
         $this->asName=$name;
         return $this;
     }
+
+    /**
+     * 描述
+     *
+     * @param $des
+     *
+     * @return $this
+     */
     public function des($des){
         $this->des=$des;
         return $this;
     }
 
+    /**
+     * 参数
+     *
+     * @param string  $name
+     * @param string $opt
+     * @param string $des
+     * @param string $default
+     *
+     * @return $this
+     */
     public function param($name,$opt,$des,$default){
         $param=[
             'name'=>$name,
@@ -42,8 +77,15 @@ abstract class Command{
         return $this;
     }
 
+    /**
+     * 设置配置信息
+     * @return mixed
+     */
     public abstract function configure();
 
+    /**
+     * 打印帮助信息
+     */
     public function help(){
         $this->writeln("");
         $this->writeln($this->name."  ".$this->asName);
@@ -57,6 +99,10 @@ abstract class Command{
     }
 
 
+    /**
+     * 写入
+     * @param $msg
+     */
     protected function writeln($msg){
         echo "  ".$msg;
         echo "\n";

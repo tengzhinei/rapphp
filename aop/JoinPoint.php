@@ -1,20 +1,41 @@
 <?php
 namespace rap\aop;
 
-class JoinPoint  {
-    private $args;
-    private $obj;
+/**
+ * 拦截点
+ */
+class JoinPoint {
+
     /**
-     * @var $callback \Closure
+     * 参数
+     * @var mixed
+     */
+    private $args;
+
+    /**
+     * 被拦截的对象
+     * @var object
+     */
+    private $obj;
+
+    /**
+     * 回调方法
+     *
+     * @var  \Closure
      */
     private $callback;
-    /* @var $method \ReflectionMethod */
+
+    /**
+     * 被拦截的方法
+     * @var \ReflectionMethod
+     */
     private $method;
-    public function __construct($obj,$method,$args,$callback){
-        $this->args=$args;
-        $this->method=$method;
-        $this->obj=$obj;
-        $this->callback=$callback;
+
+    public function __construct($obj, $method, $args, $callback) {
+        $this->args = $args;
+        $this->method = $method;
+        $this->obj = $obj;
+        $this->callback = $callback;
     }
 
     /**
@@ -25,8 +46,8 @@ class JoinPoint  {
         return $this->args;
     }
 
-    public function  setArgs($args){
-        $this->args=$args;
+    public function setArgs($args) {
+        $this->args = $args;
     }
 
     /**
@@ -38,7 +59,6 @@ class JoinPoint  {
     }
 
 
-
     /**
      * 获取织入后的对象
      */
@@ -48,11 +68,13 @@ class JoinPoint  {
 
     /**
      * 执行方法
+     *
      * @param $args
+     *
      * @return mixed
      */
-    public function process($args){
-        $callback=$this->callback;
+    public function process($args) {
+        $callback = $this->callback;
         return $callback($args);
     }
 

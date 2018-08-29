@@ -24,30 +24,32 @@ use rap\web\Application;
  */
 class SwooleHttpServer extends Command{
 
-    private $confog=[
+    private $config =[
         'ip'=>'0.0.0.0',
         'port'=>9501,
         'document_root'=>"",
         'enable_static_handler'=>true,
         'task_worker_num'=>100,
+        'worker_num'=>20,
         'task_max_request'=>0
     ];
 
 
 
     public function run(){
-        $this->confog=array_merge($this->confog,Config::get('swoole_http'));
-        $http = new \swoole_http_server($this->confog['ip'], $this->confog['port']);
+        $this->config=array_merge($this->config,Config::get('swoole_http'));
+        $http = new \swoole_http_server($this->config['ip'], $this->config['port']);
         $http->set([
             'buffer_output_size' => 32 * 1024 *1024, //必须为数字
             'worker_num'=>1,
-            'document_root' => $this->confog['document_root'],
-            'enable_static_handler' => $this->confog['enable_static_handler'],
-            //'task_worker_num' => 1,
-            'task_max_request'=>1,
+            'document_root' => $this->config['document_root'],
+            'enable_static_handler' => $this->config['enable_static_handler'],
+            'worker_num' => $this->config['worker_num'],
+            'task_worker_num' => $this->config['task_worker_num'],
+            'task_max_request'=>$this->config['task_max_request'],
         ]);
         $http->on('workerstart',[$this,'onWorkStart'] );
-        $http->on('task', [$this,'onRequest']);
+        $http->on('task', [$this,'onTask']);
         $http->on('finish', [$this,'onFinish']);
         $http->on('request', [$this,'onRequest'] );
         $this->writeln("http服务启动成功");

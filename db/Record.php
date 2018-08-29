@@ -57,7 +57,9 @@ class Record{
             if($type=='json'){
                 $value=json_decode($value,true);
             }else if($type=='int'){
-                $value=(int)$value;
+                if($value!==null){
+                    $value=(int)$value;
+                }
             }else if($type=='boolean'){
                 $value=(int)$value;
                 $value=$value==1?true:false;
@@ -254,7 +256,7 @@ class Record{
         //删除缓存
         /* @var $db_cache DBCache  */
         $db_cache=Ioc::get(DBCache::class);
-        $db_cache->recordWhereCacheDel($this->cacheKeys(),$this->_db_data);
+        $db_cache->recordWhereCacheDel($model,$this->cacheKeys(),$this->_db_data);
         $db_cache->recordCacheDel($model,$this->$pk);
     }
 
@@ -282,7 +284,7 @@ class Record{
         //删除缓存
         /* @var $db_cache DBCache  */
         $db_cache=Ioc::get(DBCache::class);
-        $db_cache->recordWhereCacheDel($this->cacheKeys(),$this->_db_data);
+        $db_cache->recordWhereCacheDel($model,$this->cacheKeys(),$this->_db_data);
         $db_cache->recordCacheDel($model,$id);
     }
 
@@ -342,6 +344,7 @@ class Record{
      * @return $this;
      */
     public static function get($id,$cache= true){
+        if(!$id)return null;
         $model = get_called_class();
         $db_cache=null;
         if($cache){

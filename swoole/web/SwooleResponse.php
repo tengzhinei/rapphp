@@ -14,15 +14,15 @@ use rap\web\Response;
 
 class SwooleResponse extends Response{
 
-
     private $request;
     private $swooleResponse;
     public function swoole($request, $response){
         $this->swooleResponse=$response;
         $this->request=$request;
     }
-
     public function send(){
+        if($this->hasSend)return;
+        $this->hasSend=true;
         // 发送状态码
         $this->swooleResponse->status($this->code);
         $this->header['Content-Type'] = $this->contentType . '; charset=' . $this->charset;
@@ -51,4 +51,20 @@ class SwooleResponse extends Response{
         return $this->session;
     }
 
+    /**
+     * 发送文件
+     * @param $file
+     */
+    public function sendFile($file){
+        $this->hasSend=true;
+        $this->swooleResponse->status($this->code);
+        $this->header['Content-Type'] = $this->contentType;
+        if (!empty($this->header)) {
+            // 发送头部信息
+            foreach ($this->header as $name => $val) {
+                $this->swooleResponse->header($name,$val);
+            }
+        }
+        $this->swooleResponse->sendfile($file);
+    }
 }

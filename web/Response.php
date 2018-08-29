@@ -150,4 +150,19 @@ class Response{
         return $this->session;
     }
 
+    public function sendFile($file){
+        $this->header['Content-Type'] = $this->contentType;
+        if (!headers_sent() && !empty($this->header)) {
+            http_response_code($this->code);
+            // 发送头部信息
+            foreach ($this->header as $name => $val) {
+                header($name . ':' . $val);
+            }
+        }
+        $content = file_get_contents($file);
+        echo $content;
+        $this->hasSend=true;
+        die;
+
+    }
 }

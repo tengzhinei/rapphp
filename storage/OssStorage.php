@@ -42,6 +42,11 @@ class OssStorage implements StorageInterface{
             $name=md5_file($file->path_tmp).$size.".".$file->ext;
         }
         $file_id=$this->config['category'].$category.DIRECTORY_SEPARATOR.date("Ymd").DIRECTORY_SEPARATOR . $name;
+        //判断是否weindows系统
+        if(strtoupper(substr(PHP_OS,0,3))==='WIN'){
+            $file_id=str_replace('\\','/',$file_id);
+        }
+
         try{
             $ossClient->uploadFile($bucket, $file_id, $file->path_tmp);
         }catch (OssException $exception){

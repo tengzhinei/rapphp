@@ -137,16 +137,17 @@ class DBCache{
      * @param $cacheKeys
      * @param $_db_data
      */
-    public function recordWhereCacheDel($cacheKeys,$_db_data){
+    public function recordWhereCacheDel($model,$cacheKeys,$_db_data){
         if($cacheKeys){
             foreach ($cacheKeys as $cacheKey) {
-                $cks=sort(explode(',',$cacheKey));
+                $cks= explode(',',$cacheKey);
+                sort($cks);
                 $oldV=[];
                 foreach ($cks as $ck) {
                     $oldV[]=$_db_data[$ck];
                 }
                 $cacheKey=implode(",",$cks);
-                $cache_key="record_".get_called_class()."_".$cacheKey."_".implode(",",$oldV);
+                $cache_key="record_".$model."_".$cacheKey."_".implode(",",$oldV);
                 Cache::remove($cache_key);
             }
         }

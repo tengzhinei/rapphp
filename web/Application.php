@@ -95,7 +95,7 @@ abstract class Application{
         $ext = $request->ext();
         $debug=Config::getFileConfig()["app"]["debug"];
         //没有后缀的或者后缀为 json 的认定返回类型为api的
-        if(!($exception instanceof MsgException)&&$debug){
+        if(!($exception instanceof MsgException)&&($debug||$request->get('debug'))){
                 if(!$ext||$ext=='json'){
                     $handler=Ioc::get(ApiExceptionReport::class);
                 }else{

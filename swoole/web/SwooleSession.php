@@ -53,28 +53,28 @@ class SwooleSession implements Session{
     }
 
     public function set($key, $value){
-        $key='php_session'.self::sessionId();
-        $session = Cache::get($key,[]);
+        $session_key='php_session'.self::sessionId();
+        $session = Cache::get($session_key,[]);
         $session[$key]=$value;
-        Cache::set($key,$session,-1);
+        Cache::set($session_key,$session,-1);
     }
 
     public function get($key){
-        $key='php_session'.self::sessionId();
-        $session = Cache::get($key,[]);
+        $session_key='php_session'.self::sessionId();
+        $session = Cache::get($session_key,[]);
         return  $session[$key];
     }
 
     public function del($key){
-        $key = 'php_session' . self::sessionId();
-        $session = Cache::get($key, []);
+        $session_key = 'php_session' . self::sessionId();
+        $session = Cache::get($session_key, []);
         unset($session[$key]);
-        Cache::set($key,$session,-1);
+        Cache::set($session_key,$session,-1);
     }
 
     public function clear(){
-        $key = 'php_session' . self::sessionId();
-        Cache::remove($key);
+        $session_key = 'php_session' . self::sessionId();
+        Cache::remove($session_key);
     }
 
 }

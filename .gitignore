@@ -3,5 +3,6 @@ composer.lock
 *.log
 vendor/
 app/
+runtime/
 index.php
 

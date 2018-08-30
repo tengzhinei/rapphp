@@ -13,7 +13,6 @@ class SmartyView implements View{
 
     public function __construct(){
         $this->smarty = new \Smarty();
-      //  $this->smarty->setTemplateDir(ROOT_PATH . DS.'tpl');
         $this->smarty
             ->setTemplateDir([''])
             ->setCompileDir(RUNTIME.'templates_x' . DS);

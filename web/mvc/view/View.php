@@ -7,6 +7,7 @@ namespace rap\web\mvc\view;
  * Time: 下午12:34
  */
 interface View{
+
     public function config($config);
 
     public function assign($array);

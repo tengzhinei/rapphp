@@ -9,22 +9,30 @@
 
 namespace rap\web\mvc\view;
 
-
+/**
+ * 不使用模板引擎,直接使用 php 做显示
+ */
 class PhpView implements View {
 
-    public function config($config){
+    private $data;
 
+    private $config = [
+        "postfix"=>'php'
+    ];
+
+    public function config($config) {
+        $this->config = array_merge($this->config, $config);
     }
 
     public function assign($array) {
-
+        $this->data = $array;
     }
 
     public function fetch($tpl) {
-        extract(['a'=>'a'], EXTR_OVERWRITE);
+        extract($this->data, EXTR_OVERWRITE);
         ob_start();
         ob_implicit_flush(0);
-        include $tpl.'.php';
+        include $tpl.'.'.$this->config['postfix'];
         $content = ob_get_clean();
         return $content;
     }

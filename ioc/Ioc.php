@@ -21,8 +21,8 @@ class Ioc  {
     }
     /**
      * 根据类名,别名获取对象
-     * @param $who
-     * @param null $name
+     * @param string $who 类名或别名
+     * @param  string $name 自名称
      * @return mixed
      */
     public static function get($who,$name=null){

@@ -14,7 +14,9 @@ use rap\storage\StorageInterface;
 use rap\web\Application;
 use rap\web\mvc\AutoFindHandlerMapping;
 use rap\web\mvc\Router;
+use rap\web\mvc\view\PhpView;
 use rap\web\mvc\view\SmartyView;
+use rap\web\mvc\view\TwigView;
 use rap\web\mvc\view\View;
 
 /**
@@ -68,7 +70,18 @@ class RapApplication extends Application{
                 Ioc::bind(View::class,SmartyView::class,function(SmartyView $smartyView) use($item){
                     $smartyView->config($item);
                 });
+            }else if($item['type']=='php'){
+                unset($item['type']);
+                Ioc::bind(View::class,PhpView::class,function(PhpView $smartyView) use($item){
+                    $smartyView->config($item);
+                });
+            }else if($item['type']=='twig'){
+                unset($item['type']);
+                Ioc::bind(View::class,TwigView::class,function(TwigView $smartyView) use($item){
+                    $smartyView->config($item);
+                });
             }
+
         }
         $item=$config["cache"];
         if($item){

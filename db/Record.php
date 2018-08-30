@@ -516,6 +516,7 @@ class Record {
 
     /**
      * 字符串转对象
+     *
      * @param $str
      */
     public function fromString($str) {
@@ -525,6 +526,7 @@ class Record {
 
     /**
      * 数组转对象
+     *
      * @param $array
      */
     public function fromArray($array) {
@@ -537,8 +539,9 @@ class Record {
 
     /**
      * 转化为数组
-     * @param string $fields ['id,name']
-     * @param bool $contain  如果为 false就反向选取字段
+     *
+     * @param string $fields  ['id,name']
+     * @param bool   $contain 如果为 false就反向选取字段
      *
      * @return array|mixed|string
      */

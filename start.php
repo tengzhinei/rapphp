@@ -3,8 +3,7 @@ error_reporting(E_ALL& ~E_NOTICE& ~E_WARNING);
 define('RAP_VERSION', '2.0.1beta');
 define('DS', DIRECTORY_SEPARATOR);
 ini_set("display_errors", "On");
-//echo getcwd();
-//die;
+define('RAP_DIR',__DIR__);
 define('APP_DIR', 'app');
 defined('ROOT_PATH') or define('ROOT_PATH', getcwd() . DS);
 defined('APP_PATH') or define('APP_PATH',ROOT_PATH.APP_DIR.DS);
@@ -28,9 +27,12 @@ if(IS_CLI){
     \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);
     \rap\ioc\Ioc::get(\rap\web\Application::class)->console($argv);
 }else{
+
     //正常模式
     \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);
+
     $response=new \rap\web\Response();
     $request=new \rap\web\Request($response);
+    \rap\web\mvc\RequestHolder::setRequest($request);
     \rap\ioc\Ioc::get(\rap\web\Application::class)->start($request,$response);
 }

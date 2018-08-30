@@ -15,6 +15,7 @@ use rap\RapApplication;
 use rap\session\Session;
 use rap\swoole\task\TaskConfig;
 use rap\web\Application;
+use rap\web\mvc\RequestHolder;
 
 
 /**
@@ -111,12 +112,11 @@ class SwooleHttpServer extends Command{
                 if($cache instanceof RedisCache){
                     $cache->ping();
                 }
-
             }
             //生成 session
             $rep->session()->sessionId();
+            RequestHolder::setRequest($req);
             $application->start($req,$rep);
-
         }catch (\Exception $exception){
             $response->end("");
             return;

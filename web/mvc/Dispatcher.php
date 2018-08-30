@@ -1,5 +1,6 @@
 <?php
 namespace rap\web\mvc;
+use rap\config\Config;
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\log\Log;
@@ -58,7 +59,8 @@ class Dispatcher{
                 $view->assign($response->data());
                 $po=strpos($value,DIRECTORY_SEPARATOR);
                 if($po===0){
-                    $value=substr($value,1);
+                    $base=  Config::get('view')['template_base'];
+                    $value=$base.$value;
                 }else{
                     $value=$adapter->viewBase().$value;
                 }

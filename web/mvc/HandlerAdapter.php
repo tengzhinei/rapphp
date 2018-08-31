@@ -115,7 +115,11 @@ abstract class HandlerAdapter{
                         $args[]=$bean;
                     }
                 }else{
-                    $args[]=$request->param($name,$default);
+                    if(key_exists($name,$this->params)){
+                        $args[$name]=$this->params[$name];
+                    }else{
+                        $args[$name]=$request->param($name,$default);
+                    }
                 }
             }
         }

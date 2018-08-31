@@ -57,6 +57,7 @@ class Console {
 
     /**
      * 执行命令行
+     *
      * @param $argv
      */
     public function run($argv) {
@@ -140,6 +141,7 @@ class Console {
 
     /**
      * 写入
+     *
      * @param string $msg
      */
     protected function writeln($msg) {

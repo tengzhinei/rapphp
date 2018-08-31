@@ -11,24 +11,27 @@ namespace rap\console;
 /**
  * 命令
  */
-abstract class Command{
-    var $name="";
-    var $asName="";
-    var $des="";
-    var $params=[];
+abstract class Command {
+    /**
+     * @var string
+     */
+    var $name   = "";
+    var $asName = "";
+    var $des    = "";
+    var $params = [];
 
     /**
      * 名称
      *
      * @param string $name
      *
-     * @return $this|string
+     * @return mixed
      */
-    public function name($name=""){
-        if(!$name){
-            $this->name;
+    public function name($name = "") {
+        if (!$name) {
+            return $this->name;
         }
-        $this->name=$name;
+        $this->name = $name;
         return $this;
     }
 
@@ -39,8 +42,8 @@ abstract class Command{
      *
      * @return $this
      */
-    public function asName($name){
-        $this->asName=$name;
+    public function asName($name) {
+        $this->asName = $name;
         return $this;
     }
 
@@ -51,29 +54,27 @@ abstract class Command{
      *
      * @return $this
      */
-    public function des($des){
-        $this->des=$des;
+    public function des($des) {
+        $this->des = $des;
         return $this;
     }
 
     /**
      * 参数
      *
-     * @param string  $name
+     * @param string $name
      * @param string $opt
      * @param string $des
      * @param string $default
      *
      * @return $this
      */
-    public function param($name,$opt,$des,$default){
-        $param=[
-            'name'=>$name,
-            'opt'=>$opt,
-            'des'=>$des,
-            'default'=>$default
-        ];
-        $this->params[]=$param;
+    public function param($name, $opt, $des, $default) {
+        $param = ['name' => $name,
+                  'opt' => $opt,
+                  'des' => $des,
+                  'default' => $default];
+        $this->params[] = $param;
         return $this;
     }
 
@@ -86,12 +87,12 @@ abstract class Command{
     /**
      * 打印帮助信息
      */
-    public function help(){
+    public function help() {
         $this->writeln("");
-        $this->writeln($this->name."  ".$this->asName);
+        $this->writeln($this->name . "  " . $this->asName);
         $this->writeln("参数说明");
         foreach ($this->params as $param) {
-            $this->writeln("     -".$param['name'].' '.$param['des'].' '.($param['opt']?'可选':'必选').($param['default']?(' 默认:'.$param['default']):''));
+            $this->writeln("     -" . $param[ 'name' ] . ' ' . $param[ 'des' ] . ' ' . ($param[ 'opt' ] ? '可选' : '必选') . ($param[ 'default' ] ? (' 默认:' . $param[ 'default' ]) : ''));
         }
         $this->writeln("描述");
         $this->writeln($this->des);
@@ -101,10 +102,11 @@ abstract class Command{
 
     /**
      * 写入
+     *
      * @param $msg
      */
-    protected function writeln($msg){
-        echo "  ".$msg;
+    protected function writeln($msg) {
+        echo "  " . $msg;
         echo "\n";
     }
 

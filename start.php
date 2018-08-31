@@ -19,18 +19,16 @@ $loader->setPsr4("rap\\aop\\build\\", RUNTIME.'aop');
 include_once 'common.php';
 //swoole 模式
 if(IS_CLI){
-//    if(IS_SWOOLE_HTTP){
-//        \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);
-//        \rap\ioc\Ioc::get(\rap\web\Application::class)->console(["index.php",'aop']);
-//        \rap\ioc\Ioc::clear();
-//    }
+    if(IS_SWOOLE_HTTP){
+        \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);
+        \rap\ioc\Ioc::get(\rap\web\Application::class)->console(["index.php",'aop']);
+        \rap\ioc\Ioc::clear();
+    }
     \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);
     \rap\ioc\Ioc::get(\rap\web\Application::class)->console($argv);
 }else{
-
     //正常模式
     \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);
-
     $response=new \rap\web\Response();
     $request=new \rap\web\Request($response);
     \rap\web\mvc\RequestHolder::setRequest($request);

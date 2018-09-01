@@ -31,7 +31,6 @@ class Response{
 
     public $hasSend=false;
 
-
     public function send(){
         if($this->hasSend)return;
         $this->hasSend=true;
@@ -151,7 +150,7 @@ class Response{
     }
 
     public function sendFile($file){
-        $this->header['Content-Type'] = $this->contentType;
+        $this->fileToContentType($file);
         if (!headers_sent() && !empty($this->header)) {
             http_response_code($this->code);
             // 发送头部信息
@@ -163,6 +162,35 @@ class Response{
         echo $content;
         $this->hasSend=true;
         die;
+    }
+
+    protected function fileToContentType($file){
+        //等于默认值说明没有设置
+        if($this->contentType=='text/html'){
+            $items = explode('.',$file);
+            $length=count($items);
+            if($length>1){
+                $type =  $items[$length-1];
+            }else{
+                $type="";
+            }
+            $types=[
+                'png'=>'mage/png',
+                'jpg'=>'image/jpeg',
+                'gif'=>'image/*'
+            ];
+            if(in_array($type,$types)){
+                $this->header['Content-Type'] = $types[$type];
+            }else{
+                $this->header['Content-Type'] = "application/octet-stream";
+                $this->header["Accept-Length"]=filesize($file);
+                $file = substr($file,strrpos($file,DS)+1);
+                $this->header['Content-Disposition']=" attachment; filename=".$file;
+            }
+        }else{
+            $this->header['Content-Type'] = $this->contentType;
+        }
 
     }
+
 }

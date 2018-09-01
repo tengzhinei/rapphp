@@ -32,6 +32,7 @@ class AutoFindHandlerMapping implements HandlerMapping{
                 $prefix=$toPrefix;
                 $dir=$toDir;
                 $find=true;
+                break;
             }
         }
         //没有找到为默认
@@ -42,7 +43,18 @@ class AutoFindHandlerMapping implements HandlerMapping{
         $path = substr($path,strlen($prefix));
         $path = str_replace($this->separator, '|', $path);
         $array=explode('|',$path);
-
+        $items=[];
+        $search=[];
+        foreach ($array as $item) {
+            $i=(int)$item;
+            if($i.''==$item){
+                $search[]=$item;
+            }else{
+                $items[]=$item;
+            }
+        }
+        $array=$items;
+        $request->search($search);
         if(count($array)!=2){
             array_splice($array,count($array)-2,0,[$this->controllerDir]);
         }

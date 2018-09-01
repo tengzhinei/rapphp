@@ -4,6 +4,7 @@ use rap\config\Config;
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\log\Log;
+use rap\web\mvc\view\TwigView;
 use rap\web\Request;
 use rap\web\Response;
 use rap\web\mvc\view\View;
@@ -49,13 +50,17 @@ class Dispatcher{
                 $response->send();
                 $response->redirect($value,302);
                 return;
-            }else
-            if(strpos($value,'body:')===0){
+            }elseif(strpos($value,'body:')===0){
                 $value=substr($value,strlen('body:'));
                 $response->setContent($value);
             }else{
-                /* @var View $view  */
-                $view=Ioc::get(View::class);
+                if(strpos($value,'twig:')===0){
+                    $value=substr($value,strlen('twig:'));
+                    $view=new TwigView();
+                }else{
+                    /* @var View $view  */
+                    $view=Ioc::get(View::class);
+                }
                 $view->assign($response->data());
                 $po=strpos($value,DIRECTORY_SEPARATOR);
                 if($po===0){

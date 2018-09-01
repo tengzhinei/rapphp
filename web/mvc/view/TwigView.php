@@ -21,7 +21,7 @@ class TwigView implements View {
     ];
 
     public function config($config) {
-        $this->config[ 'cache' ] = RUNTIME . 'template';
+//        $this->config[ 'cache' ] = RUNTIME . 'template';
         $this->config = array_merge($this->config, $config);
     }
 

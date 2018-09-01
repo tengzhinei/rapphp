@@ -12,16 +12,60 @@ namespace rap\web\mvc;
 use rap\web\Request;
 
 class Router{
-
+    /**
+     * 匹配
+     * @var array
+     */
     private $patterns;
 
+    /**
+     * int类型的变量(全匹配)
+     * @var array
+     */
     private $intVar=[];
+
+    /**
+     * int类型的变量(包含)
+     * @var array
+     */
     private $intVarContain=[];
+
+    /**
+     * 字符类型的变量(包含)
+     * @var array
+     */
     private $lettersVar=[];
+
+    /**
+     * 正则匹配
+     * @var array
+     */
     private $regexVar=[];
+
+    /**
+     * 路由匹配
+     * @var array
+     */
     private $routerPattern;
+
+    /**
+     * 分组
+     * @var array
+     */
     private $groups;
+
+    /**
+     * miss的HandlerAdapter
+     * @var HandlerAdapter
+     */
     private $miss;
+
+    /**
+     * 默认的HandlerAdapter
+     * @var HandlerAdapter
+     */
+    private $index;
+
     /**
      * @param $url string 规则
      * @return  RouterPattern
@@ -94,11 +138,21 @@ class Router{
         }else{
             $this->miss=new ControllerHandlerAdapter($ctr,$action);
         }
+    }
 
-
+    public function index($ctr,$action=""){
+        if($ctr instanceof \Closure){
+            $this->index=new ClosureHandlerAdapter($ctr);
+        }else{
+            $this->index=new ControllerHandlerAdapter($ctr,$action);
+        }
     }
 
     public function match(Request $request, $pathArray){
+        //默认页
+        if($request->path()=='/'){
+            return $this->index;
+        }
         //拥有分组
         /* @var $group RouterGroup */
         $group=$this->groups[$pathArray[0]];

@@ -13,50 +13,50 @@ use rap\log\Log;
  */
 class LogController{
 
+    public function index($name,$secret){
+        if($name&&$secret){
+            $debug_secret= Config::get('app','debug_secret');
+            if($secret!=$debug_secret){
+                response()->assign('tip','调试密钥错误');
+            }else{
+                Log::debugSession($name);
+                Log::debug($name.'进入调试');
+                return redirect('page');
+            }
+        }
+        return twig("login");
+    }
+
     public function debug($name,$msg){
-        if(Config::get("app","debug")){
-            if(!$name){
-                $name="我自己";
-            }
-            Log::debugSession($name);
-            if(!$msg){
-                $msg="开始调试";
-            }
-            Log::debug($msg);
-            return body("正在调试程序 <form method='get'><div><span>你的名字:</span><input name='name' value='$name'></div><div><span>调试信息:</span><input name='msg' value='$msg'></div><button type='submit'>提交</button></form>  <a href='page' target='_blank'>调试输出页面</a>");
+        if(!$name){
+            $name="我自己";
         }
 
-        return body("");
+        if(!$msg){
+            $msg="开始调试";
+        }
+
+        return body("正在调试程序  <a href='page' target='_blank'>调试输出页面</a>");
     }
 
-    public function test($a,$b,$c){
-        if($a=='1'){
-            throw new MsgException("你没有权限查看");
-        }
 
-        if($b=='1'){
-            throw new MsgException("内容不存在");
-        }
-        try{
-//            逻辑代码
-        }catch (\Exception $exception) {
-            //能处理就处理
-            //不能  throw $exception;
-        }
-        return ['a'=>$a,'b'=>$b,'c'=>$c];
-
-    }
 
     public function logMsg(){
         return Log::debugMsg();
     }
 
     public function removeAll(){
+        Log::debugMsg();
         Cache::remove(md5('Log.debugSession'));
     }
 
     public function page(){
-        return "log";
+        $session_ids = Cache::get(md5('Log.debugSession'));
+        $session_id = request()->session()->sessionId();
+        if (key_exists($session_id, $session_ids) ) {
+            return "log";
+        }
+        return redirect('index');
     }
 
 }

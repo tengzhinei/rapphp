@@ -42,6 +42,10 @@ function body($body){
     return 'body:'.$body;
 }
 
+function twig($body){
+    return 'twig:'.$body;
+}
+
 /**
  * 缓存快捷方法
  * @param        $key

@@ -523,4 +523,18 @@ class Request{
         return $result;
     }
 
+    private $search=[];
+
+    /**
+     * 设置或获取搜索
+     * @param null $search
+     *
+     * @return array|null
+     */
+    public function search($search=null){
+        if($search){
+            $this->search=$search;
+        }
+        return $this->search;
+    }
 }

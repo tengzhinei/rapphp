@@ -58,7 +58,7 @@ class SwooleResponse extends Response{
     public function sendFile($file){
         $this->hasSend=true;
         $this->swooleResponse->status($this->code);
-        $this->header['Content-Type'] = $this->contentType;
+        $this->fileToContentType($file);
         if (!empty($this->header)) {
             // 发送头部信息
             foreach ($this->header as $name => $val) {

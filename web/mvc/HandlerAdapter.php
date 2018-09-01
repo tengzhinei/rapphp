@@ -14,161 +14,179 @@ use rap\web\Response;
  * Date: 17/8/31
  * Time: 下午9:47
  */
-abstract class HandlerAdapter{
+abstract class HandlerAdapter {
     private $pattern;
     private $header;
     private $method;
     private $params;
+
     public abstract function viewBase();
 
     /**
      * 设置或获取匹配的路径规则
+     *
      * @param string $pattern
+     *
      * @return string
      */
-    public function pattern($pattern){
-        if($pattern){
-            $this->pattern=$pattern;
+    public function pattern($pattern) {
+        if ($pattern) {
+            $this->pattern = $pattern;
         }
-        return  $this->pattern;
+        return $this->pattern;
     }
 
     /**
      * 设置或获取匹配的请求头
-     * @param array  $header
+     *
+     * @param array $header
+     *
      * @return array
      */
-    public function header($header){
-        if($header){
-            $this->header=$header;
+    public function header($header) {
+        if ($header) {
+            $this->header = $header;
         }
-        return  $this->header;
+        return $this->header;
     }
 
     /**
      * 设置或获取匹配的方法
+     *
      * @param array $method
+     *
      * @return array
      */
-    public function method($method){
-        if($method){
-            $this->method=$method;
+    public function method($method) {
+        if ($method) {
+            $this->method = $method;
         }
-        return  $this->method;
+        return $this->method;
     }
 
     public abstract function handle(Request $request, Response $response);
 
-    public function addParam($key,$value){
-        $this->params[$key]=$value;
+    public function addParam($key, $value) {
+        $this->params[ $key ] = $value;
     }
 
     /**
      * 调用方法 并绑定对象
-     * @param $obj mixed 对象
-     * @param $method string 方法名
-     * @param $request Request 请求
+     *
+     * @param $obj      mixed 对象
+     * @param $method   string 方法名
+     * @param $request  Request 请求
      * @param $response Response 回复
+     *
      * @throws MsgException
      * @return mixed
      */
-    public  function invokeRequest($obj, $method, Request $request, Response $response)
-    {
-        try{
-            $method =   new \ReflectionMethod(get_class($obj), $method);
-        }catch(\Exception $e){
+    public function invokeRequest($obj, $method, Request $request, Response $response) {
+        try {
+            $method = new \ReflectionMethod(get_class($obj), $method);
+        } catch (\Exception $e) {
             throw new MsgException("对应的路径不存在方法");
         }
-        $args=[];
+        $args = [];
+
         if ($method->getNumberOfParameters() > 0) {
             $params = $method->getParameters();
-            /* @var $param \ReflectionParameter  */
+            $search_index = 0;
+            $search = $request->search();
+            /* @var $param \ReflectionParameter */
             foreach ($params as $param) {
-                $name  = $param->getName();
-                $default=null;
-                if($param->isDefaultValueAvailable()){
-                    $default =  $param->getDefaultValue();
+                $name = $param->getName();
+                $default = null;
+                if ($param->isDefaultValueAvailable()) {
+                    $default = $param->getDefaultValue();
                 }
                 $class = $param->getClass();
                 if ($class) {
                     $className = $class->getName();
-                    if($className == Request::class){
-                        $args[]=$request;
-                    }else if($className == Response::class){
-                        $args[]=$response;
-                    }else if($className == Session::class){
-                        $args[]=$request->session();
-                    }else if($className == File::class){
-                        $args[]=$request->file($name);
-                    }else{
+                    if ($className == Search::class) {
+                        $args[] = new Search($search[ $search_index ]);
+                        $search_index++;
+                    } elseif ($className == Request::class) {
+                        $args[] = $request;
+                    } elseif ($className == Response::class) {
+                        $args[] = $response;
+                    } elseif ($className == Session::class) {
+                        $args[] = $request->session();
+                    } elseif ($className == File::class) {
+                        $args[] = $request->file($name);
+                    } else {
                         $className = $class->getName();
                         $bean = method_exists($className, 'instance') ? $className::instance() : new $className();
-                        $properties=$class->getProperties();
+                        $properties = $class->getProperties();
                         foreach ($properties as $property) {
-                            $name=$property->getName();
-                            $val= $request->param($name);
-                            if(isset($val)){
+                            $name = $property->getName();
+                            $val = $request->param($name);
+                            if (isset($val)) {
 
-                                $bean->$name=$val;
+                                $bean->$name = $val;
                             }
                         }
-                        $args[]=$bean;
+                        $args[] = $bean;
                     }
-                }else{
-                    if(key_exists($name,$this->params)){
-                        $args[$name]=$this->params[$name];
-                    }else{
-                        $args[$name]=$request->param($name,$default);
+                } else {
+                    if (key_exists($name, $this->params)) {
+                        $args[ $name ] = $this->params[ $name ];
+                    } else {
+                        $args[ $name ] = $request->param($name, $default);
                     }
                 }
             }
         }
-        $val= $method->invokeArgs($obj,$args);
+        $val = $method->invokeArgs($obj, $args);
         return $val;
     }
 
 
-
-    public function invokeClosure(\Closure $closure, Request $request, Response $response){
+    public function invokeClosure(\Closure $closure, Request $request, Response $response) {
         $method = new \ReflectionFunction($closure);
-        $args=[];
+        $args = [];
         if ($method->getNumberOfParameters() > 0) {
             $params = $method->getParameters();
-            /* @var $param \ReflectionParameter  */
+            $search_index = 0;
+            $search = $request->search();
+            /* @var $param \ReflectionParameter */
             foreach ($params as $param) {
-                $name  = $param->getName();
-                $default=null;
-                if($param->isDefaultValueAvailable()){
-                    $default =  $param->getDefaultValue();
+                $name = $param->getName();
+                $default = null;
+                if ($param->isDefaultValueAvailable()) {
+                    $default = $param->getDefaultValue();
                 }
                 $class = $param->getClass();
                 if ($class) {
                     $className = $class->getName();
-                    if($className == Request::class){
-                        $args[]=$request;
-                    }else if($className == Response::class){
-                        $args[]=$response;
-                    }else if($className == Session::class){
-                        $args[]=$request->session();
-                    }else if($className == File::class){
-                        $args[]=$request->file($name);
-                    }else{
+                    if ($className == Search::class) {
+                        $args[] = new Search($search[ $search_index ]);
+                        $search_index++;
+                    } elseif ($className == Request::class) {
+                        $args[] = $request;
+                    } elseif ($className == Response::class) {
+                        $args[] = $response;
+                    } elseif ($className == Session::class) {
+                        $args[] = $request->session();
+                    } elseif ($className == File::class) {
+                        $args[] = $request->file($name);
+                    } else {
                         $bean = method_exists($className, 'instance') ? $className::instance() : new $className();
-                        $properties=$class->getProperties();
+                        $properties = $class->getProperties();
                         foreach ($properties as $property) {
-                            $name=$property->getName();
-                            $val= $request->param($name);
-                            if(isset($val)){
-                                $bean->$name=$val;
+                            $name = $property->getName();
+                            $val = $request->param($name);
+                            if (isset($val)) {
+                                $bean->$name = $val;
                             }
                         }
-                        $args[$name]=$bean;
+                        $args[ $name ] = $bean;
                     }
-                }else{
-                    if(key_exists($name,$this->params)){
-                        $args[$name]=$this->params[$name];
-                    }else{
-                        $args[$name]=$request->param($name,$default);
+                } else {
+                    if (key_exists($name, $this->params)) {
+                        $args[ $name ] = $this->params[ $name ];
+                    } else {
+                        $args[ $name ] = $request->param($name, $default);
                     }
                 }
             }

@@ -50,6 +50,10 @@ class Dispatcher{
                 $response->send();
                 $response->redirect($value,302);
                 return;
+            }elseif(strpos($value,'downloadFile:')===0){
+                $value=substr($value,strlen('downloadFile:'));
+                $response->sendFile($value);
+                return;
             }elseif(strpos($value,'body:')===0){
                 $value=substr($value,strlen('body:'));
                 $response->setContent($value);

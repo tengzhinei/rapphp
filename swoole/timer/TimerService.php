@@ -64,6 +64,7 @@ class TimerService {
                 $timeout = 10;
             }
             try {
+                $task[ 'header' ]['from_rap_timer']=true;
                 \Requests::put($url, $task[ 'header' ], $task[ 'params' ], ['timeout' => $timeout]);
             } catch (\Exception $e) {
 

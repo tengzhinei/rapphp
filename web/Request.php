@@ -537,4 +537,26 @@ class Request{
         }
         return $this->search;
     }
+
+    /**
+     * 获取 ip 地址
+     *
+     * @param string $http_remote_ip ip 所在的 server 名称 默认取的 REMOTE_ADDR
+     *
+     * @return mixed
+     */
+    public function ip($http_remote_ip=''){
+        if(!$http_remote_ip){
+            $http_remote_ip=  Config::get('app','http_remote_ip');
+        }
+        if(!$http_remote_ip){
+            $http_remote_ip='REMOTE_ADDR';
+        }
+        $ip = $this->server($http_remote_ip);
+            // IP地址合法验证
+        $long = sprintf("%u", ip2long($ip));
+        $ip   = $long ? [$ip, $long] : ['0.0.0.0', 0];
+        return $ip[0];
+    }
+
 }

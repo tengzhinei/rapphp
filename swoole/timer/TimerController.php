@@ -28,7 +28,9 @@ class TimerController {
      *
      * @return array
      */
-    public function add(Request $request) {
+    public function add(Request $request,$secret) {
+
+
         $task = $request->put();
         $task_id = $this->queueService->addTask($task);
         return ['success' => true, 'task_id' => $task_id];
@@ -41,7 +43,7 @@ class TimerController {
      *
      * @return array
      */
-    public function cancel($task_id) {
+    public function cancel($task_id,$secret) {
         $this->queueService->cancelTask($task_id);
         return ['success' => true];
     }

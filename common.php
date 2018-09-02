@@ -46,6 +46,10 @@ function twig($body){
     return 'twig:'.$body;
 }
 
+function downloadFile($file){
+    return 'downloadFile:'.$file;
+}
+
 /**
  * 缓存快捷方法
  * @param        $key

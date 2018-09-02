@@ -9,31 +9,32 @@
 namespace rap\storage;
 
 
-class File{
+class File {
 
-    public $name="";
-    public $type="";
-    public $size="";
-    public $path_tmp="";
-    public $error="";
-    public $ext="";
-    public static function fromRequest($upload_file){
-        $file=new File();
-        $file->name=$upload_file['name'];
-        $file->type=$upload_file['type'];
-        $file->size=$upload_file['size'];
-        $file->path_tmp=$upload_file['tmp_name'];
-        $file->error=$upload_file['error'];
-        $x=explode(".",$file->name);
-        $file->ext= $x[count($x)-1];
+    public $name     = "";
+    public $type     = "";
+    public $size     = "";
+    public $path_tmp = "";
+    public $error    = "";
+    public $ext      = "";
+
+    public static function fromRequest($upload_file) {
+        $file = new File();
+        $file->name = $upload_file[ 'name' ];
+        $file->type = $upload_file[ 'type' ];
+        $file->size = $upload_file[ 'size' ];
+        $file->path_tmp = $upload_file[ 'tmp_name' ];
+        $file->error = $upload_file[ 'error' ];
+        $x = explode(".", $file->name);
+        $file->ext = $x[ count($x) - 1 ];
         return $file;
     }
+
     /**
      * 检测是否合法的上传文件
      * @return bool
      */
-    public function isValid()
-    {
-       return true;
+    public function isValid() {
+        return true;
     }
 }

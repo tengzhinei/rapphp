@@ -9,10 +9,15 @@
 namespace rap\swoole\task;
 
 
-interface TaskConfig{
+class TaskConfig{
 
-    public function getTaskInitConfig();
+    public function getTaskInitConfig(){
+        //空实现
+        return [];
+    }
 
-    public function setTaskInit($config);
+    public function setTaskInit($config){
+        //空实现
+    }
 
 }

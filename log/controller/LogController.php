@@ -56,4 +56,17 @@ class LogController{
         return downloadFile($file);
     }
 
+    public function logout(){
+        $sessionIds = Cache::get(md5('Log.debugSession'), []);
+        $session_id = request()->session()->sessionId();
+        unset($sessionIds[ $session_id ] );
+        Cache::set(md5('Log.debugSession'), $sessionIds);
+        exception('退出成功');
+    }
+
+    public function logoutAll(){
+        Log::debugMsg();
+        Cache::remove(md5('Log.debugSession'));
+        exception('全部退出成功');
+    }
 }

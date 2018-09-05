@@ -70,12 +70,20 @@
             padding: 10px;
             text-align: center;
         }
+        #qrcode{
+            right: 20px;
+            position: absolute;
+            top: 20px;
+            width: 100px;
+        }
     </style>
 </head>
 <body>
 <div >
+    <img id="qrcode" src="qrCode"/>
     <div class="login">
-        <h1>Rap Debug</h1>
+        <h1>
+            Rap Debug</h1>
         <form method="post" >
             <div class="tip">{{tip}}</div>
             <input type="text" name="name" value="" placeholder="调试者名称" required="required">

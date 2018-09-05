@@ -29,16 +29,6 @@ class RapApplication extends Application{
 
     public function init( AutoFindHandlerMapping $autoMapping, Router $router){
         $config=Config::getFileConfig();
-        $app= $config['app'];
-        if($app['init']){
-            Ioc::bind(Init::class,$app['init']);
-            /* @var $init Init  */
-            $init=Ioc::get(Init::class);
-            $ret=$init->appInit($autoMapping,$router);
-            if($ret==true){
-                return;
-            }
-        }
         $map=$config["mapping"];
         if($map){
             foreach ($map as $key=>$value) {
@@ -103,6 +93,13 @@ class RapApplication extends Application{
                     $fileLog->config($item);
                 });
             }
+        }
+        $app= $config['app'];
+        if($app['init']){
+            Ioc::bind(Init::class,$app['init']);
+            /* @var $init Init  */
+            $init=Ioc::get(Init::class);
+            $init->appInit($autoMapping,$router);
         }
     }
 

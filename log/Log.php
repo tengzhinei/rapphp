@@ -41,18 +41,25 @@ class Log {
      * @param bool   $force   是否强制记录
      */
     public static function debug($message, $type = 'user', $force = false) {
-
         if (!(is_string($message) || is_int($message))) {
             $message = json_decode($message);
         }
+
+
         $session_ids = Cache::get(md5('Log.debugSession'));
         $session_id = request()->session()->sessionId();
         if (key_exists($session_id, $session_ids) || $force) {
             $name = $session_ids[ $session_id ];
+            list($usec, $sec) = explode(" ", microtime());
+            $time = ((float)$usec + (float)$sec);
+            list($usec, $sec) = explode(".", $time);
+            $date = date('H:i:s.x',$usec);
+            $time=str_replace('x', $sec, $date);
+
             $msg = ['name' => $name,
                     'session' => $session_id,
                     'type' => $type,
-                    'time' => date("H:i", time()),
+                    'time' => $time,
                     'msg' => $message];
             $msgs = Cache::get(md5("Log.debugMsg"), []);
             $msgs[] = $msg;

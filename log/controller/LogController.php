@@ -4,6 +4,8 @@ use rap\cache\Cache;
 use rap\config\Config;
 use rap\exception\MsgException;
 use rap\log\Log;
+use rap\util\Utils;
+use rap\web\Request;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -16,6 +18,9 @@ class LogController{
     public function index($name,$secret){
         if($name&&$secret){
             $debug_secret= Config::get('app','debug_secret');
+            if(!$debug_secret){
+                response()->assign('tip','调试功能已关闭,请配置密钥');
+            }
             if($secret!=$debug_secret){
                 response()->assign('tip','调试密钥错误');
             }else{
@@ -26,20 +31,6 @@ class LogController{
         }
         return twig("login");
     }
-
-    public function debug($name,$msg){
-        if(!$name){
-            $name="我自己";
-        }
-
-        if(!$msg){
-            $msg="开始调试";
-        }
-
-        return body("正在调试程序  <a href='page' target='_blank'>调试输出页面</a>");
-    }
-
-
 
     public function logMsg(){
         return Log::debugMsg();
@@ -57,6 +48,12 @@ class LogController{
             return "log";
         }
         return redirect('index');
+    }
+
+    public function qrCode(Request $request){
+        $referer= $request->header('referer');
+        $file = Utils::getQrcode($referer);
+        return downloadFile($file);
     }
 
 }

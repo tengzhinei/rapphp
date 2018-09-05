@@ -162,7 +162,7 @@ abstract class Connection {
      *
      * @return null|string
      */
-    public function value($sql, $bind, $cache = false) {
+    public function value($sql, $bind=[], $cache = false) {
         $value = null;
         $dbCache = null;
         if ($cache) {
@@ -506,4 +506,8 @@ abstract class Connection {
      * @return mixed
      */
     public abstract function getPkField($table);
+
+    public abstract function getFieldsComment($table);
+
+
 }

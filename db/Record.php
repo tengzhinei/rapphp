@@ -501,8 +501,7 @@ class Record {
      * @return mixed
      */
     public function getPkField() {
-        $connection = $this->getConnection();
-        return $connection->getPkField($this->getTable());
+        return "id";
     }
 
     /**

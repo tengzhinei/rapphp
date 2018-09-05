@@ -50,7 +50,27 @@ class MySqlConnection extends Connection{
     }
 
     public  function getPkField($table){
-        return 'id';
+        $sql="select database()";
+        $db_name=$this->value($sql);
+        $sql = "SELECT COLUMN_NAME as name FROM INFORMATION_SCHEMA.Columns WHERE 
+        TABLE_NAME =? AND 
+        TABLE_SCHEMA=? AND COLUMN_KEY=?";
+        $pk=$this->value($sql,[$table,$db_name,'PRI']);
+        return $pk;
+    }
+
+    public function getFieldsComment($table) {
+        $sql="select database()";
+        $db_name=$this->value($sql);
+        $sql = "SELECT COLUMN_NAME as name,COLUMN_COMMENT as comment FROM INFORMATION_SCHEMA.Columns WHERE 
+        table_name=? AND 
+        table_schema=?";
+        $values=$this->query($sql,[$table,$db_name]);
+        $data=[];
+        foreach ($values as $item) {
+            $data[$item['name']]=$item['comment'];
+        }
+       return $data;
     }
 
 

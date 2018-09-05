@@ -44,8 +44,7 @@ class Log {
         if (!(is_string($message) || is_int($message))) {
             $message = json_decode($message);
         }
-
-
+        if(!request())return;
         $session_ids = Cache::get(md5('Log.debugSession'));
         $session_id = request()->session()->sessionId();
         if (key_exists($session_id, $session_ids) || $force) {

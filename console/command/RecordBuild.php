@@ -55,6 +55,9 @@ class RecordBuild extends Command{
     }
 
     public function create($table_name,$prefix,$namespace){
+        if(!$namespace){
+            $namespace='app';
+        }
         $connection=Ioc::get(Connection::class);
         /* @var Connection $connection  */
         $name=$table_name;
@@ -63,21 +66,45 @@ class RecordBuild extends Command{
         }
         $name=$this->convertUnderline($name);
         $fields=$connection->getFields($table_name);
+        $comments=$connection->getFieldsComment($table_name);
+
+        $date=date("Y-m-d",time());
+        $time=date("H:i",time());
+        $pk_field = $connection->getPkField($table_name);
         $txt = <<<EOF
 <?php
+/**
+ * 
+ * User: RapPhp auto build
+ * Date: $date
+ * Time: $time
+ */
 namespace $namespace;
 use rap\db\Record;
-/**
- * 南京灵衍信息科技有限公司
- * User: jinghao@duohuo.net
- * Date: 18/1/24
- * Time: 下午4:30
- */
-class $name extends Record{
-    public function getTable(){
+
+class $name extends Record {
+    
+    /**
+     * 获取表名
+     * @return string
+     */     
+    public function getTable() {
         return "$table_name";
     }
-    public function getFields(){
+    
+    /**
+     * 获取主键
+     * @return string
+     */
+    public function getPkField() {
+        return "$pk_field";
+    }
+    
+    /**
+     * 获取数据库字段
+     * @return array
+     */
+    public function getFields() {
         return [
 
 EOF;
@@ -96,9 +123,16 @@ EOF;
     }
 
 EOF;
+        $txt.="     /**** 对应数据库字段 start *****/\r\n\r\n";
         foreach ($fields as $key=>$value) {
-            $txt.="    public $$key;\r\n";
+            $comment=$comments[$key];
+            if($comment){
+                $txt.="     //$comment\r\n ";
+            }
+            $txt.="     public $$key;\r\n ";
+            $txt.="    \r\n ";
         }
+        $txt.="     /**** 对应数据库字段 end *****/\r\n\r\n";
         $txt.="}";
         mkdir(RUNTIME."model".DS);
         file_put_contents(RUNTIME.'model'.DS.$name.'.php',$txt);

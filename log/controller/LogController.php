@@ -20,8 +20,7 @@ class LogController{
             $debug_secret= Config::get('app','debug_secret');
             if(!$debug_secret){
                 response()->assign('tip','调试功能已关闭,请配置密钥');
-            }
-            if($secret!=$debug_secret){
+            }elseif($secret!=$debug_secret){
                 response()->assign('tip','调试密钥错误');
             }else{
                 Log::debugSession($name);

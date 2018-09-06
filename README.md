@@ -7,9 +7,12 @@
 
 
 RapPHP 框架提供了全面的 IOC,AOP的底层支持,架构设计简洁而有扩展性,开发灵活而有设计感,RapPHP提供了完整的 Web开发需要的核心组件;同时 RapPHP支持 SWOOLE和传统(lamp,lnmp)双部署方案,可以通过 SWOOLE 提供常驻内存的高性能 php 运行环境;
-官网 [http://rapphp.com/](http://rapphp.com/)
 
-github [https://github.com/tengzhinei/rapphp](https://github.com/tengzhinei/rapphp)
+**官网** [http://rapphp.com/](http://rapphp.com/)
+
+**在线文档** [http://doc.rapphp.com/](http://doc.rapphp.com/)
+
+**github** [https://github.com/tengzhinei/rapphp](https://github.com/tengzhinei/rapphp)
 
 
 #### 主要特性:

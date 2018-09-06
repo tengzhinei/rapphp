@@ -31,13 +31,7 @@ RapPHP 框架提供了全面的 IOC,AOP的底层支持,架构设计简洁而有�
 
 > 有了 IOC,AOP,SWOOLE神器,可以拉近和编译性语言(JAVA等)的性能;
 
-### 名词解释
 
-* * * * *
-
-下面是关于 Spring(JAVA 框架) 中的 IOC和AOP 的解释
-IOC https://www.zhihu.com/question/23277575/answer/169698662
-AOP https://www.zhihu.com/question/24863332/answer/48376158
 
 ### 安利
 * * * * *

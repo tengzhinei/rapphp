@@ -89,20 +89,7 @@ class LocalFileStorage implements StorageInterface{
      */
     public function getPicUrl($file_id, $width = 0, $height = 0,$water=false, $crop = self::resize_rect_in,$blur=-1){
         $path=$this->config['base_path'].DIRECTORY_SEPARATOR.$file_id;
-        $image=\think\Image::open(ROOT_PATH.$path);
-        $p=explode(DIRECTORY_SEPARATOR,$file_id);
-        $name=array_pop($p);
-        $name_ext=explode(".",$name);
-        $save_name=$this->config['base_path'].DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR,$p).DIRECTORY_SEPARATOR
-            .$name_ext[0].DIRECTORY_SEPARATOR;
-        mkdir(ROOT_PATH.$save_name);
-        $save_name.=$width."_".$height."_".$crop."_".($water?1:"").".".$name_ext[1];
-        $image->thumb($width,$height,$crop);
-        if($water&&is_file(ROOT_PATH.$this->config['water'])){
-            $image->water(ROOT_PATH.$this->config['water']);
-        }
-        $image ->save(ROOT_PATH.$save_name);
-        return $this->config['cdn'].$save_name;
+        return $this->config['cdn'].$path;
     }
 
 

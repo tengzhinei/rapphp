@@ -36,8 +36,7 @@ class Console {
                 try {
                     $this->addConsole(Ioc::get($cmd));
                 } catch (\Error $exception) {
-                    echo "对应的" . $cmd . "命令不存在,请检查 config.php的 cmds配置
-";
+                    echo "对应的" . $cmd . "命令不存在,请检查 config.php的 cmds配置";
                 }
             }
         }

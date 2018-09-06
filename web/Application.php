@@ -26,7 +26,7 @@ use rap\web\mvc\Dispatcher;
 use rap\web\mvc\Router;
 use rap\web\mvc\RouterHandlerMapping;
 
-abstract class Application{
+abstract class Application {
 
     /**
      * swoole_server_http
@@ -37,82 +37,82 @@ abstract class Application{
      */
     private $dispatcher;
 
-    public function _initialize(Dispatcher $dispatcher){
-        $this->dispatcher=$dispatcher;
-        include_once __DIR__."/../".'common.php';
+    public function _initialize(Dispatcher $dispatcher) {
+        $this->dispatcher = $dispatcher;
+        include_once __DIR__ . "/../" . 'common.php';
     }
 
-    public function _prepared(){
+    public function _prepared() {
         $this->addHandlerMapping();
     }
 
 
-    public function addHandlerMapping(){
-        $autoMapping=new AutoFindHandlerMapping();
+    public function addHandlerMapping() {
+        $autoMapping = new AutoFindHandlerMapping();
         $this->dispatcher->addHandlerMapping($autoMapping);
-        $router=new Router();
-        $routerMapping=new RouterHandlerMapping($router);
+        $router = new Router();
+        $routerMapping = new RouterHandlerMapping($router);
         $this->dispatcher->addHandlerMapping($routerMapping);
-        $this->init($autoMapping,$router);
+        $this->init($autoMapping, $router);
     }
 
 
-    public function start(Request $request, Response $response){
-        try{
-            $interceptors=Config::getFileConfig()['interceptors'];
-            if($interceptors){
-                /* @var $interceptor Interceptor  */
-                $url=$request->url();
-                $except=Config::getFileConfig()['interceptors_except'];
-                $is_interceptor=true;
+    public function start(Request $request, Response $response) {
+        try {
+            $interceptors = Config::getFileConfig()[ 'interceptors' ];
+            if ($interceptors) {
+                /* @var $interceptor Interceptor */
+                $url = $request->url();
+                $except = Config::getFileConfig()[ 'interceptors_except' ];
+                $is_interceptor = true;
                 foreach ($except as $item) {
-                    if(strpos($url,$item)===0){
-                        $is_interceptor=false;
+                    if (strpos($url, $item) === 0) {
+                        $is_interceptor = false;
                         break;
                     }
                 }
-                if($is_interceptor){
+                if ($is_interceptor) {
                     foreach ($interceptors as $interceptor) {
-                        $interceptor=Ioc::get($interceptor);
-                        $value=$interceptor->handler($request,$response);
-                        if($value){
+                        $interceptor = Ioc::get($interceptor);
+                        $value = $interceptor->handler($request, $response);
+                        if ($value) {
                             return;
                         }
                     }
                 }
 
             }
-            $this->dispatcher->doDispatch($request,$response);
-        }catch (\Exception $exception){
-            $this->handlerException( $request, $response,$exception);
-        }catch (\Error $error){
-            $this->handlerException( $request, $response, new ErrorException($error));
+            $this->dispatcher->doDispatch($request, $response);
+        } catch (\Exception $exception) {
+            $this->handlerException($request, $response, $exception);
+        } catch (\Error $error) {
+            $this->handlerException($request, $response, new ErrorException($error));
         }
     }
 
-    public function handlerException(Request $request, Response $response, \Exception $exception){
+    public function handlerException(Request $request, Response $response, \Exception $exception) {
         Log::save();
         $ext = $request->ext();
-        $debug=Config::getFileConfig()["app"]["debug"];
+        $debug = Config::getFileConfig()[ "app" ][ "debug" ];
         //没有后缀的或者后缀为 json 的认定返回类型为api的
-        if(!($exception instanceof MsgException)&&$debug){
-                if(!$ext||$ext=='json'){
-                    $handler=Ioc::get(ApiExceptionReport::class);
-                }else{
-                    $handler=Ioc::get(PageExceptionReport::class);
-                }
-        }else{
-            /* @var ExceptionHandler  */
-            $handler=Ioc::get((!$ext||$ext=='json')?ApiExceptionHandler::class:PageExceptionHandler::class);
+        if (!($exception instanceof MsgException) && $debug) {
+            if (!$ext || $ext == 'json') {
+                $handler = Ioc::get(ApiExceptionReport::class);
+            } else {
+                $handler = Ioc::get(PageExceptionReport::class);
+            }
+        } else {
+            /* @var ExceptionHandler */
+            $handler = Ioc::get((!$ext || $ext == 'json') ? ApiExceptionHandler::class : PageExceptionHandler::class);
         }
-        $handler->handler( $request, $response,$exception);
+        $handler->handler($request, $response, $exception);
     }
 
-    public abstract function init(AutoFindHandlerMapping $autoMapping,Router $router);
+    public abstract function init(AutoFindHandlerMapping $autoMapping, Router $router);
 
-    public function console($argv){
-        /* @var $console Console  */
-        $console=Ioc::get(Console::class);
+    public function console($argv) {
+        /* @var $console Console */
+        $console = Ioc::get(Console::class);
         $console->run($argv);
     }
 

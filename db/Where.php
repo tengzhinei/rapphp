@@ -304,6 +304,10 @@ class Where {
         return $this;
     }
 
+    /**
+     * 锁
+     * @var string
+     */
     protected $lock = '';
 
     /**

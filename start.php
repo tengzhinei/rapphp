@@ -1,6 +1,6 @@
 <?php
 error_reporting(E_ALL& ~E_NOTICE& ~E_WARNING);
-define('RAP_VERSION', '2.0.1beta');
+define('RAP_VERSION', '2.0.6');
 define('DS', DIRECTORY_SEPARATOR);
 ini_set("display_errors", "On");
 define('RAP_DIR',__DIR__);

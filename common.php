@@ -7,8 +7,8 @@
  *
  * @return array
  */
-function success($msg=""){
-    return ['success'=>true,'msg'=>$msg];
+function success($msg = "") {
+    return ['success' => true, 'msg' => $msg];
 }
 
 /**
@@ -18,17 +18,19 @@ function success($msg=""){
  *
  * @return array
  */
-function fail($msg=""){
-    return ['success'=>false,'msg'=>$msg];
+function fail($msg = "") {
+    return ['success' => false, 'msg' => $msg];
 }
 
 /**
  * 重定向
+ *
  * @param $url
+ *
  * @return string
  */
-function redirect($url){
-    return 'redirect:'.$url;
+function redirect($url) {
+    return 'redirect:' . $url;
 }
 
 /**
@@ -38,34 +40,35 @@ function redirect($url){
  *
  * @return string
  */
-function body($body){
-    return 'body:'.$body;
+function body($body) {
+    return 'body:' . $body;
 }
 
-function twig($body){
-    return 'twig:'.$body;
+function twig($body) {
+    return 'twig:' . $body;
 }
 
-function downloadFile($file){
-    return 'downloadFile:'.$file;
+function downloadFile($file) {
+    return 'downloadFile:' . $file;
 }
 
 /**
  * 缓存快捷方法
+ *
  * @param        $key
  * @param string $value
  * @param int    $expire
  *
  * @return mixed
  */
-function cache($key,$value = '',$expire=0){
-    if($value==''){
-        return  \rap\cache\Cache::getCache()->get($key,'');
-    }elseif (is_null($value)) {
+function cache($key, $value = '', $expire = 0) {
+    if ($value == '') {
+        return \rap\cache\Cache::getCache()->get($key, '');
+    } elseif (is_null($value)) {
         // 删除缓存
         return \rap\cache\Cache::getCache()->remove($key);
-    }else{
-        return  \rap\cache\Cache::getCache()->set($key,$value,$expire);
+    } else {
+        return \rap\cache\Cache::getCache()->set($key, $value, $expire);
     }
 }
 
@@ -78,26 +81,25 @@ function cache($key,$value = '',$expire=0){
  *
  * @throws \rap\exception\MsgException
  */
-function exception($msg,$code=100000,$data=null){
-    throw new \rap\exception\MsgException($msg,$code,$data);
+function exception($msg, $code = 100000, $data = null) {
+    throw new \rap\exception\MsgException($msg, $code, $data);
 }
 
 /**
  * @return float
  */
-function getMillisecond(){
+function getMillisecond() {
     list($t1, $t2) = explode(' ', microtime());
     return (float)sprintf('%.0f', (floatval($t1) + floatval($t2)) * 1000);
 }
 
 /**
- *
  * 获取request
  * 只能在主进程使用,不可以在异步或Task中使用
  * @return \rap\web\Request
  */
-function request(){
-   return \rap\web\mvc\RequestHolder::getRequest();
+function request() {
+    return \rap\web\mvc\RequestHolder::getRequest();
 }
 
 /**
@@ -105,8 +107,8 @@ function request(){
  * 只能在主进程使用,不可以在异步或Task中使用
  * @return \rap\web\Response
  */
-function response(){
-    return  \rap\web\mvc\RequestHolder::getResponse();
+function response() {
+    return \rap\web\mvc\RequestHolder::getResponse();
 }
 
 

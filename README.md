@@ -38,3 +38,106 @@ RapPHP 框架提供了全面的 IOC,AOP的底层支持,架构设计简洁而有�
 SWOOLE https://swoole.com/
 
 
+
+
+#### IOC
+
+对象依赖注入,系统内对象绝对单例
+* * * * *
+~~~
+class ToolController{
+
+    /**
+     * @var Connection
+     */
+    private $connection;
+    /**
+     * @var TenantService
+     */
+    private $tenantService;
+
+    public function _initialize(Connection $connection,TenantService $tenantService){
+        $this->connection=$connection;
+        $this->tenantService=$tenantService;
+    }
+}
+~~~
+
+#### AOP
+* * * * *
+前置切面,后置切面,环绕切面, AOP 支持完整可控
+~~~
+在UserLogic调用saveUser,delUser方法前调用UserLogicTestAop的testBefore方法
+   AopBuild::before(UserLogic::class)
+            ->methods(["saveUser","delUser"])
+            ->wave(UserLogicTestAop::class)
+            ->using("testBefore")
+            ->addPoint();
+
+//在UserLogic调用方法以save或del开头的方法前调用UserLogicTestAop的testAfter方法
+        AopBuild::after(UserLogic::class)
+            ->methodsStart(["save","del"])
+            ->wave(UserLogicTestAop::class)
+            ->using("testAfter")
+            ->addPoint();
+~~~
+
+### MVC
+* * * * *
+MVC 路径自动查找,参数自动绑定,返回(页面, json)自动解析
+
+~~~
+
+class IndexController 
+{
+    public function index($name, Response $response)
+    {	
+    	$response->assign('name',$name)
+        return 'index';
+    }
+      public function json($name)
+    {
+        return ['success'=>true,'data'=>$name];
+    }
+}
+~~~
+
+### ORM
+* * * * *
+数据模型,增删改查,二级缓存机制,数据库操作轻松搞定
+ ~~~
+ $select = Good::select("g.*") -> order("rank desc");
+ $select -> join("good_tag gt",'gt.good_id=g.id') -> where("tag_id",$tag);
+ $data = $select -> cache() -> page($page,$step);
+DB::runInTrans(function() {
+               $user = User::getLock(1);
+          		$user -> name = 'tengzhinei';
+          		$user -> save();
+        });
+~~~ 
+### SWOOLE
+* * * * *
+一键启动 swoole 服务器,异步任务,定时任务,websocket 轻松搞定
+ ~~~
+ 'swoole_http'=>[
+               'ip'=>'0.0.0.0', //正常不需要修改
+                'port'=>9501,  //默认使用9501端口
+                'document_root'=>ROOT_PATH, 
+                'enable_static_handler'=>false, //是否可以访问文件 正常不可以
+                'worker_num'=>20,				  //默认开启多少worker进程
+                'task_worker_num'=>4,          //默认开启几个 task 进程
+                'task_max_request'=>0		  //访问多少次释放worker进程
+        ],
+//启动服务   
+php index.php http    
+//异步任务
+Task::deliver(MyTaskService::class,'task',['key'=>100,'name'=>'test']);
+//定时任务
+Timer::after('/test/a',['a'=>'1'],10,['tent-header'=>'test']);
+  ~~~
+  
+### 安利
+* * * * *
+SWOOLE https://swoole.com/
+
+

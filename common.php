@@ -112,4 +112,21 @@ function response() {
 }
 
 
+function validate($name,$as_name,$throw=true){
+    return \rap\web\validate\ValidateUtil::param($name,$as_name,$throw);
+}
 
+/**
+ * @param        $name
+ * @param string $as_name
+ * @param bool   $throw
+ *
+ * @return \rap\web\validate\ValidateUtil
+ */
+function validateParam($name,$as_name='',$throw=true){
+    return \rap\web\validate\ValidateUtil::request($name,$as_name,$throw);
+}
+
+function lang($moudle,$key,$vars=[]){
+  return  \rap\util\Lang::get($moudle,$key,$vars);
+}

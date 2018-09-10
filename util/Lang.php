@@ -55,6 +55,8 @@ class Lang {
      * @param Request $request
      */
     public static function loadLand(Request $request){
+         $lang_switch_on=Config::get('app','lang_switch_on');
+         if(!$lang_switch_on)return;
         $lang=$request->get('lang');
         if(!$lang){
             $lang=$request->cookie('rap_lang');

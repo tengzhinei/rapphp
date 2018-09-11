@@ -31,6 +31,35 @@ class LogController{
         return twig("login");
     }
 
+    public function autoIn($parent_id,$qr){
+        $session_id=request()->session()->sessionId();
+        if($parent_id&&$parent_id!=$session_id){
+            $session_ids = Cache::get(md5('Log.debugSession'));
+            if (key_exists($session_id, $session_ids)) {
+                return body("欢迎参与调试");
+            }
+            if (key_exists($parent_id, $session_ids)) {
+                $name = $session_ids[ $parent_id ];
+                $name = '来自'.$name.'邀请'.substr(time(),7);
+                Log::debugSession($name);
+                Log::debug($name.'进入调试');
+                return body("欢迎参与调试");
+            }
+            return body("调试二维码已失效");
+        }else{
+            $referer= request()->scheme()."://".request()->host().request()->path()."?parent_id=$session_id";
+            if($qr){
+                $file = Utils::getQrcode($referer);
+                return downloadFile($file);
+            }else{
+                $qrPath=request()->scheme()."://".request()->host().request()->path()."?qr=1";
+                return body("复制下面链接让调试设备打开<br/> $referer</br><img src='$qrPath'/>");
+            }
+        }
+    }
+
+
+
     public function logMsg(){
         return Log::debugMsg();
     }

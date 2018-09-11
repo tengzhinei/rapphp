@@ -175,11 +175,11 @@ class Response{
                 $type="";
             }
             $types=[
-                'png'=>'mage/png',
+                'png'=>'image/png',
                 'jpg'=>'image/jpeg',
                 'gif'=>'image/*'
             ];
-            if(in_array($type,$types)){
+            if(key_exists($type,$types)){
                 $this->header['Content-Type'] = $types[$type];
             }else{
                 $this->header['Content-Type'] = "application/octet-stream";

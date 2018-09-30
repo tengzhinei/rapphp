@@ -111,22 +111,32 @@ function response() {
     return \rap\web\mvc\RequestHolder::getResponse();
 }
 
-
-function validate($name,$as_name,$throw=true){
-    return \rap\web\validate\ValidateUtil::param($name,$as_name,$throw);
-}
-
 /**
- * @param        $name
+ * 检查参数
+ *
+ * @param string $value
  * @param string $as_name
  * @param bool   $throw
  *
- * @return \rap\web\validate\ValidateUtil
+ * @return \rap\web\validate\Validate
  */
-function validateParam($name,$as_name='',$throw=true){
-    return \rap\web\validate\ValidateUtil::request($name,$as_name,$throw);
+function validate($value, $as_name, $throw = true) {
+    return \rap\web\validate\Validate::param($value, $as_name, $throw);
 }
 
-function lang($moudle,$key,$vars=[]){
-  return  \rap\util\Lang::get($moudle,$key,$vars);
+/**
+ * 检查 request 里的参数
+ *
+ * @param string $name
+ * @param string $as_name
+ * @param bool   $throw
+ *
+ * @return \rap\web\validate\Validate
+ */
+function validateParam($name, $as_name = '', $throw = true) {
+    return \rap\web\validate\Validate::request($name, $as_name, $throw);
+}
+
+function lang($moudle, $key, $vars = []) {
+    return \rap\util\Lang::get($moudle, $key, $vars);
 }

@@ -31,6 +31,16 @@ class File {
     }
 
     /**
+     * 获取文件类型信息
+     * @access public
+     * @return string
+     */
+    public function getMime() {
+        $f_info = finfo_open(FILEINFO_MIME_TYPE);
+        return finfo_file($f_info, $this->path_tmp);
+    }
+
+    /**
      * 检测是否合法的上传文件
      * @return bool
      */

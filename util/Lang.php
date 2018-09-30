@@ -100,7 +100,7 @@ class Lang {
                // 关联索引解析
                $replace = array_keys($vars);
                foreach ($replace as &$v) {
-                   $v = "{:{$v}}";
+                   $v = ":$v";
                }
                $value = str_replace($replace, $vars, $value);
            }

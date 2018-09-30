@@ -124,10 +124,6 @@ class Lang {
             if($array){
                if($array[$key]){
                     return $array[$key];
-<<<<<<< HEAD
-=======
-
->>>>>>> dev
                }
             }
         }

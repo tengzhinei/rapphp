@@ -20,6 +20,7 @@ use rap\exception\handler\PageExceptionReport;
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\log\Log;
+use rap\util\Lang;
 use rap\web\Interceptor\Interceptor;
 use rap\web\mvc\AutoFindHandlerMapping;
 use rap\web\mvc\Dispatcher;
@@ -59,6 +60,8 @@ abstract class Application {
 
     public function start(Request $request, Response $response) {
         try {
+            //加载语言包
+            Lang::loadLand($request);
             $interceptors = Config::getFileConfig()[ 'interceptors' ];
             if ($interceptors) {
                 /* @var $interceptor Interceptor */
@@ -80,7 +83,6 @@ abstract class Application {
                         }
                     }
                 }
-
             }
             $this->dispatcher->doDispatch($request, $response);
         } catch (\Exception $exception) {

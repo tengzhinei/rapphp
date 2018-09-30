@@ -102,7 +102,11 @@ class Lang {
                // 关联索引解析
                $replace = array_keys($vars);
                foreach ($replace as &$v) {
+<<<<<<< HEAD
                    $v = "{:{$v}}";
+=======
+                   $v = ":$v";
+>>>>>>> dev
                }
                $value = str_replace($replace, $vars, $value);
            }
@@ -124,6 +128,10 @@ class Lang {
             if($array){
                if($array[$key]){
                     return $array[$key];
+<<<<<<< HEAD
+=======
+
+>>>>>>> dev
                }
             }
         }

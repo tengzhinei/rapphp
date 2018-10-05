@@ -120,9 +120,23 @@ function response() {
  *
  * @return \rap\web\validate\Validate
  */
-function validate($value, $as_name, $throw = true) {
+function validate($value, $as_name='', $throw = true) {
     return \rap\web\validate\Validate::param($value, $as_name, $throw);
 }
+
+
+
+/**
+ * @param      $value
+ * @param bool $throw
+ *
+ * @return \rap\web\validate\Validate
+ */
+function validateRole($value, $throw = true){
+    return validate($value, '', $throw)->msg('role');
+}
+
+
 
 /**
  * 检查 request 里的参数
@@ -139,4 +153,15 @@ function validateParam($name, $as_name = '', $throw = true) {
 
 function lang($moudle, $key, $vars = []) {
     return \rap\util\Lang::get($moudle, $key, $vars);
+}
+
+/**
+ * @param      $value
+ * @param      $as_name
+ * @param bool $throw
+ *
+ * @return \rap\web\validate\Validate
+ */
+function validateParamRole($value, $as_name, $throw = true){
+    return validateParam($value, $as_name, $throw)->msg('role');
 }

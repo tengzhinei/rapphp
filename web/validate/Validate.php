@@ -19,12 +19,23 @@ class Validate {
     private $is_throw;
     public  $isValidate;
     private $msg;
+    private $msg_check;
 
     private $p1;
     private $p2;
     private $rule;
 
     private function __construct() {
+    }
+
+    /**
+     * @param $msg
+     *
+     * @return $this
+     */
+    public function msg($msg) {
+        $this->msg_check = $msg;
+        return $this;
     }
 
     /**
@@ -36,7 +47,7 @@ class Validate {
      *
      * @return \rap\web\validate\Validate
      */
-    public static function param($value, $as_name, $is_throw = true) {
+    public static function param($value, $as_name = '', $is_throw = true) {
         $validate = new static();
         $validate->value = $value;
         $validate->as_name = $as_name;
@@ -82,6 +93,14 @@ class Validate {
         $this->checkResult($result);
         return $this;
     }
+
+    public function isTrue() {
+        $this->check_role = 'require';
+        $result = $this->value;
+        $this->checkResult($result);
+        return $this;
+    }
+
 
     /**
      * 接受 ['1', 'on', 'yes']
@@ -139,7 +158,7 @@ class Validate {
     }
 
     /**
-     * 检查中文
+     * 只允许中文
      * @return $this
      */
     public function isChs() {
@@ -151,7 +170,7 @@ class Validate {
 
 
     /**
-     * 检查中文字母
+     * 只允许中文字母
      * @return $this
      */
     public function isChsAlpha() {
@@ -162,7 +181,7 @@ class Validate {
     }
 
     /**
-     * 检查中文字母数组
+     * 只允许中文字母数子
      * @return $this
      */
     public function isChsAlphaNum() {
@@ -173,7 +192,7 @@ class Validate {
     }
 
     /**
-     * 检查中文、字母、数字和下划线_及破折号-
+     * 只允许中文、字母、数字和下划线_及破折号-
      * @return $this
      */
     public function isChsDash() {
@@ -439,7 +458,7 @@ class Validate {
      *
      * @return $this
      */
-    protected function gt($value) {
+    public function gt($value) {
         $this->rule = $value;
         $this->check_role = 'gt';
         $result = !is_null($this->value) && $this->value > $value;
@@ -590,14 +609,29 @@ class Validate {
         return $this;
     }
 
-    public function min($min){
+    /**
+     * 最小值
+     *
+     * @param $min
+     *
+     * @return $this
+     */
+    public function min($min) {
         $this->check_role = 'min';
         $this->p1 = $min;
         $result = $this->value >= $min;
         $this->checkResult($result);
         return $this;
     }
-    public function max($max){
+
+    /**
+     * 最大值
+     *
+     * @param $max
+     *
+     * @return $this
+     */
+    public function max($max) {
         $this->check_role = 'max';
         $this->p1 = $max;
         $result = $this->value <= $max;
@@ -607,7 +641,7 @@ class Validate {
 
 
     /**
-     * 在之间
+     * 在两值之间
      *
      * @param $min
      * @param $max
@@ -624,7 +658,7 @@ class Validate {
     }
 
     /**
-     * 不在之间
+     * 不在两值之间
      *
      * @param $min
      * @param $max
@@ -641,7 +675,7 @@ class Validate {
     }
 
     /**
-     * 长度
+     * 长度范围
      *
      * @param $min
      * @param $max
@@ -663,6 +697,12 @@ class Validate {
         return $this;
     }
 
+    /**
+     * 符合正则
+     * @param $rule
+     *
+     * @return $this
+     */
     public function regex($rule) {
         $this->check_role = 'regex';
         $this->rule = $rule;
@@ -683,16 +723,24 @@ class Validate {
     }
 
 
+    /**
+     * 检查数据库是唯一值
+     * @param $model
+     * @param $field
+     *
+     * @return $this
+     */
     public function unique($model, $field) {
         $this->check_role = 'unique';
         /* @var $model Record */
         $model = new $model;
-        $result = $model::find([$field => $this->value]);
+        $result = empty($model::find([$field => $this->value]));
         $this->checkResult($result);
         return $this;
     }
 
     /**
+     * 允许的ip
      * @param $rule
      *
      * @return $this
@@ -708,7 +756,12 @@ class Validate {
         return $this;
     }
 
-
+    /**
+     * 禁止的 ip
+     * @param $rule
+     *
+     * @return $this
+     */
     public function denyIp($rule) {
         $this->check_role = 'denyIp';
         $ip = request()->ip();
@@ -721,25 +774,26 @@ class Validate {
     }
 
     /**
-     * 验证日期
+     * 验证日期在_前
      * @access protected
      *
-     * @param mixed $rule  验证规则
+     * @param mixed $rule 验证规则
      *
      * @return $this
      */
-    public function before( $rule) {
+    public function before($rule) {
         $this->check_role = 'before';
         $this->rule = $rule;
         $result = strtotime($this->value) <= strtotime($rule);
         $this->checkResult($result);
         return $this;
     }
+
     /**
-     * 验证日期
+     * 验证日期在_后
      * @access protected
      *
-     * @param mixed $rule  验证规则
+     * @param mixed $rule 验证规则
      *
      * @return $this
      */
@@ -835,7 +889,14 @@ class Validate {
             $vars[ '1' ] = $this->p1;
             $vars[ '2' ] = $this->p2;
             $vars[ 'rule' ] = $this->rule;
-            $msg = Lang::get('validate', $this->check_role, $vars);
+            if ($this->msg_check) {
+                $msg = Lang::get('validate', $this->msg_check, $vars);
+                if (!$msg) {
+                    $msg = $this->msg_check;
+                }
+            } else {
+                $msg = Lang::get('validate', $this->check_role, $vars);
+            }
             if ($this->is_throw) {
                 throw new ValidateException($msg, 100010, null);
             } else {
@@ -846,6 +907,5 @@ class Validate {
         $this->p2 = null;
         $this->rule = null;
     }
-
 
 }

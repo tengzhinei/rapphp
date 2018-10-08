@@ -115,7 +115,6 @@ class SwooleRequest extends Request{
         return  File::fromRequest($upload_file);
     }
 
-
     public function cookie($name="",$default=''){
         if(!$name){
             return $this->swooleRequest->cookie;
@@ -127,7 +126,9 @@ class SwooleRequest extends Request{
         return $value;
     }
 
-
+    public function host($host = '') {
+        return $this->header()['host'];
+    }
 
 
 }

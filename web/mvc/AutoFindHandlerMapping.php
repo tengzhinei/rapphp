@@ -62,8 +62,11 @@ class AutoFindHandlerMapping implements HandlerMapping{
         if(count($array)!=1) {
             $array[count($array)-1]=ucfirst($array[count($array)-1]);
             $classPath = $dir . implode('\\', $array) . $this->controllerPostfix;
-        }else{
+        }else if($find){
             $classPath = $dir . implode('\\', $array);
+        }else{
+            $array[count($array)-1]=ucfirst($array[count($array)-1]);
+            $classPath = $dir.'controller\\' . implode('\\', $array). $this->controllerPostfix;
         }
         if(!class_exists($classPath)){
             return null;

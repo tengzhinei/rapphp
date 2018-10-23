@@ -340,11 +340,12 @@ class Validate {
         $this->rule = implode(',', $mime);
         if (!$this->value) {
             $result = false;
-        } else if (($this->value instanceof File)) {
+        } else if (!($this->value instanceof File)) {
             $file = File::fromRequest(['tmp_name' => $this->value]);
             $this->value = $file;
+        }else{
+            $result = in_array(strtolower($this->value->ext), $mime);
         }
-        $result = in_array(strtolower($this->value->ext), $mime);
         $this->checkResult($result);
     }
 
@@ -379,11 +380,13 @@ class Validate {
         } else {
             $result = in_array($this->getImageType($this->value), [1, 2, 3, 6]);
         }
-
         $this->checkResult($result);
         return $this;
     }
 
+    public function imageSize($width,$height){
+
+    }
 
     /**
      * @param $image

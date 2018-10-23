@@ -110,7 +110,7 @@ class Select extends Where {
      * DISTINCT
      */
     public function distinct() {
-        $this->distinct = "DISTINCT";
+        $this->distinct = " DISTINCT";
     }
 
     private $having = '';
@@ -248,7 +248,7 @@ class Select extends Where {
                 $is_remove=false;
                 if ($this->all_do) {
                     foreach ($this->all_do as $do) {
-                        $return=$result->$do();
+                       $return=$result->$do();
                         if($return===self::REMOVED){
                             $is_remove=true;
                             break;

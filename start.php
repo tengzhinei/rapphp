@@ -1,5 +1,5 @@
 <?php
-error_reporting(E_ALL& ~E_NOTICE& ~E_WARNING);
+error_reporting(E_ALL& ~E_NOTICE& ~E_WARNING&~E_DEPRECATED);
 define('RAP_VERSION', '2.0.6');
 define('DS', DIRECTORY_SEPARATOR);
 ini_set("display_errors", "On");

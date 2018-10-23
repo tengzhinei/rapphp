@@ -9,6 +9,7 @@ use rap\db\MySqlConnection;
 use rap\ioc\Ioc;
 use rap\log\FileLog;
 use rap\log\LogInterface;
+use rap\storage\LocalFileStorage;
 use rap\storage\OssStorage;
 use rap\storage\StorageInterface;
 use rap\web\Application;
@@ -49,6 +50,12 @@ class RapApplication extends Application{
             if($item['type']=='oss'){
                 unset($item['type']);
                 Ioc::bind(StorageInterface::class,OssStorage::class,function(OssStorage $ossStorage) use($item){
+                    $ossStorage->config($item);
+                });
+            }else  if($item['type']=='local'){
+                unset($item['type']);
+                Ioc::bind(StorageInterface::class,LocalFileStorage::class,function(LocalFileStorage $ossStorage) use
+                ($item){
                     $ossStorage->config($item);
                 });
             }

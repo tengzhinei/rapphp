@@ -21,6 +21,8 @@ class Select extends Where {
      */
     private $table = '';
 
+    const REMOVED="REMOVED";
+
     /**
      * 字段
      * @var array
@@ -209,6 +211,7 @@ class Select extends Where {
         $data = $this->connection->query($sql, $params, $this->cache);
         if ($this->clazz) {
             $results = [];
+            l:
             /* @var $item */
             foreach ($data as $item) {
                 $clazz = $this->clazz;
@@ -242,15 +245,30 @@ class Select extends Where {
                         $result->$key = $value;
                     }
                 }
+                $is_remove=false;
                 if ($this->all_do) {
                     foreach ($this->all_do as $do) {
-                        $result->$do();
+                        $return=$result->$do();
+                        if($return===self::REMOVED){
+                            $is_remove=true;
+                            break;
+                        }
                     }
+                }
+                if($is_remove){
+                    continue;
                 }
                 if ($this->each) {
                     foreach ($this->each as $each) {
-                        $each($result);
+                        $return=  $each($result);
+                        if($return===self::REMOVED){
+                            $is_remove=true;
+                            break;
+                        }
                     }
+                }
+                if($is_remove){
+                    continue;
                 }
                 if ($this->to_array && $result instanceof Record) {
                     $result = $result->toArray($this->to_array, $this->to_array_contain);

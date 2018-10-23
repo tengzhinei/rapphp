@@ -165,3 +165,5 @@ function lang($moudle, $key, $vars = []) {
 function validateParamRole($value, $as_name, $throw = true){
     return validateParam($value, $as_name, $throw)->msg('role');
 }
+
+

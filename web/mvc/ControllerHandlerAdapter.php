@@ -18,7 +18,6 @@ class ControllerHandlerAdapter extends HandlerAdapter{
 
     private $controllerClass;
 
-    private $method;
 
     private $viewBase;
     /**

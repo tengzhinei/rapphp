@@ -39,7 +39,7 @@ class Response{
             http_response_code($this->code);
             // 发送头部信息
             foreach ($this->header as $name => $val) {
-                    header($name . ':' . $val);
+                header($name . ':' . $val);
             }
         }
         echo $this->content;
@@ -116,7 +116,7 @@ class Response{
 
     public function assign($key,$value=null){
         if(is_array($key)){
-          $this->data=array_merge($this->data,$key);
+            $this->data=array_merge($this->data,$key);
         }else{
             $this->data[$key]=$value;
         }
@@ -130,7 +130,7 @@ class Response{
     }
 
     public function cookie( $key,  $value = '',  $expire = 0 ,  $path = '/',  $domain = '',  $secure = false ,  $httponly = false){
-            setcookie($key,$value,$expire,$path,$domain,$secure,$httponly);
+        setcookie($key,$value,$expire,$path,$domain,$secure,$httponly);
     }
 
     /**
@@ -149,8 +149,8 @@ class Response{
         return $this->session;
     }
 
-    public function sendFile($file){
-        $this->fileToContentType($file);
+    public function sendFile($file,$file_name=''){
+        $this->fileToContentType($file,$file_name);
         if (!headers_sent() && !empty($this->header)) {
             http_response_code($this->code);
             // 发送头部信息
@@ -164,7 +164,7 @@ class Response{
         die;
     }
 
-    protected function fileToContentType($file){
+    protected function fileToContentType($file,$file_name=''){
         //等于默认值说明没有设置
         if($this->contentType=='text/html'){
             $items = explode('.',$file);
@@ -184,8 +184,10 @@ class Response{
             }else{
                 $this->header['Content-Type'] = "application/octet-stream";
                 $this->header["Accept-Length"]=filesize($file);
-                $file = substr($file,strrpos($file,DS)+1);
-                $this->header['Content-Disposition']=" attachment; filename=".$file;
+                if(!$file_name){
+                    $file_name = substr($file,strrpos($file,DS)+1);
+                }
+                $this->header['Content-Disposition']=" attachment; filename=".$file_name;
             }
         }else{
             $this->header['Content-Type'] = $this->contentType;

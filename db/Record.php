@@ -463,6 +463,9 @@ class Record {
         if ($as == 'or') {
             $as = 'o_r';
         }
+        if ($as == 'to') {
+            $as = 't_o';
+        }
         if ($as == 'and') {
             $as = 'a_n_d';
         }

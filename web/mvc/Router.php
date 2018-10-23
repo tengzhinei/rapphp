@@ -153,6 +153,10 @@ class Router{
         if($request->path()=='/'){
             return $this->index;
         }
+        if(count($pathArray)==1){
+            $this->index->method($pathArray[0]);
+            return $this->index;
+        }
         //拥有分组
         /* @var $group RouterGroup */
         $group=$this->groups[$pathArray[0]];

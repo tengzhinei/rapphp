@@ -29,15 +29,15 @@ class SwooleResponse extends Response{
         if (!empty($this->header)) {
             // 发送头部信息
             foreach ($this->header as $name => $val) {
-                    $this->swooleResponse->header($name,$val);
+                $this->swooleResponse->header($name,$val);
             }
         }
-       // $this->swooleResponse->  gzip(1);
+        // $this->swooleResponse->  gzip(1);
         $this->swooleResponse->end($this->content);
     }
 
     public function cookie( $key,  $value = '',  $expire = 0 ,  $path = '/',  $domain = '',  $secure = false ,  $httponly = false){
-            $this->swooleResponse->cookie($key,$value,$expire,$path,$domain,$secure,$httponly);
+        $this->swooleResponse->cookie($key,$value,$expire,$path,$domain,$secure,$httponly);
     }
 
     /**
@@ -54,11 +54,12 @@ class SwooleResponse extends Response{
     /**
      * 发送文件
      * @param $file
+     * @param $file_name
      */
-    public function sendFile($file){
+    public function sendFile($file,$file_name=''){
         $this->hasSend=true;
         $this->swooleResponse->status($this->code);
-        $this->fileToContentType($file);
+        $this->fileToContentType($file,$file_name);
         if (!empty($this->header)) {
             // 发送头部信息
             foreach ($this->header as $name => $val) {

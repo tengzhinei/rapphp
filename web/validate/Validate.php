@@ -359,9 +359,9 @@ class Validate {
         $this->p1 = $size;
         $this->check_role = 'fileSize';
         if ($this->value instanceof File) {
-            $result = filesize($this->value->path_tmp) <= $size;
+            $result = filesize($this->value->path_tmp) <= $this->strToSize($size) ;
         } else {
-            $result = filesize($this->value) <= $size;
+            $result = filesize($this->value) <= $this->strToSize($size) ;
         }
         $this->checkResult($result);
         return $this;
@@ -906,6 +906,16 @@ class Validate {
         $this->p1 = null;
         $this->p2 = null;
         $this->rule = null;
+    }
+
+    private function strToSize($str){
+        if(strpos($str,'M')>0||strpos($str,'m')>0){
+            return substr($str,0,strlen($str)-1)*1024*1024;
+        }
+        if(strpos($str,'k')>0||strpos($str,'k')>0){
+            return substr($str,0,strlen($str)-1)*1024;
+        }
+        return $str*1024;
     }
 
 }

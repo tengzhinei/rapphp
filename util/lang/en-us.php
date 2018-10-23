@@ -9,6 +9,7 @@
 
 return [
     'validate'=>[
+        'role'        =>'You do not have permission to do this',
         'require'     => ':attribute require',
         'must'        => ':attribute must',
         'number'      => ':attribute must be numeric',

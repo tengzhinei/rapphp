@@ -9,6 +9,7 @@
 
 return [
     'validate'=>[
+        'role'        => '你没有该操作的权限',
         'require'     => ':attribute不能为空',
         'number'      => ':attribute必须是数字',
         'integer'     => ':attribute必须是整数',

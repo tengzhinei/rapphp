@@ -17,7 +17,7 @@ use rap\web\Response;
 abstract class HandlerAdapter {
     private $pattern;
     private $header;
-    private $method;
+    protected $method;
     private $params;
 
     public abstract function viewBase();

@@ -139,11 +139,12 @@ class Router{
             $this->miss=new ControllerHandlerAdapter($ctr,$action);
         }
     }
-
+    private $indexAction;
     public function index($ctr,$action=""){
         if($ctr instanceof \Closure){
             $this->index=new ClosureHandlerAdapter($ctr);
         }else{
+            $this->indexAction=$action;
             $this->index=new ControllerHandlerAdapter($ctr,$action);
         }
     }
@@ -151,6 +152,7 @@ class Router{
     public function match(Request $request, $pathArray){
         //默认页
         if($request->path()=='/'){
+            $this->index->method($this->indexAction);
             return $this->index;
         }
         if(count($pathArray)==1){

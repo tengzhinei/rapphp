@@ -41,7 +41,6 @@ class RecordBuild extends Command{
         /*  @var Connection $connection  */
         $connection=Ioc::get(Connection::class);
         $tables=$connection->getTables();
-
         foreach ($tables as $table) {
             if($s){
                 if(strpos($table,$s)>-1){

@@ -323,7 +323,7 @@ class Request{
         return false;
     }
 
-    private $host;
+    protected $host;
 
     /**
      * @param string $host

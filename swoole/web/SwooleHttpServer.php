@@ -51,6 +51,7 @@ class SwooleHttpServer extends Command{
             'task_max_request'=>$this->config['task_max_request'],
         ]);
         $http->on('workerstart',[$this,'onWorkStart'] );
+        $http->on('workerstop',[$this,'onWorkerStop'] );
         $http->on('start',[$this,'onStart'] );
         $http->on('task', [$this,'onTask']);
         $http->on('finish', [$this,'onFinish']);
@@ -72,7 +73,15 @@ class SwooleHttpServer extends Command{
         $application->task_id=$id;
         Event::trigger('onHttpWorkStart','');
     }
+    public function onWorkerStop($serv, $id) {
+        $application= Ioc::get(Application::class);
+        $application->server=$serv;
+        $application->task_id=$id;
+        Event::trigger('onHttpWorkStart','');
+        $connection=Ioc::get(Connection::class);
 
+
+    }
     public function onTask($serv, $task_id, $from_id, $data){
         $clazz=$data['clazz'];
         $method=$data['method'];

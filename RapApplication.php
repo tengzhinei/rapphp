@@ -1,5 +1,6 @@
 <?php
 namespace rap;
+use rap\aop\Event;
 use rap\cache\CacheInterface;
 use rap\cache\FileCache;
 use rap\cache\RedisCache;
@@ -107,6 +108,7 @@ class RapApplication extends Application{
             /* @var $init Init  */
             $init=Ioc::get(Init::class);
             $init->appInit($autoMapping,$router);
+            Event::trigger('app_init',[]);
         }
     }
 

@@ -150,6 +150,10 @@ class Response{
     }
 
     public function sendFile($file,$file_name=''){
+        header("Accept-Ranges: bytes");
+        $fp=fopen($file,'rb');//只读方式打开
+        $filesize=filesize($file);//文件大小
+        header("Accept-Length: $filesize");
         $this->fileToContentType($file,$file_name);
         if (!headers_sent() && !empty($this->header)) {
             http_response_code($this->code);
@@ -158,9 +162,20 @@ class Response{
                 header($name . ':' . $val);
             }
         }
-        $content = file_get_contents($file);
-        echo $content;
-        $this->hasSend=true;
+        //清除缓存
+        ob_clean();
+        flush();
+        //设置分流
+        $buffer=4096;
+        //来个文件字节计数器
+        $count=0;
+        while(!feof($fp)&&($filesize-$count>0)){
+            //设置文件最长执行时间
+            set_time_limit(0);
+            $data=fread($fp,$buffer);
+            $count+=$data;//计数
+            echo $data;//传数据给浏览器端
+        }
         die;
     }
 

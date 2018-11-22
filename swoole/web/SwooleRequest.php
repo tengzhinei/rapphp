@@ -127,7 +127,12 @@ class SwooleRequest extends Request{
     }
 
     public function host($host = '') {
-        return $this->header()['host'];
+        if($host){
+            $this->host=$host;
+        }else{
+            $this->host=$this->header()['host'];;
+        }
+        return $this->host;
     }
 
 

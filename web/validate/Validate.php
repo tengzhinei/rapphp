@@ -340,12 +340,15 @@ class Validate {
         $this->rule = implode(',', $mime);
         if (!$this->value) {
             $result = false;
-        } else if (!($this->value instanceof File)) {
-            $file = File::fromRequest(['tmp_name' => $this->value]);
-            $this->value = $file;
-        }else{
-            $result = in_array(strtolower($this->value->ext), $mime);
+        } else{
+            if (!($this->value instanceof File)) {
+                $file = File::fromRequest(['tmp_name' => $this->value]);
+                $this->value = $file;
+            }
+            $result = in_array(strtolower($this->value->getMime()), $mime);
+
         }
+
         $this->checkResult($result);
     }
 

@@ -109,6 +109,9 @@ class Where {
         if (!$field) {
             return;
         }
+        if($op==null){
+            $op='null';
+        }
         if ($field instanceof \Closure) {
             $select = new Where();
             $field($select);

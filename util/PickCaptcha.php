@@ -5,6 +5,7 @@ use rap\util\EncryptUtil;
 
 
 /**
+ * 图片文字选择验证器
  * User: jinghao@duohuo.net
  * Date: 18/10/12
  * Time: 下午4:52

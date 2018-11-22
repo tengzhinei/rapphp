@@ -9,7 +9,9 @@
 
 namespace rap\util;
 
-
+/**
+ * 一个简单的加密解密工具
+ */
 class EncryptUtil {
 
     public static function decrypt($value,$sign) {

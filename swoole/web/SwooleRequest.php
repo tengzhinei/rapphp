@@ -97,13 +97,16 @@ class SwooleRequest extends Request{
     {
         if (!$this->url) {
             $this->url=$this->swooleRequest->server['request_uri'];
+            $query_string=$this->swooleRequest->server['query_string'];
+            if($query_string){
+                $this->url.='?'.$query_string;
+            }
             if(strpos($this->url,Config::get('app','url_base'))===0){
                 $this->url=substr($this->url,strlen(Config::get('app','url_base')));
             }
         }
         return  $this->url;
     }
-
 
 
     public function time($float = false){

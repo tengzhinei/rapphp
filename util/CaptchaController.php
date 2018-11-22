@@ -12,6 +12,9 @@ namespace rap\util;
 
 use rap\config\Config;
 
+/**
+ * 验证码控制器
+ */
 class CaptchaController {
 
     public function index($id = "") {

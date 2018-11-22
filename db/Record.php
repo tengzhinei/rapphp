@@ -10,7 +10,7 @@ use rap\storage\Storage;
  * Date: 17/9/22
  * Time: 上午10:28
  */
-class Record {
+class Record implements  \ArrayAccess {
 
     /**
      * 获取表名,包含 as 时会添加上as  如 User::table('u') 返回user u
@@ -635,6 +635,25 @@ class Record {
         }
         return false;
     }
+
+
+    //准许已数组访问
+    public function offsetExists($offset) {
+        return $this->$offset;
+    }
+
+    public function offsetGet($offset) {
+        return $this->$offset;
+    }
+
+    public function offsetSet($offset, $value) {
+         $this->$offset=$value;
+    }
+
+    public function offsetUnset($offset) {
+        $this->$offset=null;
+    }
+
 
 
 }

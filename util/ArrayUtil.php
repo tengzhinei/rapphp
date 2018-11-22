@@ -10,17 +10,16 @@
 namespace rap\util;
 
 
+/**
+ * 数组工具类
+ */
 class ArrayUtil {
 
-   static function groupBy($list, $parent_field = 'parent_id') {
+    static function groupBy($list, $parent_field = 'parent_id') {
         $map = [];
         foreach ($list as $item) {
             $parent_id = null;
-            if (is_object($item)) {
-                $parent_id = $item->$parent_field;
-            } else {
-                $parent_id = $item[ $parent_field ];
-            }
+            $parent_id = $item[ $parent_field ];
             if (!$parent_id) {
                 $parent_id = "_";
             }
@@ -29,15 +28,11 @@ class ArrayUtil {
         return $map;
     }
 
-    function indexBy($list, $parent_field = 'parent_id'){
+    static function indexBy($list, $parent_field = 'parent_id') {
         $map = [];
         foreach ($list as $item) {
             $parent_id = null;
-            if (is_object($item)) {
-                $parent_id = $item->$parent_field;
-            } else {
-                $parent_id = $item[ $parent_field ];
-            }
+            $parent_id = $item[ $parent_field ];
             if (!$parent_id) {
                 $parent_id = "_";
             }
@@ -45,6 +40,94 @@ class ArrayUtil {
         }
         return $map;
     }
+
+    /**
+     * @param        $list
+     * @param string $parent_field
+     * @param string $id_field
+     * @param string $children_field
+     *
+     * @return array
+     */
+    function toTree($list,$parent_field = 'parent_id',$id_field='id',$children_field='children') {
+        $map = self::groupBy($list);
+        $data=[];
+        foreach ($list as $item) {
+            $item->text=$item->name;
+            if(is_object($item)){
+                if(!$item->$parent_field){
+                    $item->$children_field=$map[$item->$id_field];
+                    $data[]=$item;
+                }
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * @param array          $list
+     * @param \Closure|array $where
+     *
+     * @return null
+     */
+    function find($list, $where) {
+        if (is_array($where)) {
+            foreach ($list as $item) {
+                $is_ok = true;
+                foreach ($where as $key => $value) {
+                    if ($item[ $key ] != $value) {
+                        $is_ok = false;
+                        break;
+                    }
+                }
+                if ($is_ok) {
+                    return $item;
+                }
+            }
+        } else {
+            foreach ($list as $item) {
+                if ($where($item)) {
+                    return $item;
+                }
+            }
+        }
+        return null;
+    }
+
+
+    function where($list, $where) {
+        $items = [];
+        if (is_array($where)) {
+            foreach ($list as $item) {
+                $is_ok = true;
+                foreach ($where as $key => $value) {
+                    if ($item[ $key ] != $value) {
+                        $is_ok = false;
+                        break;
+                    }
+                }
+                if ($is_ok) {
+                    $items[] = $item;
+                }
+            }
+        } else {
+            foreach ($list as $item) {
+                if ($where($item)) {
+                    $items[] = $item;
+                }
+            }
+        }
+        return $items;
+    }
+
+    function pluck($list, $name) {
+        $values = [];
+        foreach ($list as $item) {
+            $values[] = $item[ $name ];
+        }
+        return $values;
+    }
+
 
 
 }

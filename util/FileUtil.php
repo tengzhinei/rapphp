@@ -9,9 +9,9 @@
 
 namespace rap\util;
 
-
-use rap\storage\File;
-
+/**
+ * 文件操作类
+ */
 class FileUtil {
 
     /**

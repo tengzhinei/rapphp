@@ -13,6 +13,9 @@ namespace rap\util;
 use rap\config\Config;
 use rap\web\Request;
 
+/**
+ * 语言包
+ */
 class Lang {
 
     /**

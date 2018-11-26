@@ -14,12 +14,13 @@ namespace rap\db;
  * @package rap\db
  */
 class Where {
+
     static $exp = ["eq" => "=",
                    "neq" => "<>",
                    "gt" => ">",
                    "egt" => ">=",
-                   "lt" => ">",
-                   "elt" => ">",];
+                   "lt" => "<",
+                   "elt" => ">=",];
 
     /**
      * where 条件

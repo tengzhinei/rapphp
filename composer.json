@@ -23,6 +23,9 @@
         "twig/twig": "~1.0",
         "endroid/qrcode": "^1.9"
     },
+    "require-dev": {
+        "eaglewu/swoole-ide-helper": "dev-master"
+    },
     "config": {
         "preferred-install": "dist"
     },

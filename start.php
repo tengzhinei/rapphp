@@ -20,10 +20,14 @@ include_once 'common.php';
 //swoole 模式
 if(IS_CLI){
     if(IS_SWOOLE_HTTP){
+
         \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);
-        \rap\ioc\Ioc::get(\rap\web\Application::class)->console(["index.php",'aop']);
-        \rap\ioc\Ioc::clear();
+
+//        \rap\ioc\Ioc::get(\rap\web\Application::class)->console(["index.php",'aop']);
+//        \rap\ioc\Ioc::clear();
     }
+
+
     \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);
     \rap\ioc\Ioc::get(\rap\web\Application::class)->console($argv);
 }else{

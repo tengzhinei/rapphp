@@ -5,6 +5,7 @@ use \PDO;
 use rap\config\Config;
 use rap\ioc\Ioc;
 use rap\log\Log;
+use rap\swoole\pool\PoolAble;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -12,7 +13,7 @@ use rap\log\Log;
  * Date: 17/9/21
  * Time: 下午1:25
  */
-abstract class Connection {
+abstract class Connection implements PoolAble  {
 
     /**
      *  PDO实例
@@ -39,6 +40,8 @@ abstract class Connection {
     private $password;
 
 
+    private $poolCount=5;
+
     /**
      * 设置配置项
      *
@@ -48,7 +51,9 @@ abstract class Connection {
         $this->dsn = $config[ 'dsn' ];
         $this->username = $config[ 'username' ];
         $this->password = $config[ 'password' ];
-
+        if($config[ 'pool' ]){
+            $this->poolCount = $config[ 'pool_size' ];
+        }
     }
 
 
@@ -508,6 +513,10 @@ abstract class Connection {
     public abstract function getPkField($table);
 
     public abstract function getFieldsComment($table);
+
+    public function poolSize() {
+        return $this->poolCount;
+    }
 
 
 }

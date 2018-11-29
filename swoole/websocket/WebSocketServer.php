@@ -8,9 +8,12 @@ use rap\cache\RedisCache;
 use rap\config\Config;
 use rap\console\Command;
 use rap\ioc\Ioc;
+use rap\swoole\pool\CoHolder;
 use rap\swoole\web\SwooleRequest;
 use rap\swoole\web\SwooleResponse;
 use rap\web\Application;
+use rap\web\mvc\RequestHolder;
+use rap\util\Http;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -26,6 +29,9 @@ class WebSocketServer extends Command {
                        'secret' => 'Nz4bYrr2paoE6YaH',
                        'worker_num' => 1];
 
+    /**
+     * @var \swoole_websocket_server
+     */
     public $server;
     public $host_name;
     public $secret;
@@ -68,7 +74,7 @@ class WebSocketServer extends Command {
      * @param $request
      * @param $response
      */
-    public function onRequest($request, $response) {
+    public function onRequest(\swoole_http_request $request, \swoole_http_response $response) {
         try {
             if ($request->server[ 'request_uri' ] == '/favicon.ico') {
                 $response->end();
@@ -80,11 +86,18 @@ class WebSocketServer extends Command {
             $req = new SwooleRequest($rep);
             $req->swoole($request);
             $rep->swoole($req, $response);
-            //redis 20s ping 一次
-            $this->pingRedis();
             //生成 session
             $rep->session()->sessionId();
-            $application->start($req, $rep);
+            go(function() use ($application, $req, $rep) {
+                RequestHolder::setRequest($req);
+                $cache = Ioc::get(CacheInterface::class);
+                if ($cache instanceof RedisCache) {
+                    $cache->ping();
+                }
+                $application->start($req, $rep);
+                //释放协程里的变量和
+                CoHolder::getHolder()->release();
+            });
         } catch (\Exception $exception) {
             $response->end("");
             return;
@@ -94,16 +107,6 @@ class WebSocketServer extends Command {
         }
     }
 
-    public function pingRedis() {
-        static $last_redis_ping_time = 0;
-        if (time() - $last_redis_ping_time > 20) {
-            $this->last_redis_ping_time = time();
-            $cache = Ioc::get(CacheInterface::class);
-            if ($cache instanceof RedisCache) {
-                $cache->ping();
-            }
-        }
-    }
 
     /**
      * 连接开始回调
@@ -111,66 +114,69 @@ class WebSocketServer extends Command {
      * @param $server
      * @param $request
      */
-    public function onOpen($server, $request) {
-        $this->pingRedis();
-        /* @var $service WebSocketService */
-        $service = Ioc::get($this->config[ 'service' ]);
-        $user_id = $service->tokenToUserId($request->get);
-        if (!$user_id) {
-            $server->push($request->fd, json_encode(['msg_type' => 'error', 'code' => '10010', 'msg' => '用户信息错误']));
-            $server->close($request->fd);
-            return;
-        }
-        //将当前用户在其他连接断掉
-        $old_fid = $this->userIdToFid($user_id);
-        if ($old_fid) {
-            $old = explode("@", $old_fid);
-            if ($old[ 0 ] == $this->host_name) {
-                $server->push($old[ 1 ], json_encode(['msg_type' => 'error',
-                                                      'code' => '10011',
-                                                      'msg' => '用户已在其他地方登录']));
-                $server->close($old[ 1 ]);
-            } else {
-                try {
-                    //通过集群中的其他服务器推送
-                    \Requests::put('http://' . $old[ 0 ] . ':' . $this->config[ 'port' ] . '/open/close', [], ['fid' => $old[ 1 ],
-                                                                                                               'secret' => $this->config[ 'secret' ]]);
-                } catch (\Exception $exception) {
-                } catch (\Error $exception) {
-                }
-            }
-            Cache::redis()->hDel('fid_#_user_id', $old_fid);
-        }
-        //清除占用连接的老用户
-        $old_user = $this->fidToUserId($this->host_name . "@" . $request->fd);
-        Cache::redis()->hDel('user_id_#_fid', $old_user);
-
-        //设置新用户
-        Cache::redis()->hSet('user_id_#_fid', $user_id, $this->host_name . "@" . $request->fd);
-        Cache::redis()->hSet('fid_#_user_id', $this->host_name . "@" . $request->fd, $user_id);
-        //1s后发送未读消息
-        $timer_id = swoole_timer_after(1000, function() use ($user_id) {
+    public function onOpen(\swoole_websocket_server $server, \swoole_http_request $request) {
+        go(function() use ($server, $request) {
             /* @var $service WebSocketService */
             $service = Ioc::get($this->config[ 'service' ]);
-            $service->onOpen($user_id);
+            $user_id = $service->tokenToUserId($request->get);
+            if (!$user_id) {
+                $server->push($request->fd, json_encode(['msg_type' => 'error', 'code' => '10010', 'msg' => '用户信息错误']));
+                $server->close($request->fd);
+                return;
+            }
+            //将当前用户在其他连接断掉
+            $old_fid = $this->userIdToFid($user_id);
+            if ($old_fid) {
+                $old = explode("@", $old_fid);
+                if ($old[ 0 ] == $this->host_name) {
+                    $server->push($old[ 1 ], json_encode(['msg_type' => 'error',
+                                                          'code' => '10011',
+                                                          'msg' => '用户已在其他地方登录']));
+                    $server->close($old[ 1 ]);
+                } else {
+                    try {
+                        $data = ['fid' => $old[ 1 ],
+                                 'secret' => $this->config[ 'secret' ]];
+                        Http::put('http://' . $old[ 0 ] . ':' . $this->config[ 'port' ] . '/open/close', [], $data);
+                    } catch (\Exception $exception) {
+                    } catch (\Error $exception) {
+                    }
+                }
+                Cache::redis()->hDel('fid_#_user_id', $old_fid);
+            }
+            //清除占用连接的老用户
+            $old_user = $this->fidToUserId($this->host_name . "@" . $request->fd);
+            Cache::redis()->hDel('user_id_#_fid', $old_user);
+
+            //设置新用户
+            Cache::redis()->hSet('user_id_#_fid', $user_id, $this->host_name . "@" . $request->fd);
+            Cache::redis()->hSet('fid_#_user_id', $this->host_name . "@" . $request->fd, $user_id);
+            //1s后发送未读消息
+            swoole_timer_after(1000, function() use ($user_id) {
+                /* @var $service WebSocketService */
+                $service = Ioc::get($this->config[ 'service' ]);
+                $service->onOpen($user_id);
+            });
         });
+
     }
 
     /**
      * 接受消息回调
      *
-     * @param $server
-     * @param $frame
+     * @param  $server
+     * @param  $frame
      */
     public function onMessage($server, $frame) {
-        $this->pingRedis();
-        $data = json_decode($frame->data, true);
-        $method = $data[ 'method' ];
-        unset($data[ 'method' ]);
-        $user_id = $this->fidToUserId($frame->fd);
-        /* @var $service WebSocketService */
-        $service = Ioc::get($this->config[ 'service' ]);
-        $service->$method($user_id, $data);
+        go(function()use($server, $frame){
+            $data = json_decode($frame->data, true);
+            $method = $data[ 'method' ];
+            unset($data[ 'method' ]);
+            $user_id = $this->fidToUserId($frame->fd);
+            /* @var $service WebSocketService */
+            $service = Ioc::get($this->config[ 'service' ]);
+            $service->$method($user_id, $data);
+        });
     }
 
 
@@ -181,11 +187,13 @@ class WebSocketServer extends Command {
      * @param $fd
      */
     public function onClose($ser, $fd) {
-        $this->pingRedis();
-        $user_id = $this->fidToUserId($fd);
-        $fid = $this->userIdToFid($user_id);
-        Cache::redis()->hDel('user_id_#_fid', $user_id);
-        Cache::redis()->hDel('fid_#_user_id', $fid);
+        go(function()use($ser, $fd){
+            $user_id = $this->fidToUserId($fd);
+            $fid = $this->userIdToFid($user_id);
+            Cache::redis()->hDel('user_id_#_fid', $user_id);
+            Cache::redis()->hDel('fid_#_user_id', $fid);
+        });
+
     }
 
 
@@ -213,18 +221,6 @@ class WebSocketServer extends Command {
 
 
     /**
-     * 订阅的 redis 消息回调
-     *
-     * @param $msg
-     */
-    public function subscribeMsg($redis, $chan, $msg) {
-        $msg = json_decode($msg, true);
-        $user_id = $msg[ '_to_user_id' ];
-        unset($msg[ '_to_user_id' ]);
-        $this->sendToUser($user_id, $msg);
-    }
-
-    /**
      * 发送消息给用户
      *
      * @param       $user_id
@@ -234,7 +230,6 @@ class WebSocketServer extends Command {
      */
     public function sendToUser($user_id, array $msg) {
         //检查redis ping 防止掉线
-        $this->pingRedis();
         $fid = $this->userIdToFid($user_id);
         if (!$fid) {
             return null;
@@ -253,10 +248,11 @@ class WebSocketServer extends Command {
             $this->server->push($fid, json_encode($msg));
         } else {
             try {
+                $data = ['fid' => $fid,
+                         'msg' => json_encode($msg),
+                         'secret' => $this->config[ 'secret' ]];
+                Http::put('http://' . $host_name . ':' . $this->config[ 'port' ] . '/open/push', [], $data);
                 //通过集群中的其他服务器推送
-                \Requests::put('http://' . $host_name . ':' . $this->config[ 'port' ] . '/open/push', [], ['fid' => $fid,
-                                                                                                           'msg' => json_encode($msg),
-                                                                                                           'secret' => $this->config[ 'secret' ]]);
             } catch (\Exception $exception) {
             } catch (\Error $exception) {
             }

@@ -60,6 +60,7 @@ class Console {
      * @param $argv
      */
     public function run($argv) {
+
         if (count($argv) == 1) {
             $this->help();
             return;

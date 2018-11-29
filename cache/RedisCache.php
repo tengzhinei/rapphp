@@ -7,13 +7,14 @@
  */
 
 namespace rap\cache;
+use rap\swoole\pool\PoolAble;
 
 /**
  * Redis 缓存
  * Class RedisCache
  * @package rap\cache
  */
-class RedisCache implements CacheInterface {
+class RedisCache implements CacheInterface,PoolAble  {
 
     /**
      * @var \Redis
@@ -26,6 +27,7 @@ class RedisCache implements CacheInterface {
                           'select' => 0,
                           'timeout' => 0,
                           'expire' => 0,
+                          'pool_size'=>5,
                           'persistent' => false];
 
 
@@ -136,5 +138,10 @@ class RedisCache implements CacheInterface {
         $this->open();
         $this->redis->flushDB();
     }
+
+    public function poolSize() {
+       return $this->options['pool'];
+    }
+
 
 }

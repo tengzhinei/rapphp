@@ -2,20 +2,17 @@
 namespace rap\swoole\web;
 
 
-use rap\aop\AopBuild;
 use rap\aop\Event;
 use rap\cache\CacheInterface;
 use rap\cache\RedisCache;
 use rap\config\Config;
 use rap\console\Command;
-use rap\console\command\AopFileBuild;
-use rap\db\Connection;
 use rap\ioc\Ioc;
-use rap\RapApplication;
-use rap\session\Session;
+use rap\swoole\pool\CoHolder;
 use rap\swoole\task\TaskConfig;
 use rap\web\Application;
 use rap\web\mvc\RequestHolder;
+use Swoole\Runtime;
 
 
 /**
@@ -31,19 +28,19 @@ class SwooleHttpServer extends Command{
         'port'=>9501,
         'document_root'=>"",
         'enable_static_handler'=>true,
-        'task_worker_num'=>100,
-        'worker_num'=>20,
-        'task_max_request'=>0
+        'task_worker_num'=>3,
+        'worker_num'=>1,
+        'task_max_request'=>1000
     ];
 
 
 
     public function run(){
+
         $this->config=array_merge($this->config,Config::get('swoole_http'));
         $http = new \swoole_http_server($this->config['ip'], $this->config['port']);
         $http->set([
             'buffer_output_size' => 32 * 1024 *1024, //必须为数字
-            'worker_num'=>1,
             'document_root' => $this->config['document_root'],
             'enable_static_handler' => $this->config['enable_static_handler'],
             'worker_num' => $this->config['worker_num'],
@@ -57,6 +54,8 @@ class SwooleHttpServer extends Command{
         $http->on('finish', [$this,'onFinish']);
         $http->on('request', [$this,'onRequest'] );
         $this->writeln("http服务启动成功");
+        //mysql redis 协程化
+      //  Runtime::enableCoroutine();
         $http->start();
 
     }
@@ -78,7 +77,6 @@ class SwooleHttpServer extends Command{
         $application->server=$serv;
         $application->task_id=$id;
         Event::trigger('onHttpWorkStart','');
-        $connection=Ioc::get(Connection::class);
 
 
     }
@@ -99,33 +97,31 @@ class SwooleHttpServer extends Command{
     public function onFinish(){
 
     }
-    public function onRequest($request, $response){
+    public function onRequest(\swoole_http_request $request, \swoole_http_response $response){
         try{
             if($request->server['request_uri']=='/favicon.ico'){
                 $response->end();
                 return;
             }
-            $time=getMillisecond();
             /* @var $application Application  */
             $application=Ioc::get(Application::class);
             $rep=new SwooleResponse();
             $req=new SwooleRequest($rep);
-            $req->holder('rap-start-time',$time);
             $req->swoole($request);
             $rep->swoole($req,$response);
-            //redis 20s ping 一次
-            static $last_redis_ping_time=0;
-            if(time()-$last_redis_ping_time>20){
-                $this->last_redis_ping_time=time();
+            //生成 session
+            $rep->session()->sessionId();
+            go(function()use($application,$req,$rep){
+                RequestHolder::setRequest($req);
                 $cache=Ioc::get(CacheInterface::class);
                 if($cache instanceof RedisCache){
                     $cache->ping();
                 }
-            }
-            //生成 session
-            $rep->session()->sessionId();
-            RequestHolder::setRequest($req);
-            $application->start($req,$rep);
+                $application->start($req,$rep);
+                //释放协程里的变量和
+                CoHolder::getHolder()->release();
+
+            });
         }catch (\Exception $exception){
             $response->end("");
             return;

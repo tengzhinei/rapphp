@@ -3,6 +3,9 @@ namespace rap\ioc;
 
 
 use rap\aop\Aop;
+use rap\db\Connection;
+use rap\swoole\pool\Pool;
+use rap\swoole\pool\PoolAble;
 
 class Ioc {
 
@@ -13,6 +16,7 @@ class Ioc {
 
     //初始化对象时用于存储
     static private $injectBeans = [];
+
 
     public static function clear() {
         self::$instances = [];
@@ -33,34 +37,35 @@ class Ioc {
         if (isset(static::$instances[ $nameClass ]) && static::$instances[ $nameClass ]) {
             return static::$instances[ $nameClass ];
         }
-
         $closure = null;
-
+        $beanClassName = $nameClass;
         //判断是否有配置
         if (isset(static::$beansConfig[ $nameClass ]) && static::$beansConfig[ $nameClass ]) {
             //构造对象
             /* @var $beanDefine BeanDefine */
             $beanDefine = static::$beansConfig[ $nameClass ];
             $closure = $beanDefine->closure;
-            $bean = Aop::warpBean($beanDefine->ClassName);
-        } else {
-            //没有配置直接初始化需要的类(接口不可以)
+            $beanClassName = $beanDefine->ClassName;
+        }
+
+        /* @var $pool Pool */
+        $pool = Pool::instance();
+        return $pool->get($nameClass, function()use($nameClass, $beanClassName, $closure) {
             try {
-                $bean = Aop::warpBean($nameClass);
+                $bean = Aop::warpBean($beanClassName);
+                if (!($bean instanceof PoolAble)) {
+                    static::$instances[ $nameClass ] = $bean;
+                }
+                static::prepareBean($bean);
+                if ($closure) {
+                    $closure($bean);
+                }
+                return $bean;
             } catch (\RuntimeException $e) {
                 //没有配置并且无法实例化 返回空对象
                 return null;
             }
-        }
-        //必须先赋值
-        static::$instances[ $nameClass ] = $bean;
-        //再初始化
-        static::prepareBean($bean);
-        //初始化回调
-        if ($closure) {
-            $closure($bean);
-        }
-        return static::$instances[ $nameClass ];
+        });
     }
 
     /**
@@ -132,6 +137,7 @@ class Ioc {
 
     /**
      * 设置单例
+     *
      * @param $name
      * @param $logic
      */

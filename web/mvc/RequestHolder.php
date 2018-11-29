@@ -10,36 +10,30 @@
 namespace rap\web\mvc;
 
 
+use rap\swoole\pool\CoHolder;
 use rap\web\Request;
+
 
 class RequestHolder {
 
-    /**
-     * @var Request
-     */
-    private static $request;
-
     public static function setRequest(Request $request) {
-        self::$request = $request;
+        CoHolder::getHolder()->add('request',$request);
     }
-
 
     /**
      * 获取request
      * @return Request
      */
     public static function getRequest() {
-        return self::$request;
+       return CoHolder::getHolder()->get('request');
     }
-
 
     /**
      * 获取response
      * @return \rap\web\Response
      */
     public static function getResponse() {
-        return self::$request->response();
+        return self::getRequest()->response();
     }
-
 
 }

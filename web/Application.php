@@ -21,7 +21,7 @@ use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\log\Log;
 use rap\util\Lang;
-use rap\web\Interceptor\Interceptor;
+use rap\web\interceptor\Interceptor;
 use rap\web\mvc\AutoFindHandlerMapping;
 use rap\web\mvc\Dispatcher;
 use rap\web\mvc\Router;

@@ -1,8 +1,8 @@
 <?php
 /**
  * User: jinghao@duohuo.net
- * Date: 18/11/28
- * Time: 下午3:02
+ * Date: 18/12/2
+ * Time: 下午4:36
  * Link:  http://magapp.cc
  * Copyright:南京灵衍信息科技有限公司
  */
@@ -10,77 +10,33 @@
 namespace rap\swoole\pool;
 
 
+use rap\cache\CacheInterface;
+use rap\db\Connection;
 
 class Pool {
 
-
-    private $unused = [];
-
-    private static $instance;
-
-    private function __construct() {
-
+    public static function getDbConnection() {
+        return self::get(Connection::class);
     }
 
-    public static function instance(){
-        if(!self::$instance){
-            self::$instance=new self();
-        }
-        return self::$instance;
+    public static function getRedis() {
+        return self::get(CacheInterface::class);
     }
-    /**
-     * 获取对象
-     *
-     * @param          $class
-     * @param \Closure $closure
-     *
-     * @return mixed
-     */
-    public function get($class, \Closure $closure) {
-        /* @var $holder CoHolder */
-        $holder = CoHolder::getHolder();
-        $m = $holder->get($class);
-        //如果当前协程已分配对象,直接返回对象
-        if ($m) {
-            return $m;
-        }
-        //判定是否有没有使用的对象
-        if ($this->unused[ $class ] && count($this->unused[ $class ])) {
-            $size=count($this->unused[ $class ]);
-            if($size>=1){
-                /* @var $item PoolAble  */
-                $item=$this->unused[ $class ][0];
-                if($size<=$item->poolSize()){
-                    $m = array_pop($this->unused[ $class ]);
-                    $m->is_pool=true;
-                }
-            }
-        }
-        if(!$m){
-            $m = $closure();
-        }
-        if($m instanceof PoolAble){
-            $holder->add($class, $m);
-        }
-        return $m;
+
+    public static function get($class) {
+        return ResourcePool::instance()->get($class);
+    }
+
+    public static function release(PoolAble $bean) {
+        ResourcePool::instance()->release($bean);
     }
 
 
-    public function release($class,PoolAble  $bean) {
-        $size = $bean->poolSize();
-        if (!$size) {
-            $size = 10;
-        }
-        if (count($this->unused[ $class ]) < $size) {
-            $this->unused[ $class ][]=$bean;
-        }else{
-            unset($bean);
-        }
-
+    public static function lock(PoolAble $bean) {
+        ResourcePool::instance()->lock($bean);
     }
 
-    public function test($class){
-        return count($this->unused[ $class ]);
+    public static function unLock(PoolAble $bean) {
+        ResourcePool::instance()->unLock($bean);
     }
-
 }

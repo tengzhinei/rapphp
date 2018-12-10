@@ -9,6 +9,8 @@ namespace rap\db;
 
 
 use rap\ioc\Ioc;
+use rap\swoole\pool\Pool;
+use rap\swoole\pool\ResourcePool;
 
 class Update extends Where {
     use Comment;
@@ -18,27 +20,18 @@ class Update extends Where {
     private $data;
 
     protected $updateSql = '%COMMENT% UPDATE %TABLE% SET %FIELD% %WHERE% %ORDER%%LIMIT% %LOCK%';
-    /**
-     * @var Connection
-     */
-    private $connection;
 
 
     /**
      * 设置表
      *
      * @param                 $table
-     * @param Connection|null $connection
      *
      * @return Update
      */
-    public static function table($table, Connection $connection = null) {
+    public static function table($table) {
         $update = new Update();
         $update->table = $table;
-        if (!$connection) {
-            $connection = Ioc::get(Connection::class);
-        }
-        $update->connection = $connection;
         return $update;
     }
 
@@ -85,8 +78,11 @@ class Update extends Where {
                                            $this->limit,
                                            $this->lock,
                                            $this->comment,], $this->updateSql);
-        $this->connection->execute($sql, array_merge($values, $this->whereParams()));
-        return $this->connection->rowCount();
+        $connection = Pool::get(Connection::class);
+        $connection->execute($sql, array_merge($values, $this->whereParams()));
+        $count= $connection->rowCount();
+        Pool::release($connection);
+        return $count;
     }
 
     /**
@@ -95,10 +91,9 @@ class Update extends Where {
      * @param       string    $table
      * @param     array       $data
      * @param          array  $where
-     * @param Connection|null $connection
      */
-    public static function update($table, $data, $where, Connection $connection = null) {
-        $update = Update::table($table, $connection);
+    public static function update($table, $data, $where) {
+        $update = Update::table($table);
         foreach ($data as $field => $value) {
             $update->set($field, $value);
         }

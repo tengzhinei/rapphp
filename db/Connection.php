@@ -6,6 +6,7 @@ use rap\config\Config;
 use rap\ioc\Ioc;
 use rap\log\Log;
 use rap\swoole\pool\PoolAble;
+use rap\swoole\pool\PoolTrait;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -14,7 +15,7 @@ use rap\swoole\pool\PoolAble;
  * Time: 下午1:25
  */
 abstract class Connection implements PoolAble  {
-
+    use PoolTrait;
     /**
      *  PDO实例
      * @var PDO
@@ -40,7 +41,7 @@ abstract class Connection implements PoolAble  {
     private $password;
 
 
-    private $poolCount=5;
+    private $poolConifg =[];
 
     /**
      * 设置配置项
@@ -52,10 +53,13 @@ abstract class Connection implements PoolAble  {
         $this->username = $config[ 'username' ];
         $this->password = $config[ 'password' ];
         if($config[ 'pool' ]){
-            $this->poolCount = $config[ 'pool_size' ];
+            $this->poolConifg = $config[ 'pool' ];
         }
     }
 
+    public function poolConfig(){
+        return $this->poolConifg;
+    }
 
     /**
      * PDO连接参数
@@ -65,8 +69,9 @@ abstract class Connection implements PoolAble  {
                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                        PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
                        PDO::ATTR_STRINGIFY_FETCHES => false,
-                       PDO::ATTR_PERSISTENT => true,
+//                       PDO::ATTR_PERSISTENT => true,
                        PDO::ATTR_EMULATE_PREPARES => false,
+                       PDO::MYSQL_ATTR_USE_BUFFERED_QUERY=>true
                        //        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY=>true//php7.2.4废弃
     ];
 
@@ -97,6 +102,7 @@ abstract class Connection implements PoolAble  {
     public function connect() {
         if (!$this->pdo) {
             try {
+
                 $this->pdo = new PDO($this->dsn, $this->username, $this->password, $this->params);
             } catch (\PDOException $e) {
                 throw $e;
@@ -514,9 +520,7 @@ abstract class Connection implements PoolAble  {
 
     public abstract function getFieldsComment($table);
 
-    public function poolSize() {
-        return $this->poolCount;
-    }
+
 
 
 }

@@ -140,6 +140,7 @@ class Router{
         }
     }
     private $indexAction;
+
     public function index($ctr,$action=""){
         if($ctr instanceof \Closure){
             $this->index=new ClosureHandlerAdapter($ctr);

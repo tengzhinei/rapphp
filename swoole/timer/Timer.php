@@ -8,6 +8,7 @@
 namespace rap\swoole\timer;
 
 use rap\config\Config;
+use rap\util\Http;
 use rap\web\Request;
 
 /**
@@ -36,7 +37,8 @@ class Timer {
                  'method' => 'put',
                  'params' => $params,
                  'time' => $time];
-        $body = \Requests::put($server_url . '/timer/add', ['timer_secret'=>$secret], $data)->body;
+
+        $body =  Http::put($server_url . '/timer/add', ['timer_secret'=>$secret], $data);
         $result = json_decode($body, true);
         if ($result[ 'success' ]) {
             return $result[ 'task_id' ];
@@ -50,8 +52,7 @@ class Timer {
         $secret = $queue[ 'secret' ];
         $data = ['task_id' => $task_id
                  ];
-        $body = \Requests::put($server_url . '/timer/cancel', ['timer_secret' => $secret], $data)
-        ->body;
+        $body = Http::put($server_url . '/timer/cancel', ['timer_secret' => $secret], $data);
         $result = json_decode($body, true);
         return $result[ 'success' ];
     }

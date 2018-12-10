@@ -29,7 +29,7 @@ class Task {
                  'method' => $method,
                  'params' => $params,
                  'config' => $deliver->getTaskInitConfig()];
-        if (IS_SWOOLE_HTTP) {
+        if (IS_SWOOLE) {
             $app->server->task($bean, $task_id);
         }
     }

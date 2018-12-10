@@ -9,6 +9,7 @@
 namespace rap\swoole\timer;
 
 use rap\cache\Cache;
+use rap\util\Http;
 
 class TimerService {
 
@@ -65,7 +66,7 @@ class TimerService {
             }
             try {
                 $task[ 'header' ]['from_rap_timer']=true;
-                \Requests::put($url, $task[ 'header' ], $task[ 'params' ], ['timeout' => $timeout]);
+                Http::put($url, $task[ 'header' ], $task[ 'params' ], ['timeout' => $timeout]);
             } catch (\Exception $e) {
 
             } catch (\Error $e) {

@@ -27,7 +27,7 @@ class TimerInit implements Init {
             $redisCache->config($item);
         });
         $autoMapping->prefix('/timer', TimerController::class);
-        Event::add('onRapHttpStart', TimerService::class, 'start');
+        Event::add('onServerStart', TimerService::class, 'start');
         return true;
     }
 

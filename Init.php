@@ -12,4 +12,5 @@ use rap\web\mvc\Router;
 interface Init{
     public function appInit(AutoFindHandlerMapping $autoMapping, Router $router);
 
+
 }

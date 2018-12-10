@@ -20,6 +20,8 @@ class ControllerHandlerAdapter extends HandlerAdapter{
 
 
     private $viewBase;
+
+
     /**
      * @param $controllerClass
      * @param $method
@@ -33,7 +35,7 @@ class ControllerHandlerAdapter extends HandlerAdapter{
         try{
             $clazzInstance=Ioc::get($this->controllerClass);
         }catch (\Error $exception){
-            throw new MsgException("对应的路径不存在控制器");
+            throw new MsgException($exception->getMessage()."对应的路径不存在控制器");
         }
         if(method_exists($clazzInstance, '_before')){
             $this->invokeRequest($clazzInstance, '_before',$request,$response);

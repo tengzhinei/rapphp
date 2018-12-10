@@ -10,6 +10,8 @@ namespace rap\db;
 
 
 use rap\ioc\Ioc;
+use rap\swoole\pool\Pool;
+use rap\swoole\pool\ResourcePool;
 
 class DB {
 
@@ -19,15 +21,14 @@ class DB {
      *
      * @param string          $table 表
      * @param array           $data  数据
-     * @param Connection|null $connection
      *
      * @return Insert|string
      */
-    public static function insert($table, $data = null, Connection $connection = null) {
+    public static function insert($table, $data = null) {
         if ($data !== null) {
-            return Insert::insert($table, $data, $connection);
+            return Insert::insert($table, $data);
         } else {
-            return Insert::table($table, $connection);
+            return Insert::table($table);
         }
     }
 
@@ -36,15 +37,14 @@ class DB {
      *
      * @param string          $table 表
      * @param array           $where 条件
-     * @param Connection|null $connection
      *
      * @return null|Delete
      */
-    public static function delete($table, $where = null, Connection $connection = null) {
+    public static function delete($table, $where = null) {
         if ($where) {
-            Delete::delete($table, $where, $connection);
+            Delete::delete($table, $where);
         } else {
-            return Delete::table($table, $connection);
+            return Delete::table($table);
         }
         return null;
     }
@@ -56,16 +56,15 @@ class DB {
      * @param string     $table 表
      * @param array      $data  数据
      * @param array      $where
-     * @param Connection $connection
      *
      * @return null|Update
      */
-    public static function update($table, $data = null, $where = null, Connection $connection = null) {
+    public static function update($table, $data = null, $where = null) {
         if ($data) {
-            Update::update($table, $data, $where, $connection);
+            Update::update($table, $data, $where);
             return null;
         } else {
-            return Update::table($table, $connection);
+            return Update::table($table);
         }
     }
 
@@ -73,12 +72,11 @@ class DB {
      * 查询
      *
      * @param string     $table 表
-     * @param Connection $connection
      *
      * @return Select
      */
-    public static function select($table, Connection $connection = null) {
-        return Select::table($table, $connection);
+    public static function select($table) {
+        return Select::table($table);
     }
 
     /**
@@ -90,8 +88,16 @@ class DB {
      */
     public static function runInTrans(\Closure $closure) {
         /* @var $connection Connection */
-        $connection = Ioc::get(Connection::class);
-        return $connection->runInTrans($closure);
+        $connection = Pool::get(Connection::class);
+        $pool=ResourcePool::instance();
+        //加锁保证事物内使用的是同一连接
+        $pool->lock($connection);
+        $value= $connection->runInTrans($closure);
+        //释放锁
+        $pool->unLock($connection);
+        //释放连接
+        $pool->release($connection);
+        return $value;
     }
 
     /**
@@ -102,8 +108,9 @@ class DB {
      */
     public static function execute($sql, $bind = []) {
         /* @var $connection Connection */
-        $connection = Ioc::get(Connection::class);
+        $connection = Pool::get(Connection::class);
         $connection->execute($sql, $bind);
+        Pool::release($connection);
     }
 
     /**
@@ -117,7 +124,9 @@ class DB {
      */
     public static function query($sql, $bind = [], $cache = false) {
         /* @var $connection Connection */
-        $connection = Ioc::get(Connection::class);
-        return $connection->query($sql, $bind, $cache);
+        $connection = Pool::get(Connection::class);
+        $items= $connection->query($sql, $bind, $cache);
+        Pool::release($connection);
+        return $items;
     }
 }

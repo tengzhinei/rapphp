@@ -4,8 +4,9 @@ namespace rap\ioc;
 
 use rap\aop\Aop;
 use rap\db\Connection;
-use rap\swoole\pool\Pool;
+use rap\swoole\pool\ResourcePool;
 use rap\swoole\pool\PoolAble;
+use rap\swoole\pool\PoolTrait;
 
 class Ioc {
 
@@ -32,11 +33,36 @@ class Ioc {
      * @return mixed
      */
     public static function get($nameClass = null) {
-
         //判断是否有实例
         if (isset(static::$instances[ $nameClass ]) && static::$instances[ $nameClass ]) {
             return static::$instances[ $nameClass ];
         }
+        return self::beanCreate($nameClass);
+        //        /* @var $pool Pool */
+        //        $pool = Pool::instance();
+        //        return $pool->pop($nameClass, function()use($nameClass) {
+        //            try {
+        //                $bean= self::beanCreate($nameClass);
+        //                return $bean;
+        //            } catch (\RuntimeException $e) {
+        //                //没有配置并且无法实例化 返回空对象
+        //                return null;
+        //            }
+        //        });
+    }
+
+    public static function getRealClass($nameClass = null) {
+        if (isset(static::$beansConfig[ $nameClass ]) && static::$beansConfig[ $nameClass ]) {
+            //构造对象
+            /* @var $beanDefine BeanDefine */
+            $beanDefine = static::$beansConfig[ $nameClass ];
+            return $beanDefine->ClassName;
+        }
+        return $nameClass;
+    }
+
+
+    public static function beanCreate($nameClass, $instance = true) {
         $closure = null;
         $beanClassName = $nameClass;
         //判断是否有配置
@@ -47,25 +73,17 @@ class Ioc {
             $closure = $beanDefine->closure;
             $beanClassName = $beanDefine->ClassName;
         }
+        $bean = Aop::warpBean($beanClassName, $nameClass);
+        //连接池类型的不需要在容器托管
+        if ($instance) {
+            static::$instances[ $nameClass ] = $bean;
+        }
+        static::prepareBean($bean);
+        if ($closure) {
+            $closure($bean);
+        }
+        return $bean;
 
-        /* @var $pool Pool */
-        $pool = Pool::instance();
-        return $pool->get($nameClass, function()use($nameClass, $beanClassName, $closure) {
-            try {
-                $bean = Aop::warpBean($beanClassName);
-                if (!($bean instanceof PoolAble)) {
-                    static::$instances[ $nameClass ] = $bean;
-                }
-                static::prepareBean($bean);
-                if ($closure) {
-                    $closure($bean);
-                }
-                return $bean;
-            } catch (\RuntimeException $e) {
-                //没有配置并且无法实例化 返回空对象
-                return null;
-            }
-        });
     }
 
     /**

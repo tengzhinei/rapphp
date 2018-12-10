@@ -10,6 +10,8 @@ namespace rap\db;
 
 
 use rap\ioc\Ioc;
+use rap\swoole\pool\Pool;
+use rap\swoole\pool\ResourcePool;
 
 class Insert {
     use Comment;
@@ -19,27 +21,19 @@ class Insert {
     private $data;
 
     protected $insertSql = '%COMMENT% %INSERT% INTO %TABLE% (%FIELD%) VALUES (%DATA%) ';
-    /**
-     * @var Connection
-     */
-    private $connection;
+
 
 
     /**
      * 设置表
      *
      * @param string          $table 表名
-     * @param Connection|null $connection
      *
      * @return Insert
      */
-    public static function table($table, Connection $connection = null) {
+    public static function table($table) {
         $insert = new Insert();
         $insert->table = $table;
-        if (!$connection) {
-            $connection = Ioc::get(Connection::class);
-        }
-        $insert->connection = $connection;
         return $insert;
     }
 
@@ -84,8 +78,11 @@ class Insert {
                                            $fields,
                                            $valuePlace,
                                            $this->comment], $this->insertSql);
-        $this->connection->execute($sql, $values);
-        return $this->connection->getLastInsID();
+        $connection = Pool::get(Connection::class);
+        $connection->execute($sql, $values);
+        $id = $connection->getLastInsID();
+        Pool::release($connection);
+        return $id;
     }
 
     /**
@@ -93,12 +90,11 @@ class Insert {
      *
      * @param string          $table
      * @param array           $data
-     * @param Connection|null $connection
      *
      * @return int|string
      */
-    public static function insert($table, $data, Connection $connection = null) {
-        $insert = Insert::table($table, $connection);
+    public static function insert($table, $data) {
+        $insert = Insert::table($table);
         foreach ($data as $field => $value) {
             $insert->set($field, $value);
         }

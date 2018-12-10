@@ -101,7 +101,8 @@ class SwooleRequest extends Request{
             if($query_string){
                 $this->url.='?'.$query_string;
             }
-            if(strpos($this->url,Config::get('app','url_base'))===0){
+            $url_base=Config::get('app','url_base');
+            if($url_base&&strpos($this->url,$url_base)===0){
                 $this->url=substr($this->url,strlen(Config::get('app','url_base')));
             }
         }

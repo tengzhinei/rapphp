@@ -24,7 +24,7 @@ class ApiExceptionReport implements ExceptionHandler{
             'code'=>'101010',
             'msg'=>$msg
         ]);
-        $response->setContent($value);
+        $response->setContent( $msg);
         $response->send();
     }
 }

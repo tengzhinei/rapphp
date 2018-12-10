@@ -7,15 +7,17 @@
  */
 
 namespace rap\cache;
+
 use rap\swoole\pool\PoolAble;
+use rap\swoole\pool\PoolTrait;
 
 /**
  * Redis 缓存
  * Class RedisCache
  * @package rap\cache
  */
-class RedisCache implements CacheInterface,PoolAble  {
-
+class RedisCache implements CacheInterface, PoolAble {
+    use PoolTrait;
     /**
      * @var \Redis
      */
@@ -27,7 +29,7 @@ class RedisCache implements CacheInterface,PoolAble  {
                           'select' => 0,
                           'timeout' => 0,
                           'expire' => 0,
-                          'pool_size'=>5,
+                          'pool' => [],
                           'persistent' => false];
 
 
@@ -48,6 +50,10 @@ class RedisCache implements CacheInterface,PoolAble  {
         } else {
             $this->open();
         }
+    }
+
+    public function connect() {
+        $this->open();
     }
 
     public function open() {
@@ -77,17 +83,37 @@ class RedisCache implements CacheInterface,PoolAble  {
         $key = $name;
         //为支持对象类型 进行 serialize化
         $value = serialize($value);
+        $result = null;
         if (is_int($expire) && $expire > -1) {
-            $result = $this->redis->setex($key, $expire, $value);
+            try {
+                $result = $this->redis->setex($key, $expire, $value);
+            } catch (\RuntimeException $e) {
+                $this->redis = null;
+                $this->open();
+                $result = $this->redis->setex($key, $expire, $value);
+            }
         } else {
-            $result = $this->redis->set($key, $value);
+            try {
+                $result = $this->redis->set($key, $value);
+            } catch (\RuntimeException $e) {
+                $this->redis = null;
+                $this->open();
+                $result = $this->redis->set($key, $value);
+            }
         }
         return $result;
     }
 
     public function get($name, $default) {
         $this->open();
-        $value = $this->redis->get($name);
+        $value = null;
+        try {
+            $value = $this->redis->get($name);
+        } catch (\RuntimeException $e) {
+            $this->redis = null;
+            $this->open();
+            $value = $this->redis->get($name);
+        }
         if (is_null($value)) {
             return $default;
         }
@@ -96,33 +122,73 @@ class RedisCache implements CacheInterface,PoolAble  {
 
     public function has($name) {
         $this->open();
-        return $this->redis->get($name) ? true : false;
+        try {
+            $has = $this->redis->get($name) ? true : false;
+        } catch (\RuntimeException $e) {
+            $this->redis = null;
+            $this->open();
+            $has = $this->redis->get($name) ? true : false;
+        }
+        return $has;
     }
 
     public function inc($name, $step = 1) {
         $this->open();
-        return $this->redis->incrBy($name, $step);
+        try {
+            $b = $this->redis->incrBy($name, $step);
+        } catch (\RuntimeException $e) {
+            $this->redis = null;
+            $this->open();
+            $b = $this->redis->incrBy($name, $step);
+        }
+        return $b;
     }
 
     public function dec($name, $step = 1) {
         $this->open();
-        return $this->redis->decrBy($name, $step);
+        try {
+            $b = $this->redis->decrBy($name, $step);
+        } catch (\RuntimeException $e) {
+            $this->redis = null;
+            $this->open();
+            $b = $this->redis->incrBy($name, $step);
+        }
+        return $b;
     }
 
     public function remove($name) {
         $this->open();
-        return $this->redis->del($name);
+        try {
+            $b = $this->redis->del($name);
+        } catch (\RuntimeException $e) {
+            $this->redis = null;
+            $this->open();
+            $b = $this->redis->del($name);
+        }
+        return $b;
     }
 
     public function hashSet($name, $key, $value) {
         $this->open();
         $value = serialize($value);
-        $this->redis->hSet($name, $key, $value);
+        try {
+            $this->redis->hSet($name, $key, $value);
+        } catch (\RuntimeException $e) {
+            $this->redis = null;
+            $this->open();
+            $this->redis->hSet($name, $key, $value);
+        }
     }
 
     public function hashGet($name, $key, $default) {
         $this->open();
-        $value = $this->redis->hGet($name, $key);
+        try {
+            $value = $this->redis->hGet($name, $key);
+        } catch (\RuntimeException $e) {
+            $this->redis = null;
+            $this->open();
+            $value = $this->redis->hGet($name, $key);
+        }
         if ($value === false) {
             return $default;
         }
@@ -131,17 +197,28 @@ class RedisCache implements CacheInterface,PoolAble  {
 
     public function hashRemove($name, $key) {
         $this->open();
-        $this->redis->hDel($name, $key);
+        try {
+            $this->redis->hDel($name, $key);
+        } catch (\RuntimeException $e) {
+            $this->redis = null;
+            $this->open();
+            $this->redis->hDel($name, $key);
+        }
     }
 
     public function clear() {
         $this->open();
-        $this->redis->flushDB();
+        try {
+            $this->redis->flushDB();
+        } catch (\RuntimeException $e) {
+            $this->redis = null;
+            $this->open();
+            $this->redis->flushDB();
+        }
     }
 
-    public function poolSize() {
-       return $this->options['pool'];
+    public function poolConfig() {
+        return $this->options[ 'pool' ];
     }
-
 
 }

@@ -70,10 +70,8 @@ class RouterPattern{
         if($this->https&&!$request->isSsl())return null;
 
         foreach ($paramsKey as $param=>$value) {
-            $this->handlerAdapter->addParam($param,$value);
+            $this->handlerAdapter-> addParam($param,$value);
         }
-
-
 
         return $this->handlerAdapter;
     }
@@ -90,7 +88,6 @@ class RouterPattern{
      */
     public function bindCtr($ctr,$method){
         $this->handlerAdapter=new ControllerHandlerAdapter($ctr,$method);
-
     }
 
     /**

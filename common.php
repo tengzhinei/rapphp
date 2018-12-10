@@ -99,7 +99,7 @@ function getMillisecond() {
  * @return \rap\web\Request
  */
 function request() {
-    return \rap\web\mvc\RequestHolder::getRequest();
+    return \rap\swoole\CoContext::getContext()->getRequest();
 }
 
 /**
@@ -108,7 +108,7 @@ function request() {
  * @return \rap\web\Response
  */
 function response() {
-    return \rap\web\mvc\RequestHolder::getResponse();
+    return \rap\swoole\CoContext::getContext()->getResponse();
 }
 
 /**
@@ -120,10 +120,9 @@ function response() {
  *
  * @return \rap\web\validate\Validate
  */
-function validate($value, $as_name='', $throw = true) {
+function validate($value, $as_name = '', $throw = true) {
     return \rap\web\validate\Validate::param($value, $as_name, $throw);
 }
-
 
 
 /**
@@ -132,10 +131,9 @@ function validate($value, $as_name='', $throw = true) {
  *
  * @return \rap\web\validate\Validate
  */
-function validateRole($value, $throw = true){
+function validateRole($value, $throw = true) {
     return validate($value, '', $throw)->msg('role');
 }
-
 
 
 /**
@@ -162,6 +160,29 @@ function lang($moudle, $key, $vars = []) {
  *
  * @return \rap\web\validate\Validate
  */
-function validateParamRole($value, $as_name, $throw = true){
+function validateParamRole($value, $as_name, $throw = true) {
     return validateParam($value, $as_name, $throw)->msg('role');
 }
+
+function timer_after($time, Closure $closure) {
+    $id = 0;
+    if (IS_SWOOLE) {
+        $id = swoole_timer_after($time, function() use ($closure) {
+            $closure();
+            \rap\swoole\Context::release();
+        });
+    }
+    return $id;
+}
+
+function timer_tick($time, Closure $closure) {
+    $id = 0;
+    if (IS_SWOOLE) {
+        $id = swoole_timer_tick($time, function() use ($closure) {
+            $closure();
+            \rap\swoole\Context::release();
+        });
+    }
+    return $id;
+}
+

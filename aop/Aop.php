@@ -1,6 +1,7 @@
 <?php
 
 namespace rap\aop;
+use rap\ioc\Ioc;
 
 
 /**
@@ -18,7 +19,7 @@ class Aop {
      * 所有后置拦截器
      * @var array
      */
-    static private $afterActions  = array();
+    static private $afterActions = array();
 
     /**
      * 所有包裹拦截器
@@ -30,7 +31,7 @@ class Aop {
      * 计数用
      * @var int
      */
-    static private $range         = 0;
+    static private $range = 0;
 
     /**
      * 包围时只能添加一个以最后一个为准
@@ -254,8 +255,11 @@ class Aop {
         return false;
     }
 
-    public static function warpBean($clazz) {
-        if (self::needWarp($clazz)) {
+    public static function warpBean($clazz, $name) {
+        if (self::needWarp($name)) {
+            $name = "rap\\aop\\build\\" . $clazz . "_PROXY";
+            $who = new $name;
+        } else if ($name != $clazz && self::needWarp($clazz)) {
             $name = "rap\\aop\\build\\" . $clazz . "_PROXY";
             $who = new $name;
         } else {
@@ -307,26 +311,38 @@ class Aop {
             mkdir($dir, 0777, true);
         }
         $clazzs = array_unique(array_merge(array_keys(static::$beforeActions), array_keys(static::$afterActions), array_keys(static::$aroundActions)));
-        foreach ($clazzs as $clazz) {
+        foreach ($clazzs as $aop_clazz) {
+            $clazz = Ioc::getRealClass($aop_clazz);
             $reflection = new \ReflectionClass($clazz);
-            $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
+            $isInterface = $reflection->isInterface();
+            $nameSpace = "\\" . $reflection->getNamespaceName();
+            $clazzSimpleName = $reflection->getShortName() . "_PROXY";
+            $clazzExtend = "\\" . $clazz;
+
+            $aop_reflection = new \ReflectionClass($aop_clazz);
+
+            $methods = $aop_reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
             $methodsStr = "";
+
+            /* @var $method \ReflectionMethod */
             foreach ($methods as $method) {
                 if ($method->getName() == '_initialize' || $method->getName() == '_prepared') {
                     continue;
                 }
-                $around = self::getAroundActions($clazz, $method->getName());
-                $after = self::getAfterActions($clazz, $method->getName());
-                $before = self::getBeforeActions($clazz, $method->getName());
+                $around = self::getAroundActions($aop_clazz, $method->getName());
+                $after = self::getAfterActions($aop_clazz, $method->getName());
+                $before = self::getBeforeActions($aop_clazz, $method->getName());
                 if (!$around && !$after && !$before) {
                     continue;
                 }
                 $methodName = $method->getName();
-                $BeanClazz = "'" . $clazz . "'";
+                $BeanClazz = "'" . $aop_clazz . "'";
                 $methodArgs = "";
                 $pointArgs = "";
                 $index = 0;
                 $params = $method->getParameters();
+                $names = [];
+
                 /* @var $param   \ReflectionParameter */
                 foreach ($params as $param) {
                     if ($methodArgs) {
@@ -334,6 +350,7 @@ class Aop {
                         $pointArgs .= ",";
                     }
                     $paramClazz = $param->getClass();
+                    $names[] = '"' . $param->getName() . '"';
                     if ($paramClazz) {
                         $methodArgs .= "\\" . $paramClazz->getName() . " ";
                     }
@@ -343,21 +360,29 @@ class Aop {
                         $value = $param->getDefaultValue();
                         $isStr = gettype($value) == "string";
                         $methodArgs .= "=";
-                        if ($isStr) {
-                            $methodArgs .= "\"";
-                        }
-                        $methodArgs .= $param->getDefaultValue();
-                        if ($isStr) {
-                            $methodArgs .= "\"";
+                        if ($value === null) {
+                            $methodArgs .= 'null';
+                        } else {
+                            if ($isStr) {
+                                $methodArgs .= "\"";
+                            }
+                            $methodArgs .= $param->getDefaultValue();
+                            if ($isStr) {
+                                $methodArgs .= "\"";
+                            }
                         }
                     }
                     $pointArgs .= "\$pointArgs[" . $index . "]";
                     $index++;
                 }
+                $names = '[' . implode(',', $names) . ']';
+                $call_parent=$isInterface?'false':"parent::$methodName($pointArgs)";
                 $methodItem = <<<EOF
         public function $methodName($methodArgs){
-            \$point = new JoinPoint(\$this, __FUNCTION__, func_get_args(),function(\$pointArgs){
-                return parent::$methodName($pointArgs);
+             \$names=$names;   
+             
+            \$point = new JoinPoint(\$this, __FUNCTION__,\$names,func_get_args(),$BeanClazz,function(\$pointArgs){
+                return $call_parent;
                 }
             );
             \$action = Aop::getAroundActions($BeanClazz, __FUNCTION__);
@@ -366,7 +391,8 @@ class Aop {
                 if (\$action[ 'call' ]) {
                     return \$action[ 'call' ](\$point);
                 }
-                return Ioc::get(\$action[ 'class' ])->\$action[ 'action' ](\$point);
+                \$action_name=  \$action[ 'action' ];
+                return Ioc::get(\$action[ 'class' ])->\$action_name(\$point);
             }
             //前置操作
             \$actions = Aop::getBeforeActions($BeanClazz, __FUNCTION__);
@@ -376,14 +402,15 @@ class Aop {
                     if (\$action[ 'call' ]) {
                         \$value = \$action[ 'call' ](\$point);
                     } else {
-                       \$value =  Ioc::get(\$action[ 'class' ])->\$action[ 'action' ](\$point);
+                       \$action_name=  \$action[ 'action' ];
+                       \$value =  Ioc::get(\$action[ 'class' ])->\$action_name(\$point);
                     }
                     if(\$value !==null){
                         return \$value;                     
                     }
                 }
             }
-            \$val=parent::$methodName($pointArgs);
+            \$val=$call_parent;
             //后置操作
             \$actions = Aop::getAfterActions($BeanClazz, __FUNCTION__);
              if(\$actions){
@@ -391,7 +418,8 @@ class Aop {
                     if (\$action[ 'call' ]) {
                         \$val = \$action[ 'call' ](\$point, \$val);
                     } else {
-                        \$val = Ioc::get(\$action[ 'class' ])->\$action[ 'action' ](\$point, \$val);
+                        \$action_name=  \$action[ 'action' ];
+                        \$val = Ioc::get(\$action[ 'class' ])->\$action_name(\$point, \$val);
                     }
                 }
             }
@@ -402,17 +430,16 @@ EOF;
                 $methodsStr .= $methodItem;
             }
 
+            $extend_implements=$isInterface?'implements':'extends';
 
-            $nameSpace = "\\" . $reflection->getNamespaceName();
-            $clazzSimpleName = $reflection->getShortName() . "_PROXY";
-            $clazzExtend = "\\" . $clazz;
+
             $clazzStr = <<<EOF
 <?php
 namespace rap\aop\build$nameSpace;
 use rap\aop\Aop;
 use rap\Aop\JoinPoint;
 use rap\ioc\Ioc;
-class $clazzSimpleName extends $clazzExtend{
+class $clazzSimpleName $extend_implements $clazzExtend{
          $methodsStr
 }
 EOF;

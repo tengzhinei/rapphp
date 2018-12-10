@@ -10,6 +10,8 @@ namespace rap\db;
 
 
 use rap\ioc\Ioc;
+use rap\swoole\pool\Pool;
+use rap\swoole\pool\ResourcePool;
 
 class Select extends Where {
 
@@ -21,7 +23,7 @@ class Select extends Where {
      */
     private $table = '';
 
-    const REMOVED="REMOVED";
+    const REMOVED = "REMOVED";
 
     /**
      * 字段
@@ -35,27 +37,17 @@ class Select extends Where {
      */
     private $joins = [];
 
-    /**
-     * @var Connection
-     */
-    private $connection;
-
 
     /**
      * 设置表
      *
      * @param                 $table
-     * @param Connection|null $connection
      *
      * @return Select
      */
-    public static function table($table, Connection $connection = null) {
+    public static function table($table) {
         $select = new Select();
         $select->table = $table;
-        if (!$connection) {
-            $connection = Ioc::get(Connection::class);
-        }
-        $select->connection = $connection;
         return $select;
     }
 
@@ -208,7 +200,9 @@ class Select extends Where {
     public function findAll() {
         $sql = $this->getSql();
         $params = array_merge($this->whereParams(), $this->having_params);
-        $data = $this->connection->query($sql, $params, $this->cache);
+        $connection= Pool::get(Connection::class);
+        $data = $connection->query($sql, $params, $this->cache);
+        Pool::release($connection);
         if ($this->clazz) {
             $results = [];
             l:
@@ -219,7 +213,7 @@ class Select extends Where {
                 foreach ($this->subRecord as $pre => $sub) {
                     $pre .= "_";
                     $values = [];
-                    $length = count($pre) + 1;
+                    $length = strlen($pre);
                     foreach ($item as $key => $value) {
                         if (strpos($key, $pre) === 0) {
                             unset($item[ $key ]);
@@ -245,29 +239,29 @@ class Select extends Where {
                         $result->$key = $value;
                     }
                 }
-                $is_remove=false;
+                $is_remove = false;
                 if ($this->all_do) {
                     foreach ($this->all_do as $do) {
-                       $return=$result->$do();
-                        if($return===self::REMOVED){
-                            $is_remove=true;
+                        $return = $result->$do();
+                        if ($return === self::REMOVED) {
+                            $is_remove = true;
                             break;
                         }
                     }
                 }
-                if($is_remove){
+                if ($is_remove) {
                     continue;
                 }
                 if ($this->each) {
                     foreach ($this->each as $each) {
-                        $return=  $each($result);
-                        if($return===self::REMOVED){
-                            $is_remove=true;
+                        $return = $each($result);
+                        if ($return === self::REMOVED) {
+                            $is_remove = true;
                             break;
                         }
                     }
                 }
-                if($is_remove){
+                if ($is_remove) {
                     continue;
                 }
                 if ($this->to_array && $result instanceof Record) {
@@ -398,7 +392,10 @@ class Select extends Where {
         $this->order("");
         $this->fields($field);
         $this->limit(0, 1);
-        return $this->connection->value($this->getSql(), $this->whereParams(), $this->cache);
+        $connection = Pool::get(Connection::class);
+        $value=$connection->value($this->getSql(), $this->whereParams(), $this->cache);
+        Pool::release($connection);
+        return $value;
     }
 
     /**
@@ -412,7 +409,10 @@ class Select extends Where {
         $this->fields = [];
         $this->order("");
         $this->fields($field);
-        return $this->connection->values($this->getSql(), $this->whereParams(), $this->cache);
+        $connection = Pool::get(Connection::class);
+        $values = $connection->values($this->getSql(), $this->whereParams(), $this->cache);
+        Pool::release($connection);
+        return $values;
     }
 
     private $cache = false;

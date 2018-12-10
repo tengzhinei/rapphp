@@ -3,6 +3,7 @@ namespace rap\console\command;
 use rap\console\Command;
 use rap\db\Connection;
 use rap\ioc\Ioc;
+use rap\swoole\pool\Pool;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -39,7 +40,7 @@ class RecordBuild extends Command{
     public function run($s='', $p='', $n=''){
         set_time_limit(0);
         /*  @var Connection $connection  */
-        $connection=Ioc::get(Connection::class);
+        $connection=Pool::get(Connection::class);
         $tables=$connection->getTables();
         foreach ($tables as $table) {
             if($s){
@@ -57,7 +58,7 @@ class RecordBuild extends Command{
         if(!$namespace){
             $namespace='app';
         }
-        $connection=Ioc::get(Connection::class);
+        $connection=Pool::get(Connection::class);
         /* @var Connection $connection  */
         $name=$table_name;
         if($prefix){

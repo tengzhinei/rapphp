@@ -20,6 +20,7 @@ use rap\exception\handler\PageExceptionReport;
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\log\Log;
+use rap\rpc\Rpc;
 use rap\util\Lang;
 use rap\web\interceptor\Interceptor;
 use rap\web\mvc\AutoFindHandlerMapping;
@@ -38,13 +39,35 @@ abstract class Application {
      */
     private $dispatcher;
 
+    private $interceptors        = [];
+    private $interceptors_except = [];
+
     public function _initialize(Dispatcher $dispatcher) {
         $this->dispatcher = $dispatcher;
         include_once __DIR__ . "/../" . 'common.php';
+        $interceptors = Config::getFileConfig()[ 'interceptors' ];
+        if ($interceptors) {
+            $this->interceptors = $interceptors;
+        }
+        $interceptors_except = Config::getFileConfig()[ 'interceptors_except' ];
+        if ($interceptors_except) {
+            $this->interceptors_except = $interceptors;
+        }
     }
 
     public function _prepared() {
+        //注射rpc功能
+        Rpc::register();
         $this->addHandlerMapping();
+    }
+
+    /**
+     * 添加拦截器
+     *
+     * @param $clazz
+     */
+    public function addInterceptor($clazz) {
+        $this->interceptors[] = $clazz;
     }
 
 
@@ -55,6 +78,7 @@ abstract class Application {
         $routerMapping = new RouterHandlerMapping($router);
         $this->dispatcher->addHandlerMapping($routerMapping);
         $this->init($autoMapping, $router);
+
     }
 
 
@@ -62,20 +86,18 @@ abstract class Application {
         try {
             //加载语言包
             Lang::loadLand($request);
-            $interceptors = Config::getFileConfig()[ 'interceptors' ];
-            if ($interceptors) {
+            if ($this->interceptors) {
                 /* @var $interceptor Interceptor */
                 $url = $request->url();
-                $except = Config::getFileConfig()[ 'interceptors_except' ];
                 $is_interceptor = true;
-                foreach ($except as $item) {
+                foreach ($this->interceptors_except as $item) {
                     if (strpos($url, $item) === 0) {
                         $is_interceptor = false;
                         break;
                     }
                 }
                 if ($is_interceptor) {
-                    foreach ($interceptors as $interceptor) {
+                    foreach ($this->interceptors as $interceptor) {
                         $interceptor = Ioc::get($interceptor);
                         $value = $interceptor->handler($request, $response);
                         if ($value) {
@@ -117,5 +139,8 @@ abstract class Application {
         $console = Ioc::get(Console::class);
         $console->run($argv);
     }
+
+
+
 
 }

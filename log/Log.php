@@ -47,7 +47,7 @@ class Log {
         if(!request())return;
         $session_ids = Cache::get(md5('Log.debugSession'));
         $session_id = request()->session()->sessionId();
-        if (key_exists($session_id, $session_ids) || $force) {
+        if ($session_ids&&key_exists($session_id, $session_ids) || $force) {
             $name = $session_ids[ $session_id ];
             list($usec, $sec) = explode(" ", microtime());
             $time = ((float)$usec + (float)$sec);

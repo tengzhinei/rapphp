@@ -9,6 +9,9 @@
 namespace rap\cache;
 
 use rap\ioc\Ioc;
+use rap\swoole\pool\Pool;
+use rap\swoole\pool\ResourcePool;
+use rap\swoole\CoContext;
 
 
 class Cache {
@@ -39,7 +42,7 @@ class Cache {
         if ($name) {
             return Ioc::get($name);
         }
-        return Ioc::get(CacheInterface::class);
+        return Pool::get(CacheInterface::class);
     }
 
     /**
@@ -51,7 +54,9 @@ class Cache {
      */
     public static function set($key, $value, $expire = 0) {
         self::getCache()->set($key, $value, $expire);
+        self::release();
     }
+
 
     /**
      * 获取数据
@@ -62,7 +67,9 @@ class Cache {
      * @return mixed
      */
     public static function get($key, $default = "") {
-        return self::getCache()->get($key, $default);
+        $val = self::getCache()->get($key, $default);
+        self::release();
+        return $val;
     }
 
     /**
@@ -73,7 +80,9 @@ class Cache {
      * @return bool
      */
     public static function has($key) {
-        return self::getCache()->has($key);
+        $b = self::getCache()->has($key);
+        self::release();
+        return $b;
     }
 
 
@@ -85,6 +94,7 @@ class Cache {
      */
     public static function inc($key, $step = 1) {
         self::getCache()->inc($key, $step);
+        self::release();
     }
 
     /**
@@ -95,6 +105,7 @@ class Cache {
      */
     public static function dec($key, $step = 1) {
         self::getCache()->dec($key, $step);
+        self::release();
     }
 
     /**
@@ -104,6 +115,7 @@ class Cache {
      */
     public static function remove($key) {
         self::getCache()->remove($key);
+        self::release();
     }
 
     /**
@@ -111,6 +123,7 @@ class Cache {
      */
     public static function clear() {
         self::getCache()->clear();
+        self::release();
     }
 
     /**
@@ -122,6 +135,7 @@ class Cache {
      */
     public static function hashSet($name, $key, $value) {
         self::getCache()->hashSet($name, $key, $value);
+        self::release();
     }
 
     /**
@@ -129,10 +143,12 @@ class Cache {
      *
      * @param  string $name
      * @param  string $key
-     * @param  mixed $default
+     * @param  mixed  $default
      */
     public static function hashGet($name, $key, $default = "") {
-        return self::getCache()->hashGet($name, $key, $default);
+        $val = self::getCache()->hashGet($name, $key, $default);
+        self::release();
+        return $val;
     }
 
     /**
@@ -143,19 +159,31 @@ class Cache {
      */
     public static function hashRemove($name, $key) {
         self::getCache()->hashRemove($name, $key);
+        self::release();
     }
 
     /**
-     * 如果缓存类型是 redis可以获取redis
+     * 如果缓存类型是 redis可以获取redis 使用完成后请记得释放
      * @return null|\Redis
      */
     public static function redis() {
         $redisCache = self::getCache();
         if ($redisCache instanceof RedisCache) {
-            $redisCache->open();
+            $redisCache->ping();
             return $redisCache->redis;
         }
         return null;
     }
 
+    /**
+     * 连接池回收
+     */
+    public static function release() {
+        $context = CoContext::getContext();
+        $cache = $context->get(CacheInterface::class);
+        if ($cache) {
+            Pool::release($cache);
+            $context->set(CacheInterface::class,null);
+        }
+    }
 }

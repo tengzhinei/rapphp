@@ -3,6 +3,8 @@ namespace rap\db;
 
 use rap\ioc\Ioc;
 use rap\storage\Storage;
+use rap\swoole\pool\Pool;
+use rap\swoole\pool\ResourcePool;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -56,12 +58,6 @@ class Record implements  \ArrayAccess {
         return [];
     }
 
-    /**
-     * @return Connection
-     */
-    protected function getConnection() {
-        return Ioc::get(Connection::class);
-    }
 
     /**
      * 表明是否替换
@@ -275,7 +271,7 @@ class Record implements  \ArrayAccess {
         if (property_exists(get_called_class(), $create_time) && !$data[ $create_time ]) {
             $data[ $create_time ] = time() - 10;
         }
-        $pk_value = DB::insert($this->getTable(), $data, $this->getConnection());
+        $pk_value = DB::insert($this->getTable(), $data);
         if (!$this->$pk) {
             $this->$pk = $pk_value;
         }
@@ -301,7 +297,7 @@ class Record implements  \ArrayAccess {
         if (property_exists(get_called_class(), $update_time)) {
             $data[ $update_time ] = time();
         }
-        DB::update($this->getTable(), $data, $where, $this->getConnection());
+        DB::update($this->getTable(), $data, $where);
         //删除缓存
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
@@ -330,7 +326,7 @@ class Record implements  \ArrayAccess {
                     return;
                 }
             }
-            DB::delete($this->getTable(), null, $this->getConnection())->where($pk, $id)->excuse();
+            DB::delete($this->getTable(), null)->where($pk, $id)->excuse();
         }
         //删除缓存
         /* @var $db_cache DBCache */
@@ -357,7 +353,7 @@ class Record implements  \ArrayAccess {
             return $data;
         }
         /* @var $data Record */
-        $data = DB::select($t->getTable(), $t->getConnection())->where($where)->setRecord($model)->find();
+        $data = DB::select($t->getTable())->where($where)->setRecord($model)->find();
         $db_cache->recordWhereCacheSave($model, $where, $data->_db_data);
         return $data;
     }
@@ -440,7 +436,7 @@ class Record implements  \ArrayAccess {
         $model = get_called_class();
         /* @var $t Record */
         $t = new $model;
-        $data = DB::select($t->getTable(), $t->getConnection())
+        $data = DB::select($t->getTable())
                   ->where($t->getPkField(), $id)
                   ->lock()
                   ->setRecord($model)
@@ -471,7 +467,7 @@ class Record implements  \ArrayAccess {
         }
         /* @var $model Record */
         $model = new $model;
-        $select = DB::select($model->getTable() . " " . $as, $model->getConnection())->setRecord(get_called_class());
+        $select = DB::select($model->getTable() . " " . $as)->setRecord(get_called_class());
         if ($fields) {
             if (!$contain) {
                 $fieldAll = $model->getFields();
@@ -495,8 +491,10 @@ class Record implements  \ArrayAccess {
      * @return mixed
      */
     public function getFields() {
-        $connection = $this->getConnection();
-        return $connection->getFields($this->getTable());
+        $connection =  Pool::get(Connection::class);
+        $fields= $connection->getFields($this->getTable());
+        Pool::release($connection);
+        return $fields;
     }
 
     /**

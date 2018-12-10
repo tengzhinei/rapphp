@@ -39,7 +39,7 @@ class Http {
     }
 
     public static function get($url, $header = []) {
-        if (IS_SWOOLE_HTTP && \Co::getuid()) {
+        if (IS_SWOOLE && \Co::getuid()) {
             $hostPath = self::parseUrl($url);
             $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ]);
             if ($header) {
@@ -47,14 +47,16 @@ class Http {
             }
             $cli->get($hostPath[ 1 ]);
             $cli->headers;
-            return $cli->body;
+            $body=$cli->body;
+            $cli->close();
+            return $body;
         } else {
             return \Requests::get($url, $header)->body;
         }
     }
 
     public static function post($url, $header = [], $data = []) {
-        if (IS_SWOOLE_HTTP && \Co::getuid()) {
+        if (IS_SWOOLE && \Co::getuid()) {
             $hostPath = self::parseUrl($url);
             $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ]);
             if ($header) {
@@ -62,7 +64,9 @@ class Http {
             }
             $cli->post($hostPath[ 1 ], $data);
             $cli->headers;
-            return $cli->body;
+            $body=$cli->body;
+            $cli->close();
+            return $body;
         } else {
             return \Requests::post($url, $header, $data)->body;
         }
@@ -71,7 +75,7 @@ class Http {
 
     public static function put($url, $header = [], $data = [],$newco=false) {
         //在 swoole 协程环境
-        if (IS_SWOOLE_HTTP && \Co::getuid()) {
+        if (IS_SWOOLE && \Co::getuid()) {
             $hostPath = self::parseUrl($url);
             $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ]);
             if ($header) {
@@ -83,7 +87,9 @@ class Http {
                 $cli->post($hostPath[ 1 ], json_encode($data));
             }
             $cli->headers;
-            return $cli->body;
+            $body=$cli->body;
+            $cli->close();
+            return $body;
         } else {
             return \Requests::put($url, $header, $data)->body;
         }

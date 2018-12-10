@@ -10,6 +10,8 @@ namespace rap\db;
 
 
 use rap\ioc\Ioc;
+use rap\swoole\pool\Pool;
+use rap\swoole\pool\ResourcePool;
 
 class Delete extends Where {
     use Comment;
@@ -22,24 +24,16 @@ class Delete extends Where {
 
     protected $deleteSql = '%COMMENT% DELETE FROM %TABLE% %WHERE% %ORDER%%LIMIT% %LOCK%';
 
-    /**
-     * @var Connection
-     */
-    private $connection;
+   
 
     /**
      * @param   string        $table
-     * @param Connection|null $connection
      *
      * @return Delete
      */
-    public static function table($table, Connection $connection = null) {
+    public static function table($table) {
         $delete = new Delete();
         $delete->table = $table;
-        if (!$connection) {
-            $connection = Ioc::get(Connection::class);
-        }
-        $delete->connection = $connection;
         return $delete;
     }
 
@@ -55,8 +49,11 @@ class Delete extends Where {
                                      $this->limit,
                                      $this->lock,
                                      $this->comment,], $this->deleteSql);
-        $this->connection->execute($sql, $this->whereParams());
-        return $this->connection->rowCount();
+        $connection = Pool::get(Connection::class);
+        $connection->execute($sql, $this->whereParams());
+        $count= $connection->rowCount();
+        Pool::release($connection);
+        return $count;
     }
 
 
@@ -65,12 +62,11 @@ class Delete extends Where {
      *
      * @param                 $table
      * @param                 $where
-     * @param Connection|null $connection
      *
      * @return int
      */
-    public static function delete($table, $where, Connection $connection = null) {
-        $delete = Delete::table($table, $connection);
+    public static function delete($table, $where) {
+        $delete = Delete::table($table);
         if (is_array($where)) {
             foreach ($where as $field => $value) {
                 $delete->where($field, $value);

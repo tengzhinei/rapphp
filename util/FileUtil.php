@@ -52,11 +52,11 @@ class FileUtil {
      */
     static function copy($source, $dest) {
         if (is_file($source)) {
-            mkdir(dirname($dest),0777,true);
+            mkdir(dirname($dest), 0777, true);
             copy($source, $dest);
             return;
         }
-        if(!is_dir($source)){
+        if (!is_dir($source)) {
             return;
         }
         if (!file_exists($dest)) {
@@ -165,13 +165,39 @@ class FileUtil {
         @closedir($dir);
     }
 
-    static function eachAll($dir, \Closure $closure){
+    static function eachAll($dir, \Closure $closure) {
         $child_dirs = scandir($dir);
         foreach ($child_dirs as $child_dir) {
             if ($child_dir != '.' && $child_dir != '..' && $child_dir != '.DS_Store') {
                 $files[] = $child_dir;
                 $closure($dir . "/" . $child_dir, $child_dir);
             }
+        }
+    }
+
+    /**
+     * 读文件
+     *
+     * @param $filename
+     *
+     * @return string
+     */
+    static function readFile($filename) {
+        //swoole 4.2后 file_get_contents已被协程化
+        return file_get_contents($filename);
+    }
+
+    /**
+     * 写文件
+     * @param string $filename
+     * @param string $fileContent
+     * @param int    $flags
+     */
+    static function writeFile( $filename,  $fileContent,  $flags){
+        if(IS_SWOOLE&&\Co::getuid()){
+            \Co::writeFile($filename,$fileContent,$flags);
+        }else{
+            file_put_contents($filename,$fileContent,$flags);
         }
     }
 

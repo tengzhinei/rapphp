@@ -18,7 +18,7 @@ abstract class HandlerAdapter {
     private $pattern;
     private $header;
     protected $method;
-    private $params;
+    private $params=[];
 
     public abstract function viewBase();
 
@@ -122,7 +122,6 @@ abstract class HandlerAdapter {
                             $name = $property->getName();
                             $val = $request->param($name);
                             if (isset($val)) {
-
                                 $bean->$name = $val;
                             }
                         }

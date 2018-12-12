@@ -157,7 +157,7 @@ class Where {
             if (self::$exp[ $op ]) {
                 $op = self::$exp[ $op ];
             }
-            if (is_null($condition) && 'null' != $op && 'not null' != $op) {
+            if (is_null($condition) && 'null' !== $op && 'not null' !== $op) {
                 $condition = $op;
                 $op = '=';
             }

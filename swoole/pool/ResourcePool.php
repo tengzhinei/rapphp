@@ -10,6 +10,7 @@
 namespace rap\swoole\pool;
 
 
+use rap\aop\Event;
 use rap\ioc\Ioc;
 use rap\swoole\CoContext;
 use Swoole\Coroutine\Channel;
@@ -47,18 +48,22 @@ class ResourcePool {
         if ($bean) {
             return $bean;
         }
-        /* @var $holder CoContext */
-        //判定是否有没有使用的对象
-        $queue = $this->getQueue($classOrName);
-        if (!$queue->isEmpty()) {
-            $bean = $queue->pop();
-        }
-        if (!$bean) {
-            /* @var $channel Channel */
-            $channel = $this->channels[ $classOrName ];
-            /* @var $buffer PoolBuffer */
-            $buffer = $channel->pop();
-            $bean = $buffer->get();
+        if (IS_SWOOLE) {
+            /* @var $holder CoContext */
+            //判定是否有没有使用的对象
+            $queue = $this->getQueue($classOrName);
+            if (!$queue->isEmpty()) {
+                $bean = $queue->pop();
+            }
+            if (!$bean) {
+                /* @var $channel Channel */
+                $channel = $this->channels[ $classOrName ];
+                /* @var $buffer PoolBuffer */
+                $buffer = $channel->pop();
+                $bean = $buffer->get();
+            }
+        } else {
+            $bean = Ioc::get($classOrName);
         }
         CoContext::getContext()->set($classOrName, $bean);
         return $bean;
@@ -74,6 +79,10 @@ class ResourcePool {
     }
 
     public function release(PoolAble $bean) {
+        if (!IS_SWOOLE) {
+            return;
+        }
+
         /* @var $bean PoolTrait */
         if ($bean->_poolLock_) {
             return;
@@ -88,6 +97,7 @@ class ResourcePool {
         } else {
             $queue->push($bean);
         }
+
     }
 
     /**
@@ -111,24 +121,26 @@ class ResourcePool {
     }
 
 
-    public function preparePool($class,$name='') {
+    /**
+     * 初始化连接池
+     *
+     * @param string $classOrName 类名或在 Ioc中注册过的别名
+     */
+    public function preparePool($classOrName) {
         $queue = new \SplQueue();
-        if(!$name){
-            $name=$class;
-        }
 
-        $this->queues[ $name ] = $queue;
+        $this->queues[ $classOrName ] = $queue;
         /* @var $bean PoolAble|PoolTrait */
-        $bean = Ioc::beanCreate($name, false);
+        $bean = Ioc::beanCreate($classOrName, false);
         $config = $bean->poolConfig();
-        $bean->_poolName_ = $name;
+        $bean->_poolName_ = $classOrName;
         $min = $config[ 'min' ];
         $max = $config[ 'max' ];
 
         $queue->push($bean);
         for ($i = 1; $i < $min; $i++) {
-            $bean = Ioc::beanCreate($name, false);
-            $bean->_poolName_ = $name;
+            $bean = Ioc::beanCreate($classOrName, false);
+            $bean->_poolName_ = $classOrName;
             $queue->push($bean);
         }
         if (!$max || $max <= $min) {
@@ -136,16 +148,25 @@ class ResourcePool {
         }
 
         $chanel = new Channel($max - $min + 1);
-        $this->channels[ $name ] = $chanel;
+        $this->channels[ $classOrName ] = $chanel;
         $buffers = [];
         for ($i = 0; $i < $max - $min; $i++) {
-            $buffer = new PoolBuffer($class,$name);
+            $buffer = new PoolBuffer($classOrName);
             $chanel->push($buffer);
             $buffers[] = $buffer;
         }
-        $this->buffers[ $class ] = $buffers;
-        //定时删除更新
-        swoole_timer_tick(1000 * 20, function() {
+        $this->buffers[ $classOrName ] = $buffers;
+        //定时删除
+        $idle = $config[ 'idle' ];
+        if (!$idle) {
+            $idle = 60;
+        }
+        $check = $config[ 'check' ];
+        if (!$check) {
+            $check = 30;
+        }
+
+        swoole_timer_tick(1000 * $check, function()use($idle) {
             foreach ($this->buffers as $class => $buffer_array) {
                 foreach ($buffer_array as $buffer) {
                     /* @var $buffer PoolBuffer */
@@ -153,9 +174,9 @@ class ResourcePool {
                         continue;
                     }
                     $time = time() - $buffer->lastActiveTime;
-                    if ($time > 20) {
+                    if ($time > $idle) {
                         unset($buffer->bean);
-                        $buffer->bean=null;
+                        $buffer->bean = null;
                     }
                 }
             }

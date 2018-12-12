@@ -16,23 +16,38 @@ use rap\web\Request;
 
 class CoContext {
 
+    const CONNECTION_NAME = '___CONNECTION_NAME__';
+    const CONNECTION_DB   = '___CONNECTION_DB__';
+    const REDIS_NAME      = '___REDIS_NAME__';
+    const REDIS_SELECT    = '___REDIS_SELECT__';
+
     public $instances = [];
 
     private static $coHolders = [];
+
+    /**
+     * 给非 swoole 环境下使用的
+     * @var int
+     */
+    private static $id = 1;
 
     /**`
      * 获取作用域的id
      * @return int
      */
-    public static function id(){
-         if(IS_SWOOLE){
+    public static function id() {
+        if (IS_SWOOLE) {
             return \Co::getuid();
-         }
-         return 1;
+        }
+        return self::$id;
+    }
+
+    public static function setId($id) {
+        self::$id = $id;
     }
 
     public static function getContext() {
-        $uid = 'cid_'.self::id();
+        $uid = 'cid_' . self::id();
         $holder = self::$coHolders[ $uid ];
         if (!$holder) {
             $holder = new CoContext();
@@ -57,15 +72,15 @@ class CoContext {
      * 获取response
      * @return \rap\web\Response
      */
-    public  function getResponse() {
+    public function getResponse() {
         return self::getRequest()->response();
     }
 
-    public function set($name, $bean=null) {
-        if(!$bean){
+    public function set($name, $bean = null) {
+        if (!$bean) {
             unset($bean);
-            $this->instances[ $name ]=null;
-        }else{
+            $this->instances[ $name ] = null;
+        } else {
             $this->instances[ $name ] = $bean;
         }
     }
@@ -84,7 +99,7 @@ class CoContext {
     public function release() {
         /* @var $pool ResourcePool */
         $pool = ResourcePool::instance();
-        $id=CoContext::id();
+        $id = CoContext::id();
         unset(self::$coHolders[ $id ]);
         foreach ($this->instances as $name => $bean) {
             if ($bean instanceof PoolAble) {
@@ -94,7 +109,7 @@ class CoContext {
             }
         }
         unset($this->instances);
-        $this->instances=[];
+        $this->instances = [];
     }
 
 

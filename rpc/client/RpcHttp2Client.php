@@ -1,29 +1,29 @@
 <?php
-namespace rap\rpc;
+/**
+ * User: jinghao@duohuo.net
+ * Date: 18/12/10
+ * Time: 下午3:08
+ * Link:  http://magapp.cc
+ * Copyright:南京灵衍信息科技有限公司
+ */
+
+namespace rap\rpc\client;
 
 use rap\config\Config;
-use rap\swoole\pool\PoolAble;
 use rap\swoole\pool\PoolTrait;
 use Swoole\Coroutine\Http2\Client;
 
 /**
- * User: jinghao@duohuo.net
- * Date: 18/12/7
- * Time: 下午2:50
- * Link:  http://magapp.cc
- * Copyright:南京灵衍信息科技有限公司
+ * 通过 http2 实现的 Rpc 客户端 支持长链接
  */
-class RpcClient implements PoolAble {
+class RpcHttp2Client implements RpcClient {
     use PoolTrait;
-
-    public $FUSE_STATUS     = 3;
-    public $FUSE_FAIL_COUNT = 0;
-    public $FUSE_OPEN_TIME;
 
     private $config = ['host' => '',
                        'port' => 9501,
-                       'path'=>'rpc_____call',
+                       'path' => 'rpc_____call',
                        'token' => '',
+                       'serialize' => 'serialize',
                        'timeout' => 0.05,
                        'pool' => ['min' => 1, 'max' => 10]];
 
@@ -36,8 +36,8 @@ class RpcClient implements PoolAble {
     public function config($config) {
         $this->config = array_merge($this->config, $config);
         $this->config[ 'name' ] = Config::getFileConfig()[ 'app' ][ 'name' ];
-        if(!$this->config[ 'name' ]){
-            $this->config[ 'name' ]='rap_rpc_client';
+        if (!$this->config[ 'name' ]) {
+            $this->config[ 'name' ] = 'rap_rpc_client';
         }
     }
 
@@ -53,7 +53,7 @@ class RpcClient implements PoolAble {
      *
      * @return mixed   返回结果
      */
-    public function action($interface, $method, $data) {
+    public function query($interface, $method, $data) {
         //
         if (!$this->cli) {
             $this->connect();
@@ -63,37 +63,49 @@ class RpcClient implements PoolAble {
             $this->cli->connect();
         }
         if (!$this->cli->connected) {
-            throw new RpcException('连接rpc服务失败', 100);
+            throw new RpcClientException('连接rpc服务失败', 100);
         }
 
         $req = new \swoole_http2_request();
         $req->method = 'POST';
-        $req->path = $this->config['path'];
+        $req->path = $this->config[ 'path' ];
         $req->headers = ['rpc_client_name' => $this->config[ 'name' ],
+                         'rpc_serialize' => $this->config[ 'serialize' ],
                          'rpc_token' => $this->config[ 'token' ],
                          'rpc_interface' => $interface,
                          'rpc_method' => $method];
-        $req->data = json_encode($data);
+        if ($this->config[ 'serialize' ] == 'serialize') {
+            $data = serialize($data);
+        } else {
+            $data = json_encode($data);
+        }
+        $req->data = $data;
         $this->cli->send($req);
         $response = $this->cli->recv();
         if (!$this->cli->errCode && $response->statusCode == 200) {
             $type = $response->headers[ 'content-type' ];
             $data = $response->data;
-            if (strpos($type, 'json')) {
-                return json_decode($data, true);
-            }
-            if ($data == 'true') {
-                return true;
-            } else if ($data == 'false') {
-                return false;
+            if ($data && strpos($type, 'application/rap-rpc')) {
+                $data = unserialize($data);
+                //有错误异常直接外抛
+                if ($data instanceof \RuntimeException) {
+                    throw $data;
+                }
+            } else if ($data && strpos($type, 'application/json')) {
+                $data = json_decode($data, true);
+                if( $response->headers[ 'rpc-exception' ]){
+                    $type=$data['type'];
+                    $msg=$data['msg'];
+                    $code=$data['code'];
+                    $exception=new $type($msg,$code);
+                    throw $exception;
+                }
             }
             return $data;
         } else {
-            throw new RpcException('服务异常', 100);
+            throw new RpcClientException('服务异常', 100);
         }
-
     }
-
 
 
     public function connect() {

@@ -13,7 +13,7 @@ use rap\swoole\pool\ResourcePool;
 use rap\swoole\task\TaskConfig;
 use rap\swoole\web\SwooleRequest;
 use rap\swoole\web\SwooleResponse;
-use rap\util\Http;
+use rap\util\http\Http;
 use rap\web\Application;
 use rap\swoole\CoContext;
 use Swoole\Runtime;
@@ -133,8 +133,6 @@ class WebSocketServer extends Command {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        ResourcePool::instance()->preparePool(Connection::class);
-        ResourcePool::instance()->preparePool(CacheInterface::class);
         Event::trigger('onServerWorkStart', '');
         CoContext::getContext()->release();
     }
@@ -177,7 +175,8 @@ class WebSocketServer extends Command {
             } else {
                 try {
                     //通过集群中的其他服务器推送
-                    Http::put('http://' . $old[ 0 ] . ':' . $this->config[ 'port' ] . '/open/close', [], ['fid' => $old[ 1 ],
+                    Http::put('http://' . $old[ 0 ] . ':' . $this->config[ 'port' ] . '/open/close', [], ['fid' =>
+                                                                                                              $old[ 1 ],
                                                                                                           'secret' => $this->config[ 'secret' ]]);
                 } catch (\Exception $exception) {
                 } catch (\Error $exception) {

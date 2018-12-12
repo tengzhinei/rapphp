@@ -38,17 +38,6 @@ class Ioc {
             return static::$instances[ $nameClass ];
         }
         return self::beanCreate($nameClass);
-        //        /* @var $pool Pool */
-        //        $pool = Pool::instance();
-        //        return $pool->pop($nameClass, function()use($nameClass) {
-        //            try {
-        //                $bean= self::beanCreate($nameClass);
-        //                return $bean;
-        //            } catch (\RuntimeException $e) {
-        //                //没有配置并且无法实例化 返回空对象
-        //                return null;
-        //            }
-        //        });
     }
 
     public static function getRealClass($nameClass = null) {

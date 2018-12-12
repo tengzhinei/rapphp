@@ -15,7 +15,6 @@ use rap\ioc\Ioc;
 class PoolBuffer {
 
     public $className;
-    public $name;
 
     /**
      * @var PoolTrait
@@ -26,20 +25,16 @@ class PoolBuffer {
 
     public $is_use;
 
-    function __construct($className,$name=null) {
-        if(!$name){
-            $name=$className;
-        }
+    function __construct($className) {
         $this->className = $className;
-        $this->name = $name;
     }
 
     public function get() {
         if (!$this->bean) {
-            $this->bean = Ioc::beanCreate($this->name);
+            $this->bean = Ioc::beanCreate($this->className);
             $this->lastActiveTime = time();
             $this->bean->_poolBuffer_ = $this;
-            $this->bean->_poolName_ = $this->name;
+            $this->bean->_poolName_ = $this->className;
         }
         $this->is_use = true;
         return $this->bean;

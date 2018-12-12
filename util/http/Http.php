@@ -7,20 +7,19 @@
  * Copyright:南京灵衍信息科技有限公司
  */
 
-namespace rap\util;
-
+namespace rap\util\http;
 
 use Swoole\Coroutine\Http\Client;
 
 class Http {
 
     private static function parseUrl($url) {
-        $port=80;
+        $port = 80;
         if (strpos($url, 'http://') == 0) {
             $url = str_replace('http://', '', $url);
-        }elseif (strpos($url, 'https://') == 0) {
+        } elseif (strpos($url, 'https://') == 0) {
             $url = str_replace('https://', '', $url);
-            $port=443;
+            $port = 443;
         }
         $po = strpos($url, '/');
         if ($po) {
@@ -31,11 +30,11 @@ class Http {
             $path = '/';
         }
         if (strpos($host, ':') == 0) {
-            $hp=  explode(':',$host);
-            $host=$hp[0];
-            $port=$hp[1];
+            $hp = explode(':', $host);
+            $host = $hp[ 0 ];
+            $port = $hp[ 1 ];
         }
-        return [$host, $path,$port];
+        return [$host, $path, $port];
     }
 
     public static function get($url, $header = []) {
@@ -46,12 +45,13 @@ class Http {
                 $cli->setHeaders($header);
             }
             $cli->get($hostPath[ 1 ]);
-            $cli->headers;
-            $body=$cli->body;
+            $response = new HttpResponse($cli->statusCode, $cli->headers, $cli->body);
             $cli->close();
-            return $body;
+            return $response;
         } else {
-            return \Requests::get($url, $header)->body;
+            $response = \Requests::get($url, $header);
+            return new HttpResponse($response->status_code, $response->headers, $response->body);
+
         }
     }
 
@@ -63,17 +63,17 @@ class Http {
                 $cli->setHeaders($header);
             }
             $cli->post($hostPath[ 1 ], $data);
-            $cli->headers;
-            $body=$cli->body;
+            $response = new HttpResponse($cli->statusCode, $cli->headers, $cli->body);
             $cli->close();
-            return $body;
+            return $response;
         } else {
-            return \Requests::post($url, $header, $data)->body;
+            $response = \Requests::post($url, $header, $data);
+            return new HttpResponse($response->status_code, $response->headers, $response->body);
         }
 
     }
 
-    public static function put($url, $header = [], $data = [],$newco=false) {
+    public static function put($url, $header = [], $data = []) {
         //在 swoole 协程环境
         if (IS_SWOOLE && \Co::getuid()) {
             $hostPath = self::parseUrl($url);
@@ -85,13 +85,13 @@ class Http {
                 $cli->post($hostPath[ 1 ], $data);
             } else {
                 $cli->post($hostPath[ 1 ], json_encode($data));
-            }
-            $cli->headers;
-            $body=$cli->body;
+            };
+            $response = new HttpResponse($cli->statusCode, $cli->headers, $cli->body);
             $cli->close();
-            return $body;
+            return $response;
         } else {
-            return \Requests::put($url, $header, $data)->body;
+            $response = \Requests::put($url, $header, $data);
+            return new HttpResponse($response->status_code, $response->headers, $response->body);
         }
     }
 

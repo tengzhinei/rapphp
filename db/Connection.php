@@ -14,7 +14,7 @@ use rap\swoole\pool\PoolTrait;
  * Date: 17/9/21
  * Time: 下午1:25
  */
-abstract class Connection implements PoolAble  {
+abstract class Connection implements PoolAble {
     use PoolTrait;
     /**
      *  PDO实例
@@ -41,7 +41,7 @@ abstract class Connection implements PoolAble  {
     private $password;
 
 
-    private $poolConifg =[];
+    private $poolConifg = [];
 
     /**
      * 设置配置项
@@ -52,12 +52,17 @@ abstract class Connection implements PoolAble  {
         $this->dsn = $config[ 'dsn' ];
         $this->username = $config[ 'username' ];
         $this->password = $config[ 'password' ];
-        if($config[ 'pool' ]){
+        if ($config[ 'pool' ]) {
             $this->poolConifg = $config[ 'pool' ];
+        }
+        //非 swoole 环境下无法使用连接池,可以使用 pdo 的持久化连接方式
+        //swoole 环境下,没有必要使用
+        if (!IS_SWOOLE) {
+            $this->params[ PDO::ATTR_PERSISTENT ] = true;
         }
     }
 
-    public function poolConfig(){
+    public function poolConfig() {
         return $this->poolConifg;
     }
 
@@ -69,11 +74,8 @@ abstract class Connection implements PoolAble  {
                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                        PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
                        PDO::ATTR_STRINGIFY_FETCHES => false,
-//                       PDO::ATTR_PERSISTENT => true,
                        PDO::ATTR_EMULATE_PREPARES => false,
-                       PDO::MYSQL_ATTR_USE_BUFFERED_QUERY=>true
-                       //        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY=>true//php7.2.4废弃
-    ];
+                       PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true];
 
     /**
      * PDO操作实例
@@ -102,7 +104,6 @@ abstract class Connection implements PoolAble  {
     public function connect() {
         if (!$this->pdo) {
             try {
-
                 $this->pdo = new PDO($this->dsn, $this->username, $this->password, $this->params);
             } catch (\PDOException $e) {
                 throw $e;
@@ -173,7 +174,7 @@ abstract class Connection implements PoolAble  {
      *
      * @return null|string
      */
-    public function value($sql, $bind=[], $cache = false) {
+    public function value($sql, $bind = [], $cache = false) {
         $value = null;
         $dbCache = null;
         if ($cache) {
@@ -270,23 +271,30 @@ abstract class Connection implements PoolAble  {
         }
     }
 
+    private $db = '';
+
     /**
      * 切换数据库
      *
      * @param string $db
      */
     public function userDb($db) {
+        if ($this->db == $db) {
+            return;
+        }
         $pdo = $this->connect();
         // 根据参数绑定组装最终的SQL语句
         try {
             $pdo->exec("use " . $db);
+            $this->db = $db;
         } catch (\PDOException $e) {
             $error = $e->errorInfo;
             //2006和2013表示表示连接失败,需要重连接
             if ($error[ 1 ] == 2006 || $error[ 1 ] == 2013) {
                 $this->pdo = null;
                 $this->connect();
-                $this->userDb($db);
+                $pdo->exec("use " . $db);
+                $this->db = $db;
             } else {
                 throw $e;
             }
@@ -519,8 +527,6 @@ abstract class Connection implements PoolAble  {
     public abstract function getPkField($table);
 
     public abstract function getFieldsComment($table);
-
-
 
 
 }

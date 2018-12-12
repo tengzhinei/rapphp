@@ -10,7 +10,8 @@
 namespace rap\rpc;
 
 use rap\aop\JoinPoint;
-use rap\ioc\Ioc;
+use rap\rpc\client\RpcClient;
+use rap\rpc\client\RpcClientException;
 use rap\swoole\pool\Pool;
 
 /**
@@ -26,6 +27,7 @@ class RpcWave {
      * @var Rpc
      */
     private $rpc;
+
     /**
      * RpcWave _initialize.
      *
@@ -53,26 +55,26 @@ class RpcWave {
         if ($obj->FUSE_STATUS == RpcWave::FUSE_STATUS_HALF_OPEN) {
             $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
             try {
-                $argsMap = $point->getArgMap();//调用的参数
+                $args = $point->getArgs();
                 /* @var $client RpcClient */
                 $client = $this->rpc->getRpcClient($point->getOriginalClass());
-                $value = $client->action($point->getOriginalClass(),$method->getName(), $argsMap);
-                 Pool::release($client);
+                $value = $client->query($point->getOriginalClass(), $method->getName(), $args);
+                Pool::release($client);
                 $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_CLOSE;
                 if ($value == null) {
                     $value = true;
                 }
                 return $value;
-            } catch (RpcException $exception) {
+            } catch (RpcClientException $exception) {
                 $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
                 return null;
             }
         } else {
             try {
-                $argsMap = $point->getArgMap();//调用的参数
+                $args = $point->getArgs();
                 /* @var $client RpcClient */
                 $client = $this->rpc->getRpcClient($point->getOriginalClass());
-                $value = $client->action($point->getOriginalClass(),$method->getName(), $argsMap);
+                $value = $client->query($point->getOriginalClass(), $method->getName(), $args);
                 Pool::release($client);
                 if ($obj->FUSE_FAIL_COUNT) {
                     $obj->FUSE_FAIL_COUNT = 0;
@@ -81,7 +83,7 @@ class RpcWave {
                     $value = true;
                 }
                 return $value;
-            } catch (RpcException $exception) {
+            } catch (RpcClientException $exception) {
                 $obj->FUSE_FAIL_COUNT++;
                 //失败一定次数开启熔断
                 if ($obj->FUSE_FAIL_COUNT > 20) {
@@ -94,8 +96,6 @@ class RpcWave {
             }
         }
     }
-
-
 
 
 }

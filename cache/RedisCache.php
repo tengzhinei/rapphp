@@ -71,6 +71,7 @@ class RedisCache implements CacheInterface, PoolAble {
             if (0 != $this->options[ 'select' ]) {
                 $this->redis->select($this->options[ 'select' ]);
             }
+            $this->select = $this->options[ 'select' ];
         }
     }
 
@@ -104,7 +105,7 @@ class RedisCache implements CacheInterface, PoolAble {
         return $result;
     }
 
-    public function get($name, $default) {
+    public function get($name, $default=null) {
         $this->open();
         $value = null;
         try {
@@ -221,4 +222,20 @@ class RedisCache implements CacheInterface, PoolAble {
         return $this->options[ 'pool' ];
     }
 
+    private $select = '';
+
+    public function select($select) {
+        $this->open();
+        if ($select == $this->select) {
+            return;
+        }
+        try {
+            $this->redis->select($select);
+        } catch (\RuntimeException $e) {
+            $this->redis = null;
+            $this->open();
+            $this->redis->select($select);
+        }
+        $this->select = $select;
+    }
 }

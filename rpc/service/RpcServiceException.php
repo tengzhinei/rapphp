@@ -1,15 +1,15 @@
 <?php
 /**
  * User: jinghao@duohuo.net
- * Date: 18/12/7
- * Time: 下午4:38
+ * Date: 18/12/10
+ * Time: 下午10:20
  * Link:  http://magapp.cc
  * Copyright:南京灵衍信息科技有限公司
  */
 
-namespace rap\rpc;
+namespace rap\rpc\service;
 
 
-class RpcException extends  \RuntimeException {
+class RpcServiceException extends \RuntimeException {
 
 }

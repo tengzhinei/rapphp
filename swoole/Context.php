@@ -10,7 +10,12 @@
 namespace rap\swoole;
 
 
+use rap\cache\CacheInterface;
+use rap\db\Connection;
+use rap\swoole\pool\Pool;
+
 class Context {
+
 
     /**
      * 获取当前id
@@ -33,7 +38,9 @@ class Context {
     }
 
     public static function get($name) {
-        return CoContext::getContext()->get($name);
+        $context = CoContext::getContext();
+
+        return $context->get($name);
     }
 
     public static function remove($name) {
@@ -43,5 +50,53 @@ class Context {
     public static function release() {
         CoContext::getContext()->release();
     }
+
+
+    /**
+     * 切换数据库连接
+     *
+     * @param      $connection_name
+     * @param null $db
+     */
+    public static function useConnection($connection_name, $db = null) {
+        CoContext::getContext()->set(CoContext::CONNECTION_NAME, $connection_name);
+        if ($db) {
+            CoContext::getContext()->set(CoContext::CONNECTION_DB, $db);
+        }
+    }
+
+    /**
+     * 切换数据库的 scheme
+     *
+     * @param $db
+     */
+    public static function useConnectionDb($db) {
+        CoContext::getContext()->set(CoContext::CONNECTION_DB, $db);
+    }
+
+    /**
+     * 切换 redis 连接
+     *
+     * @param      $redis_name
+     * @param null $select
+     */
+    public static function userRedis($redis_name, $select = null) {
+        CoContext::getContext()->set(CoContext::REDIS_NAME, $redis_name);
+        if ($select) {
+            CoContext::getContext()->set(CoContext::REDIS_SELECT, $select);
+        }
+    }
+
+    /**
+     * 切换 redis 的 select
+     *
+     * @param $select
+     */
+    public static function useRedisSelect($select) {
+        if ($select) {
+            CoContext::getContext()->set(CoContext::REDIS_SELECT, $select);
+        }
+    }
+
 
 }

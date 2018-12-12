@@ -2,15 +2,10 @@
 namespace rap\swoole\web;
 
 
-use app\service\CloudService;
 use rap\aop\Event;
-use rap\cache\CacheInterface;
 use rap\config\Config;
 use rap\console\Command;
-use rap\db\Connection;
 use rap\ioc\Ioc;
-use rap\rpc\RpcClient;
-use rap\swoole\pool\ResourcePool;
 use rap\swoole\task\TaskConfig;
 use rap\web\Application;
 use rap\swoole\CoContext;
@@ -43,8 +38,7 @@ class SwooleHttpServer extends Command {
                     'worker_num' => $this->config[ 'worker_num' ],
                     'task_worker_num' => $this->config[ 'task_worker_num' ],
                     'task_max_request' => $this->config[ 'task_max_request' ],
-                    'open_http2_protocol'=>true
-        ]);
+                    'open_http2_protocol' => true]);
         $http->on('workerstart', [$this, 'onWorkStart']);
         $http->on('workerstop', [$this, 'onWorkerStop']);
         $http->on('start', [$this, 'onStart']);
@@ -60,24 +54,22 @@ class SwooleHttpServer extends Command {
 
     }
 
-    public function onStart($serv) {
+    public function onStart($server) {
         $application = Ioc::get(Application::class);
-        $application->server = $serv;
+        $application->server = $server;
         Event::trigger('onServerStart', '');
     }
 
-    public function onWorkStart($serv, $id) {
+    public function onWorkStart($server, $id) {
         $application = Ioc::get(Application::class);
-        $application->server = $serv;
+        $application->server = $server;
         $application->task_id = $id;
-        ResourcePool::instance()->preparePool(Connection::class);
-        ResourcePool::instance()->preparePool(CacheInterface::class);
         Event::trigger('onServerWorkStart', '');
     }
 
-    public function onWorkerStop($serv, $id) {
+    public function onWorkerStop($server, $id) {
         $application = Ioc::get(Application::class);
-        $application->server = $serv;
+        $application->server = $server;
         $application->task_id = $id;
         Event::trigger('onServerWorkerStop', '');
     }

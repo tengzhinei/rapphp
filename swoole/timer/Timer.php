@@ -8,7 +8,7 @@
 namespace rap\swoole\timer;
 
 use rap\config\Config;
-use rap\util\Http;
+use rap\util\http\Http;
 use rap\web\Request;
 
 /**
@@ -38,8 +38,7 @@ class Timer {
                  'params' => $params,
                  'time' => $time];
 
-        $body =  Http::put($server_url . '/timer/add', ['timer_secret'=>$secret], $data);
-        $result = json_decode($body, true);
+        $result = Http::put($server_url . '/timer/add', ['timer_secret' => $secret], $data)->json();
         if ($result[ 'success' ]) {
             return $result[ 'task_id' ];
         }
@@ -50,18 +49,16 @@ class Timer {
         $queue = Config::getFileConfig()[ 'timer' ];
         $server_url = $queue[ 'server' ];
         $secret = $queue[ 'secret' ];
-        $data = ['task_id' => $task_id
-                 ];
-        $body = Http::put($server_url . '/timer/cancel', ['timer_secret' => $secret], $data);
-        $result = json_decode($body, true);
+        $data = ['task_id' => $task_id];
+        $result = Http::put($server_url . '/timer/cancel', ['timer_secret' => $secret], $data)->json();
         return $result[ 'success' ];
     }
 
 
-    public static function checkSign(Request $request){
-        $secret=$request->header('timer_secret');
+    public static function checkSign(Request $request) {
+        $secret = $request->header('timer_secret');
         $queue = Config::getFileConfig()[ 'timer' ];
-        if($secret != $queue[ 'secret' ]){
+        if ($secret != $queue[ 'secret' ]) {
             exception("签名错误,你没有权限调用");
         }
     }

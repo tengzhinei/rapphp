@@ -17,21 +17,21 @@ class FileUtil {
     /**
      * 删除文件或文件夹
      *
-     * @param $dir
+     * @param $dirOrFile
      *
      * @return bool
      */
-    static function delete($dir) {
-        if (is_file($dir)) {
-            @unlink($dir);
+    static function delete($dirOrFile) {
+        if (is_file($dirOrFile)) {
+            @unlink($dirOrFile);
             return true;
         }
-        if (!$handle = @opendir($dir)) {
+        if (!$handle = @opendir($dirOrFile)) {
             return false;
         }
         while (false !== ($file = readdir($handle))) {
             if ($file !== "." && $file !== "..") {       //排除当前目录与父级目录
-                $file = $dir . '/' . $file;
+                $file = $dirOrFile . '/' . $file;
                 if (is_dir($file)) {
                     self::delete($file);
                 } else {
@@ -40,7 +40,7 @@ class FileUtil {
             }
 
         }
-        @rmdir($dir);
+        @rmdir($dirOrFile);
         return true;
     }
 
@@ -194,11 +194,7 @@ class FileUtil {
      * @param int    $flags
      */
     static function writeFile( $filename,  $fileContent,  $flags){
-        if(IS_SWOOLE&&\Co::getuid()){
-            \Co::writeFile($filename,$fileContent,$flags);
-        }else{
-            file_put_contents($filename,$fileContent,$flags);
-        }
+        file_put_contents($filename,$fileContent,$flags);
     }
 
 

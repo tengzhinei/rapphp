@@ -42,10 +42,13 @@ class RpcWave {
         $method = $point->getMethod();//对应的反射方法
         /* @var $obj RpcSTATUS */
         $obj = $point->getObj();//对应包装对象
+        /* @var $client RpcClient */
+        $client = $this->rpc->getRpcClient($point->getOriginalClass());
+        $fuseConfig = $client->fuseConfig();
         //熔断器开启
         if ($obj->FUSE_STATUS == RpcWave::FUSE_STATUS_OPEN) {
             //熔断30s
-            if (time() - $obj->FUSE_OPEN_TIME < 30) {
+            if (time() - $obj->FUSE_OPEN_TIME < $fuseConfig['fuse_time']) {
                 //使用服务降级
                 return null;
             }
@@ -56,8 +59,6 @@ class RpcWave {
             $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
             try {
                 $args = $point->getArgs();
-                /* @var $client RpcClient */
-                $client = $this->rpc->getRpcClient($point->getOriginalClass());
                 $value = $client->query($point->getOriginalClass(), $method->getName(), $args);
                 Pool::release($client);
                 $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_CLOSE;
@@ -72,8 +73,6 @@ class RpcWave {
         } else {
             try {
                 $args = $point->getArgs();
-                /* @var $client RpcClient */
-                $client = $this->rpc->getRpcClient($point->getOriginalClass());
                 $value = $client->query($point->getOriginalClass(), $method->getName(), $args);
                 Pool::release($client);
                 if ($obj->FUSE_FAIL_COUNT) {
@@ -86,7 +85,7 @@ class RpcWave {
             } catch (RpcClientException $exception) {
                 $obj->FUSE_FAIL_COUNT++;
                 //失败一定次数开启熔断
-                if ($obj->FUSE_FAIL_COUNT > 20) {
+                if ($obj->FUSE_FAIL_COUNT > $fuseConfig['fuse_fail_count']) {
                     $obj->FUSE_OPEN_TIME = time();
                     $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
                 }

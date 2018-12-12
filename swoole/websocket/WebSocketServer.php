@@ -32,6 +32,7 @@ class WebSocketServer extends Command {
                        'secret' => 'Nz4bYrr2paoE6YaH',
                        'worker_num' => 1,
                        'task_worker_num' => 0,
+                       'coroutine'=>true,
                        'max_request' => 0,
                        'task_max_request' => 0,];
     /**
@@ -66,7 +67,10 @@ class WebSocketServer extends Command {
         $this->server->on('task', [$this, 'onTask']);
         $this->server->on('finish', [$this, 'onFinish']);
         $this->writeln("websocket服务启动成功");
-        Runtime::enableCoroutine();
+        if ($this->config[ 'coroutine' ]) {
+            //mysql redis 协程化
+            Runtime::enableCoroutine();
+        }
         $this->server->start();
     }
 

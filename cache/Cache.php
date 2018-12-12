@@ -169,7 +169,7 @@ class Cache {
     public static function redis() {
         $redisCache = self::getCache();
         if ($redisCache instanceof RedisCache) {
-            $redisCache->ping();
+            $redisCache->open();
             return $redisCache->redis;
         }
         return null;

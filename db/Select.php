@@ -300,7 +300,7 @@ class Select extends Where {
      *
      * @return $this
      */
-    public function setSubRecord($field, $pre, $class, $all_do = null) {
+    public function setSubRecord($field, $pre, $class,\Closure $all_do = null) {
         $this->subRecord[ $pre ] = ['class' => $class,
                                     'field' => $field,
                                     'all_do' => $all_do];

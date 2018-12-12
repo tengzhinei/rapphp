@@ -25,5 +25,6 @@ interface RpcClient extends PoolAble {
      */
     public function query($interface, $method, $data);
 
+    public function fuseConfig();
 
 }

@@ -137,6 +137,63 @@ Task::deliver(MyTaskService::class,'task',['key'=>100,'name'=>'test']);
 Timer::after('/test/a',['a'=>'1'],10,['tent-header'=>'test']);
   ~~~
   
+  
+###数据库连接池
+ ~~~
+
+    ,"db"=>[
+        'type'=>'mysql',
+        'dsn'=>"mysql:dbname=doc;host=db;charset=utf8",
+        'username'=>"root",
+        'password'=>"root",
+        'pool'=>['min'=>1,
+                 'max'=>10,
+                 'check'=>30,
+                 'idle'=>30
+        ],
+    ],
+ ~~~
+###Redis 连接池
+ ~~~
+   'cache'=>[
+          'type'=>'redis',
+          'host'       => 'redis',
+          'port'       => 6379,
+          'password'   => '',
+          'select'     => 1,
+          'timeout'    => 0,
+          'expire'     => -1,
+          'persistent' => false,
+          'pool'=>['min'=>1,
+                   'max'=>10,
+                   'check'=>30,
+                   'idle'=>30
+          ],
+      ]
+ ~~~
+###Rpc 远程调用
+
+ ~~~
+  'rpc_service'=>[
+        'token'=>'123',
+    ],
+    'rpc'=>[
+       'cloud'=>['register'=>\app\rpc\RPcTestRegister::class,
+                 'host' => 'lingxianghui.magshop.sapp.magcloud.net',
+                 'port'=>80,
+                 'token' => '123',
+                 'timeout'=>5,
+                 'fuse_time'=>30,//熔断器熔断后多久进入半开状态
+                 'fuse_fail_count'=>20,//连续失败多少次开启熔断
+                 'pool'=>['min'=>1,
+                          'max'=>10,
+                          'check'=>30,
+                          'idle'=>30
+                 ],
+       ]
+    ]
+  ~~~
+ 
 ### 安利
 * * * * *
 SWOOLE https://swoole.com/

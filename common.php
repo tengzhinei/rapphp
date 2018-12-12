@@ -93,23 +93,7 @@ function getMillisecond() {
     return (float)sprintf('%.0f', (floatval($t1) + floatval($t2)) * 1000);
 }
 
-/**
- * 获取request
- * 只能在主进程使用,不可以在异步或Task中使用
- * @return \rap\web\Request
- */
-function request() {
-    return \rap\swoole\CoContext::getContext()->getRequest();
-}
 
-/**
- * 获取response
- * 只能在主进程使用,不可以在异步或Task中使用
- * @return \rap\web\Response
- */
-function response() {
-    return \rap\swoole\CoContext::getContext()->getResponse();
-}
 
 /**
  * 检查参数
@@ -184,5 +168,23 @@ function timer_tick($time, Closure $closure) {
         });
     }
     return $id;
+}
+
+/**
+ * 获取request
+ * 只能在主进程使用,不可以在异步或Task中使用
+ * @return \rap\web\Request
+ */
+function request() {
+    return \rap\swoole\CoContext::getContext()->getRequest();
+}
+
+/**
+ * 获取response
+ * 只能在主进程使用,不可以在异步或Task中使用
+ * @return \rap\web\Response
+ */
+function response() {
+    return \rap\swoole\CoContext::getContext()->getResponse();
 }
 

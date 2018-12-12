@@ -25,6 +25,8 @@ class RpcHttp2Client implements RpcClient {
                        'token' => '',
                        'serialize' => 'serialize',
                        'timeout' => 0.05,
+                       'fuse_time'=>30,//熔断器熔断后多久进入半开状态
+                       'fuse_fail_count'=>20,//连续失败多少次开启熔断
                        'pool' => ['min' => 1, 'max' => 10]];
 
 
@@ -40,6 +42,8 @@ class RpcHttp2Client implements RpcClient {
             $this->config[ 'name' ] = 'rap_rpc_client';
         }
     }
+
+
 
     public function poolConfig() {
         return $this->config[ 'pool' ];
@@ -105,6 +109,13 @@ class RpcHttp2Client implements RpcClient {
         } else {
             throw new RpcClientException('服务异常', 100);
         }
+    }
+
+    public function fuseConfig() {
+       return [
+           'fuse_time'=> $this->config[ 'fuse_time' ],//熔断器熔断后多久进入半开状态
+           'fuse_fail_count'=>$this->config[ 'fuse_fail_count' ],//连续失败多少次开启熔断
+       ];
     }
 
 

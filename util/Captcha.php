@@ -18,7 +18,7 @@ class Captcha {
     //过期时间
     public $expire = 1800;
     //使用中文
-    public $useZh = true;
+    public $useZh = false;
     //使用图片背景
     public $useImgBg = false;
     //字体大小

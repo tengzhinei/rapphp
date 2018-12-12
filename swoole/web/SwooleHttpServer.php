@@ -23,10 +23,11 @@ class SwooleHttpServer extends Command {
     private $config = ['ip' => '0.0.0.0',
                        'port' => 9501,
                        'document_root' => "",
-                       'enable_static_handler' => true,
+                       'enable_static_handler' => false,
                        'task_worker_num' => 3,
                        'worker_num' => 1,
-                       'task_max_request' => 1000];
+                       'task_max_request' => 1000,
+                       'coroutine'=>true];
 
 
     public function run() {

@@ -32,6 +32,8 @@ class RpcHttpClient implements RpcClient {
                        'token' => '',
                        'serialize' => 'serialize',
                        'timeout' => 0.05,
+                       'fuse_time'=>30,//熔断器熔断后多久进入半开状态
+                       'fuse_fail_count'=>20,//连续失败多少次开启熔断
                        'pool' => ['min' => 1, 'max' => 10]];
 
 
@@ -150,4 +152,12 @@ class RpcHttpClient implements RpcClient {
     public function connect() {
 
     }
+
+    public function fuseConfig() {
+        return [
+            'fuse_time'=> $this->config[ 'fuse_time' ],//熔断器熔断后多久进入半开状态
+            'fuse_fail_count'=>$this->config[ 'fuse_fail_count' ],//连续失败多少次开启熔断
+        ];
+    }
+
 }

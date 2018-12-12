@@ -42,7 +42,7 @@ class Pool {
             }
             /* @var $bean Connection */
             $bean = ResourcePool::instance()->get($name);
-            $db = $context->get(CoContext::CONNECTION_DB);
+            $db = $context->get(CoContext::CONNECTION_scheme);
             $bean->userDb($db);
         }
         if ($name == CacheInterface::class) {

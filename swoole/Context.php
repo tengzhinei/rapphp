@@ -58,20 +58,24 @@ class Context {
      * @param      $connection_name
      * @param null $db
      */
-    public static function useConnection($connection_name, $db = null) {
+    public static function useConnection($connection_name='', $db = null) {
+        if(!$connection_name){
+            $connection_name=Connection::class;
+        }
         CoContext::getContext()->set(CoContext::CONNECTION_NAME, $connection_name);
         if ($db) {
-            CoContext::getContext()->set(CoContext::CONNECTION_DB, $db);
+            CoContext::getContext()->set(CoContext::CONNECTION_scheme, $db);
         }
     }
 
     /**
      * 切换数据库的 scheme
+
      *
-     * @param $db
+*@param $scheme
      */
-    public static function useConnectionDb($db) {
-        CoContext::getContext()->set(CoContext::CONNECTION_DB, $db);
+    public static function useConnectionScheme($scheme) {
+        CoContext::getContext()->set(CoContext::CONNECTION_scheme, $scheme);
     }
 
     /**
@@ -80,7 +84,10 @@ class Context {
      * @param      $redis_name
      * @param null $select
      */
-    public static function userRedis($redis_name, $select = null) {
+    public static function userRedis($redis_name='', $select = null) {
+        if(!$redis_name){
+            $redis_name=CacheInterface::class;
+        }
         CoContext::getContext()->set(CoContext::REDIS_NAME, $redis_name);
         if ($select) {
             CoContext::getContext()->set(CoContext::REDIS_SELECT, $select);

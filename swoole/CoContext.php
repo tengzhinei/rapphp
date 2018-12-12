@@ -16,10 +16,10 @@ use rap\web\Request;
 
 class CoContext {
 
-    const CONNECTION_NAME = '___CONNECTION_NAME__';
-    const CONNECTION_DB   = '___CONNECTION_DB__';
-    const REDIS_NAME      = '___REDIS_NAME__';
-    const REDIS_SELECT    = '___REDIS_SELECT__';
+    const CONNECTION_NAME   = '___CONNECTION_NAME__';
+    const CONNECTION_scheme = '___CONNECTION_DB__';
+    const REDIS_NAME        = '___REDIS_NAME__';
+    const REDIS_SELECT      = '___REDIS_SELECT__';
 
     public $instances = [];
 

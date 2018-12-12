@@ -137,8 +137,8 @@ Task::deliver(MyTaskService::class,'task',['key'=>100,'name'=>'test']);
 Timer::after('/test/a',['a'=>'1'],10,['tent-header'=>'test']);
   ~~~
   
-  
-###数据库连接池
+   
+### 数据库连接池
  ~~~
 
     ,"db"=>[
@@ -153,7 +153,7 @@ Timer::after('/test/a',['a'=>'1'],10,['tent-header'=>'test']);
         ],
     ],
  ~~~
-###Redis 连接池
+### Redis 连接池
  ~~~
    'cache'=>[
           'type'=>'redis',
@@ -171,9 +171,9 @@ Timer::after('/test/a',['a'=>'1'],10,['tent-header'=>'test']);
           ],
       ]
  ~~~
-###Rpc 远程调用
+### Rpc 远程调用
 
- ~~~
+ ~~~ 
   'rpc_service'=>[
         'token'=>'123',
     ],

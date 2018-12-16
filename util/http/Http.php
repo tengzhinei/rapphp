@@ -29,7 +29,7 @@ class Http {
             $host = $url;
             $path = '/';
         }
-        if (strpos($host, ':') == 0) {
+        if (strpos($host, ':') > 0) {
             $hp = explode(':', $host);
             $host = $hp[ 0 ];
             $port = $hp[ 1 ];

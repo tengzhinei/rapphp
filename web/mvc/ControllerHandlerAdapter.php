@@ -50,7 +50,8 @@ class ControllerHandlerAdapter extends HandlerAdapter{
     public function viewBase(){
         if(!$this->viewBase){
             $func = new \ReflectionClass($this->controllerClass);
-            $this->viewBase=substr(substr($func->getFileName(),0,stripos( $func->getFileName(),DIRECTORY_SEPARATOR."controller".DIRECTORY_SEPARATOR)).DIRECTORY_SEPARATOR.'view'.DIRECTORY_SEPARATOR,strlen($_SERVER['DOCUMENT_ROOT'])+1);
+            $this->viewBase=substr(substr($func->getFileName(),0,stripos( $func->getFileName(),DIRECTORY_SEPARATOR
+                    ."controller".DIRECTORY_SEPARATOR)).DIRECTORY_SEPARATOR.'view'.DIRECTORY_SEPARATOR,strlen(ROOT_PATH));
         }
         return $this->viewBase;
     }

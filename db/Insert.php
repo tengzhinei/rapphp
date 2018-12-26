@@ -23,11 +23,10 @@ class Insert {
     protected $insertSql = '%COMMENT% %INSERT% INTO %TABLE% (%FIELD%) VALUES (%DATA%) ';
 
 
-
     /**
      * 设置表
      *
-     * @param string          $table 表名
+     * @param string $table 表名
      *
      * @return Insert
      */
@@ -57,6 +56,7 @@ class Insert {
     /**
      * 执行,返回自增id
      * @return string|int
+     * @throws \Error
      */
     public function excuse() {
         $fields = [];
@@ -79,17 +79,26 @@ class Insert {
                                            $valuePlace,
                                            $this->comment], $this->insertSql);
         $connection = Pool::get(Connection::class);
-        $connection->execute($sql, $values);
-        $id = $connection->getLastInsID();
-        Pool::release($connection);
-        return $id;
+        try {
+            $connection->execute($sql, $values);
+            $id = $connection->getLastInsID();
+            Pool::release($connection);
+            return $id;
+        } catch (\RuntimeException $e) {
+            Pool::release($connection);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($connection);
+            throw $e;
+        }
+
     }
 
     /**
      * 静态插入
      *
-     * @param string          $table
-     * @param array           $data
+     * @param string $table
+     * @param array  $data
      *
      * @return int|string
      */

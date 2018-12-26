@@ -48,7 +48,7 @@ class RpcWave {
         //熔断器开启
         if ($obj->FUSE_STATUS == RpcWave::FUSE_STATUS_OPEN) {
             //熔断30s
-            if (time() - $obj->FUSE_OPEN_TIME < $fuseConfig['fuse_time']) {
+            if (time() - $obj->FUSE_OPEN_TIME < $fuseConfig[ 'fuse_time' ]) {
                 //使用服务降级
                 return null;
             }
@@ -67,8 +67,15 @@ class RpcWave {
                 }
                 return $value;
             } catch (RpcClientException $exception) {
+                Pool::release($client);
                 $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
                 return null;
+            } catch (\RuntimeException $e) {
+                Pool::release($client);
+                throw $e;
+            } catch (\Error $e) {
+                Pool::release($client);
+                throw $e;
             }
         } else {
             try {
@@ -83,15 +90,22 @@ class RpcWave {
                 }
                 return $value;
             } catch (RpcClientException $exception) {
+                Pool::release($client);
                 $obj->FUSE_FAIL_COUNT++;
                 //失败一定次数开启熔断
-                if ($obj->FUSE_FAIL_COUNT > $fuseConfig['fuse_fail_count']) {
+                if ($obj->FUSE_FAIL_COUNT > $fuseConfig[ 'fuse_fail_count' ]) {
                     $obj->FUSE_OPEN_TIME = time();
                     $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
                 }
                 //TODO 日志记录
                 //失败就服务降级
                 return null;
+            } catch (\RuntimeException $e) {
+                Pool::release($client);
+                throw $e;
+            } catch (\Error $e) {
+                Pool::release($client);
+                throw $e;
             }
         }
     }

@@ -9,9 +9,7 @@
 namespace rap\db;
 
 
-use rap\ioc\Ioc;
 use rap\swoole\pool\Pool;
-use rap\swoole\pool\ResourcePool;
 
 class Delete extends Where {
     use Comment;
@@ -40,6 +38,7 @@ class Delete extends Where {
     /**
      * 执行,返回执行的条数
      * @return int
+     * @throws \Error
      */
     public function excuse() {
         $search = ['%TABLE%', '%WHERE%', '%ORDER%', '%LIMIT%', '%LOCK%', '%COMMENT%'];
@@ -50,12 +49,19 @@ class Delete extends Where {
                                      $this->lock,
                                      $this->comment,], $this->deleteSql);
         $connection = Pool::get(Connection::class);
-        $connection->execute($sql, $this->whereParams());
-        $count= $connection->rowCount();
-        Pool::release($connection);
-        return $count;
+        try {
+            $connection->execute($sql, $this->whereParams());
+            $count = $connection->rowCount();
+            Pool::release($connection);
+            return $count;
+        } catch (\RuntimeException $e) {
+            Pool::release($connection);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($connection);
+            throw $e;
+        }
     }
-
 
     /**
      * 静态删除方法

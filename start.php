@@ -27,6 +27,8 @@ if(IS_CLI){
     \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);
     $response=new \rap\web\Response();
     $request=new \rap\web\Request($response);
+    $session_id = $request->session()->sessionId();
+    \rap\swoole\CoContext::setId(md5($session_id.uniqid(mt_rand(), true)));
     \rap\swoole\CoContext::getContext()->setRequest($request);
     \rap\ioc\Ioc::get(\rap\web\Application::class)->start($request,$response);
 }

@@ -51,10 +51,20 @@ class Cache {
      * @param string $key
      * @param mixed  $value
      * @param int    $expire -1 永不过期 0默认配置
+     *
+     * @throws \Error
      */
     public static function set($key, $value, $expire = 0) {
-        self::getCache()->set($key, $value, $expire);
-        self::release();
+        try {
+            self::getCache()->set($key, $value, $expire);
+            self::release();
+        } catch (\RuntimeException $e) {
+            self::release();
+            throw $e;
+        } catch (\Error $e) {
+            self::release();
+            throw $e;
+        }
     }
 
 
@@ -65,11 +75,20 @@ class Cache {
      * @param mixed  $default
      *
      * @return mixed
+     * @throws \Error
      */
     public static function get($key, $default = "") {
-        $val = self::getCache()->get($key, $default);
-        self::release();
-        return $val;
+        try {
+            $val = self::getCache()->get($key, $default);
+            self::release();
+            return $val;
+        } catch (\RuntimeException $e) {
+            self::release();
+            throw $e;
+        } catch (\Error $e) {
+            self::release();
+            throw $e;
+        }
     }
 
     /**
@@ -78,11 +97,20 @@ class Cache {
      * @param string $key
      *
      * @return bool
+     * @throws \Error
      */
     public static function has($key) {
-        $b = self::getCache()->has($key);
-        self::release();
-        return $b;
+        try {
+            $b = self::getCache()->has($key);
+            self::release();
+            return $b;
+        } catch (\RuntimeException $e) {
+            self::release();
+            throw $e;
+        } catch (\Error $e) {
+            self::release();
+            throw $e;
+        }
     }
 
 
@@ -91,10 +119,19 @@ class Cache {
      *
      * @param string $key
      * @param int    $step
+     * @throws \Error
      */
     public static function inc($key, $step = 1) {
-        self::getCache()->inc($key, $step);
-        self::release();
+        try {
+            self::getCache()->inc($key, $step);
+            self::release();
+        } catch (\RuntimeException $e) {
+            self::release();
+            throw $e;
+        } catch (\Error $e) {
+            self::release();
+            throw $e;
+        }
     }
 
     /**
@@ -102,28 +139,56 @@ class Cache {
      *
      * @param string $key
      * @param int    $step
+     * @throws \Error
      */
     public static function dec($key, $step = 1) {
-        self::getCache()->dec($key, $step);
-        self::release();
+        try {
+            self::getCache()->dec($key, $step);
+            self::release();
+        } catch (\RuntimeException $e) {
+            self::release();
+            throw $e;
+        } catch (\Error $e) {
+            self::release();
+            throw $e;
+        }
     }
 
     /**
      * 删除对应的key的缓存
      *
      * @param string $key
+     *
+     * @throws \Error
      */
     public static function remove($key) {
-        self::getCache()->remove($key);
-        self::release();
+        try {
+            self::getCache()->remove($key);
+            self::release();
+        } catch (\RuntimeException $e) {
+            self::release();
+            throw $e;
+        } catch (\Error $e) {
+            self::release();
+            throw $e;
+        }
     }
 
     /**
      * 清空
+     * @throws \Error
      */
     public static function clear() {
-        self::getCache()->clear();
-        self::release();
+        try {
+            self::getCache()->clear();
+            self::release();
+        } catch (\RuntimeException $e) {
+            self::release();
+            throw $e;
+        } catch (\Error $e) {
+            self::release();
+            throw $e;
+        }
     }
 
     /**
@@ -132,10 +197,19 @@ class Cache {
      * @param string $name
      * @param string $key
      * @param mixed  $value
+     * @throws \Error
      */
     public static function hashSet($name, $key, $value) {
-        self::getCache()->hashSet($name, $key, $value);
-        self::release();
+        try {
+            self::getCache()->hashSet($name, $key, $value);
+            self::release();
+        } catch (\RuntimeException $e) {
+            self::release();
+            throw $e;
+        } catch (\Error $e) {
+            self::release();
+            throw $e;
+        }
     }
 
     /**
@@ -144,11 +218,20 @@ class Cache {
      * @param  string $name
      * @param  string $key
      * @param  mixed  $default
+     * @throws \Error
      */
     public static function hashGet($name, $key, $default = "") {
-        $val = self::getCache()->hashGet($name, $key, $default);
-        self::release();
-        return $val;
+        try {
+            $val = self::getCache()->hashGet($name, $key, $default);
+            self::release();
+            return $val;
+        } catch (\RuntimeException $e) {
+            self::release();
+            throw $e;
+        } catch (\Error $e) {
+            self::release();
+            throw $e;
+        }
     }
 
     /**
@@ -156,10 +239,19 @@ class Cache {
      *
      * @param string $name
      * @param string $key
+     * @throws \Error
      */
     public static function hashRemove($name, $key) {
-        self::getCache()->hashRemove($name, $key);
-        self::release();
+        try {
+            self::getCache()->hashRemove($name, $key);
+            self::release();
+        } catch (\RuntimeException $e) {
+            self::release();
+            throw $e;
+        } catch (\Error $e) {
+            self::release();
+            throw $e;
+        }
     }
 
     /**
@@ -183,7 +275,7 @@ class Cache {
         $cache = $context->get(CacheInterface::class);
         if ($cache) {
             Pool::release($cache);
-            $context->set(CacheInterface::class,null);
+            $context->set(CacheInterface::class, null);
         }
     }
 }

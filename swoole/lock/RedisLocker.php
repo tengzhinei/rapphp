@@ -12,7 +12,6 @@ use rap\cache\CacheInterface;
 use rap\cache\RedisCache;
 use rap\swoole\Context;
 use rap\swoole\pool\Pool;
-use rap\swoole\CoContext;
 
 /**
  * redis locker redis分布式锁
@@ -28,30 +27,39 @@ class RedisLocker {
      * @param int $timeout 单位毫秒
      *
      * @return bool
+     * @throws \Error
      */
     public static function lock($key, $timeout = 500) {
         /* @var $cache RedisCache */
         $cache = Pool::get(CacheInterface::class);
-        if ($cache instanceof RedisCache) {
-            $cache->open();
-            $redis = $cache->redis;
-            $script = "if(redis.call('setnx',  KEYS[1],ARGV[1])==1)then return redis.call('expire',KEYS[1],10) else 
+        try {
+            if ($cache instanceof RedisCache) {
+                $cache->open();
+                $redis = $cache->redis;
+                $script = "if(redis.call('setnx',  KEYS[1],ARGV[1])==1)then return redis.call('expire',KEYS[1],10) else 
             return 0 end";
-            for ($i = 0; $i < $timeout / 5; $i++) {
-                $ok = $redis->eval($script, ["_RedisLocker_$key", 'lock_' . Context::id()], 1);
-                if ($ok) {
-                    Pool::release($cache);
-                    return true;
-                }
-                if (IS_SWOOLE) {
-                    \Co::sleep(0.005);
-                } else {
-                    sleep(0.005);
-                }
+                for ($i = 0; $i < $timeout / 5; $i++) {
+                    $ok = $redis->eval($script, ["_RedisLocker_$key", 'lock_' . Context::id()], 1);
+                    if ($ok) {
+                        Pool::release($cache);
+                        return true;
+                    }
+                    if (IS_SWOOLE) {
+                        \Co::sleep(0.005);
+                    } else {
+                        sleep(0.005);
+                    }
 
+                }
             }
+            Pool::release($cache);
+        } catch (\RuntimeException $e) {
+            Pool::release($cache);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($cache);
+            throw $e;
         }
-        Pool::release($cache);
         return false;
     }
 
@@ -61,22 +69,31 @@ class RedisLocker {
      * @param $key
      *
      * @return bool
+     * @throws \Error
      */
     public static function unlock($key) {
         /* @var $cache RedisCache */
         $cache = Pool::get(CacheInterface::class);
-        $ok = false;
-        if ($cache instanceof RedisCache) {
-            $cache->open();
-            $redis = $cache->redis;
-            $script = "local v = redis.call('get', KEYS[1]) if(v==false) then return 1 end if ( v== 
+        try {
+            $ok = false;
+            if ($cache instanceof RedisCache) {
+                $cache->open();
+                $redis = $cache->redis;
+                $script = "local v = redis.call('get', KEYS[1]) if(v==false) then return 1 end if ( v== 
             ARGV[1]) then 
             return redis.call('del', KEYS[1]) end if(string.find (v, 'lock_')==1) then return 0 end   
             v=tonumber(v)  v=v-1 if(v==0) then return redis.call('del', KEYS[1]) else return redis.call('set',KEYS[1],v) end";
-            $ok = $redis->eval($script, ["_RedisLocker_$key", 'lock_' . Context::id()], 1);
-            $ok = $ok ? true : false;
+                $ok = $redis->eval($script, ["_RedisLocker_$key", 'lock_' . Context::id()], 1);
+                $ok = $ok ? true : false;
+            }
+            Pool::release($cache);
+        } catch (\RuntimeException $e) {
+            Pool::release($cache);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($cache);
+            throw $e;
         }
-        Pool::release($cache);
         return $ok;
     }
 
@@ -86,64 +103,108 @@ class RedisLocker {
      * @param $key
      *
      * @return bool
+     * @throws \Error
      */
     public static function tryLock($key) {
         /* @var $cache RedisCache */
         $cache = Pool::get(CacheInterface::class);
-        if ($cache instanceof RedisCache) {
-            $cache->open();
-            $redis = $cache->redis;
-            $script = "if(redis.call('setnx',  KEYS[1],ARGV[1])==1)then return redis.call('expire',KEYS[1],10) else return 0 end";
-            $ok = $redis->eval($script, ["_RedisLocker_$key", 'lock_' . Context::id()], 1);
-            if ($ok) {
-                Pool::release($cache);
-                return true;
+        try {
+            if ($cache instanceof RedisCache) {
+                $cache->open();
+                $redis = $cache->redis;
+                $script = "if(redis.call('setnx',  KEYS[1],ARGV[1])==1)then return redis.call('expire',KEYS[1],10) else return 0 end";
+                $ok = $redis->eval($script, ["_RedisLocker_$key", 'lock_' . Context::id()], 1);
+                if ($ok) {
+                    Pool::release($cache);
+                    return true;
+                }
             }
+            Pool::release($cache);
+
+        } catch (\RuntimeException $e) {
+            Pool::release($cache);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($cache);
+            throw $e;
         }
-        Pool::release($cache);
+
         return false;
     }
 
+    /**
+     * 加只读锁
+     *
+     * @param     $key
+     * @param int $timeout
+     *
+     * @return bool
+     * @throws \Error
+     */
     public static function lockRead($key, $timeout = 500) {
         $cache = Pool::get(CacheInterface::class);
-        if ($cache instanceof RedisCache) {
-            $cache->open();
-            $redis = $cache->redis;
-            //如果已上独占锁 返回 false 如果没有锁 只读锁+1 并设置过期时间
-            $script = "local v = redis.call('get', KEYS[1]) if(v==false) then v=0 end if(string.find (v, 'lock_')==0) then
+        try {
+            if ($cache instanceof RedisCache) {
+                $cache->open();
+                $redis = $cache->redis;
+                //如果已上独占锁 返回 false 如果没有锁 只读锁+1 并设置过期时间
+                $script = "local v = redis.call('get', KEYS[1]) if(v==false) then v=0 end if(string.find (v, 'lock_')==0) then
              return 0 end redis.call('set',KEYS[1],v+1) return return redis.call('expire',KEYS[1],10)";
-            for ($i = 0; $i < $timeout / 5; $i++) {
+                for ($i = 0; $i < $timeout / 5; $i++) {
+                    $ok = $redis->eval($script, ["_RedisLocker_$key"], 1);
+                    if ($ok) {
+                        Pool::release($cache);
+                        return true;
+                    }
+                    if (IS_SWOOLE) {
+                        \Co::sleep(0.005);
+                    } else {
+                        sleep(0.005);
+                    }
+                }
+            }
+            Pool::release($cache);
+        } catch (\RuntimeException $e) {
+            Pool::release($cache);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($cache);
+            throw $e;
+        }
+        return false;
+    }
+
+    /**
+     * 尝试只读锁
+     *
+     * @param $key
+     *
+     * @return bool
+     * @throws \Error
+     */
+    public static function tryLockRead($key) {
+        $cache = Pool::get(CacheInterface::class);
+        try {
+            if ($cache instanceof RedisCache) {
+                $cache->open();
+                $redis = $cache->redis;
+                //如果已上独占锁 返回 false 如果没有锁 只读锁+1 并设置过期时间
+                $script = "local v = redis.call('get', KEYS[1]) if(v==false) then v=0 end if(string.find (v, 'lock_')==0) then
+             return 0 end redis.call('set',KEYS[1],v+1) return return redis.call('expire',KEYS[1],10)";
                 $ok = $redis->eval($script, ["_RedisLocker_$key"], 1);
                 if ($ok) {
                     Pool::release($cache);
                     return true;
                 }
-                if (IS_SWOOLE) {
-                    \Co::sleep(0.005);
-                } else {
-                    sleep(0.005);
-                }
             }
+            Pool::release($cache);
+        } catch (\RuntimeException $e) {
+            Pool::release($cache);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($cache);
+            throw $e;
         }
-        Pool::release($cache);
-        return false;
-    }
-
-    public static function tryLockRead($key) {
-        $cache = Pool::get(CacheInterface::class);
-        if ($cache instanceof RedisCache) {
-            $cache->open();
-            $redis = $cache->redis;
-            //如果已上独占锁 返回 false 如果没有锁 只读锁+1 并设置过期时间
-            $script = "local v = redis.call('get', KEYS[1]) if(v==false) then v=0 end if(string.find (v, 'lock_')==0) then
-             return 0 end redis.call('set',KEYS[1],v+1) return return redis.call('expire',KEYS[1],10)";
-            $ok = $redis->eval($script, ["_RedisLocker_$key"], 1);
-            if ($ok) {
-                Pool::release($cache);
-                return true;
-            }
-        }
-        Pool::release($cache);
         return false;
     }
 

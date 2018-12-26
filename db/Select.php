@@ -196,13 +196,22 @@ class Select extends Where {
     /**
      * 查找所有数据
      * @return array
+     * @throws \Error
      */
     public function findAll() {
         $sql = $this->getSql();
         $params = array_merge($this->whereParams(), $this->having_params);
-        $connection= Pool::get(Connection::class);
-        $data = $connection->query($sql, $params, $this->cache);
-        Pool::release($connection);
+        $connection = Pool::get(Connection::class);
+        try {
+            $data = $connection->query($sql, $params, $this->cache);
+            Pool::release($connection);
+        } catch (\RuntimeException $e) {
+            Pool::release($connection);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($connection);
+            throw $e;
+        }
         if ($this->clazz) {
             $results = [];
             l:
@@ -300,7 +309,7 @@ class Select extends Where {
      *
      * @return $this
      */
-    public function setSubRecord($field, $pre, $class,\Closure $all_do = null) {
+    public function setSubRecord($field, $pre, $class, \Closure $all_do = null) {
         $this->subRecord[ $pre ] = ['class' => $class,
                                     'field' => $field,
                                     'all_do' => $all_do];
@@ -386,6 +395,7 @@ class Select extends Where {
      * @param $field
      *
      * @return null|string
+     * @throws \Error
      */
     public function value($field) {
         $this->fields = [];
@@ -393,9 +403,17 @@ class Select extends Where {
         $this->fields($field);
         $this->limit(0, 1);
         $connection = Pool::get(Connection::class);
-        $value=$connection->value($this->getSql(), $this->whereParams(), $this->cache);
-        Pool::release($connection);
-        return $value;
+        try {
+            $value = $connection->value($this->getSql(), $this->whereParams(), $this->cache);
+            Pool::release($connection);
+            return $value;
+        } catch (\RuntimeException $e) {
+            Pool::release($connection);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($connection);
+            throw $e;
+        }
     }
 
     /**
@@ -404,15 +422,24 @@ class Select extends Where {
      * @param $field
      *
      * @return array|null
+     * @throws \Error
      */
     public function values($field) {
         $this->fields = [];
         $this->order("");
         $this->fields($field);
         $connection = Pool::get(Connection::class);
-        $values = $connection->values($this->getSql(), $this->whereParams(), $this->cache);
-        Pool::release($connection);
-        return $values;
+        try {
+            $values = $connection->values($this->getSql(), $this->whereParams(), $this->cache);
+            Pool::release($connection);
+            return $values;
+        } catch (\RuntimeException $e) {
+            Pool::release($connection);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($connection);
+            throw $e;
+        }
     }
 
     private $cache = false;

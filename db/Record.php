@@ -12,7 +12,7 @@ use rap\swoole\pool\ResourcePool;
  * Date: 17/9/22
  * Time: 上午10:28
  */
-class Record implements  \ArrayAccess {
+class Record implements \ArrayAccess {
 
     /**
      * 获取表名,包含 as 时会添加上as  如 User::table('u') 返回user u
@@ -178,7 +178,7 @@ class Record implements  \ArrayAccess {
      * 获取保存的对象
      * @return array
      */
-    private function getDBData() {
+    public function getDBData() {
         $data = [];
         $fields = $this->getFields();
         foreach ($fields as $field => $type) {
@@ -280,6 +280,9 @@ class Record implements  \ArrayAccess {
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
         $db_cache->recordCacheSave(get_called_class(), $pk_value, $data);
+        foreach ($data as $field => $value) {
+            $this->_db_data[ $field ] = $value;
+        }
     }
 
     /**
@@ -303,6 +306,9 @@ class Record implements  \ArrayAccess {
         $db_cache = Ioc::get(DBCache::class);
         $db_cache->recordWhereCacheDel($model, $this->cacheKeys(), $this->_db_data);
         $db_cache->recordCacheDel($model, $this->$pk);
+        foreach ($data as $field => $value) {
+            $this->_db_data[ $field ] = $value;
+        }
     }
 
 
@@ -436,11 +442,7 @@ class Record implements  \ArrayAccess {
         $model = get_called_class();
         /* @var $t Record */
         $t = new $model;
-        $data = DB::select($t->getTable())
-                  ->where($t->getPkField(), $id)
-                  ->lock()
-                  ->setRecord($model)
-                  ->find();
+        $data = DB::select($t->getTable())->where($t->getPkField(), $id)->lock()->setRecord($model)->find();
         return $data;
     }
 
@@ -489,12 +491,22 @@ class Record implements  \ArrayAccess {
     /**
      * 获取字段
      * @return mixed
+     * @throws \Error
      */
     public function getFields() {
-        $connection =  Pool::get(Connection::class);
-        $fields= $connection->getFields($this->getTable());
-        Pool::release($connection);
-        return $fields;
+        $connection = Pool::get(Connection::class);
+        try {
+            $fields = $connection->getFields($this->getTable());
+            Pool::release($connection);
+            return $fields;
+        } catch (\RuntimeException $e) {
+            Pool::release($connection);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($connection);
+            throw $e;
+        }
+
     }
 
     /**
@@ -530,6 +542,10 @@ class Record implements  \ArrayAccess {
      * @param $array
      */
     public function fromArray($array) {
+        if ($array instanceof Record) {
+
+            $array = $array->toArray('', false);
+        }
         foreach ($array as $key => $value) {
             if (isset($value)) {
                 $this->$key = $value;
@@ -645,13 +661,12 @@ class Record implements  \ArrayAccess {
     }
 
     public function offsetSet($offset, $value) {
-         $this->$offset=$value;
+        $this->$offset = $value;
     }
 
     public function offsetUnset($offset) {
-        $this->$offset=null;
+        $this->$offset = null;
     }
-
 
 
 }

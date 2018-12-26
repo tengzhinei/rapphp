@@ -29,10 +29,6 @@ class Dispatcher {
     }
 
     public function doDispatch(Request $request, Response $response) {
-        if (!IS_SWOOLE) {
-            $session_id = $request->session()->sessionId();
-            CoContext::setId(md5($session_id.uniqid(mt_rand(), true)));
-        }
         $adapters = [];
         /* @var $handlerMapping HandlerMapping */
         foreach ($this->handlerMappings as $handlerMapping) {

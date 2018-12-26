@@ -56,6 +56,7 @@ class Update extends Where {
     /**
      * 执行
      * @return int
+     * @throws \Error
      */
     public function excuse() {
         $fields = [];
@@ -79,18 +80,26 @@ class Update extends Where {
                                            $this->lock,
                                            $this->comment,], $this->updateSql);
         $connection = Pool::get(Connection::class);
-        $connection->execute($sql, array_merge($values, $this->whereParams()));
-        $count= $connection->rowCount();
-        Pool::release($connection);
-        return $count;
+        try {
+            $connection->execute($sql, array_merge($values, $this->whereParams()));
+            $count = $connection->rowCount();
+            Pool::release($connection);
+            return $count;
+        } catch (\RuntimeException $e) {
+            Pool::release($connection);
+            throw $e;
+        } catch (\Error $e) {
+            Pool::release($connection);
+            throw $e;
+        }
     }
 
     /**
      * 静态更新
      *
-     * @param       string    $table
-     * @param     array       $data
-     * @param          array  $where
+     * @param       string   $table
+     * @param     array      $data
+     * @param          array $where
      */
     public static function update($table, $data, $where) {
         $update = Update::table($table);

@@ -1,10 +1,12 @@
 <?php
 namespace rap\db;
 
+use rap\aop\Event;
 use rap\ioc\Ioc;
 use rap\storage\Storage;
+use rap\swoole\Context;
 use rap\swoole\pool\Pool;
-use rap\swoole\pool\ResourcePool;
+use rap\web\mvc\Search;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -265,6 +267,7 @@ class Record implements \ArrayAccess {
      * 插入
      */
     public function insert() {
+        Event::trigger('record_before_insert', $this);
         $pk = $this->getPkField();
         $data = $this->getDBData();
         $create_time = 'create_time';
@@ -289,6 +292,7 @@ class Record implements \ArrayAccess {
      * 更新
      */
     public function update() {
+        Event::trigger('record_before_update', $this);
         $model = get_called_class();
         $pk = $this->getPkField();
         $where[ $pk ] = $this->$pk;
@@ -319,6 +323,7 @@ class Record implements \ArrayAccess {
      * @param bool $force 是否强制
      */
     public function delete($force = false) {
+        Event::trigger('record_before_delete', $this);
         $model = get_called_class();
         $pk = $this->getPkField();
         $id = $this->$pk;
@@ -359,7 +364,9 @@ class Record implements \ArrayAccess {
             return $data;
         }
         /* @var $data Record */
-        $data = DB::select($t->getTable())->where($where)->setRecord($model)->find();
+        $select = DB::select($t->getTable())->where($where)->setRecord($model);
+        Event::trigger('record_before_select', [$model, $select]);
+        $data = $select->find();
         $db_cache->recordWhereCacheSave($model, $where, $data->_db_data);
         return $data;
     }
@@ -442,7 +449,9 @@ class Record implements \ArrayAccess {
         $model = get_called_class();
         /* @var $t Record */
         $t = new $model;
-        $data = DB::select($t->getTable())->where($t->getPkField(), $id)->lock()->setRecord($model)->find();
+        $select = DB::select($t->getTable())->where($t->getPkField(), $id)->lock()->setRecord($model);
+        Event::trigger('record_before_select', [$model, $select]);
+        $data = $select->find();
         return $data;
     }
 
@@ -470,6 +479,7 @@ class Record implements \ArrayAccess {
         /* @var $model Record */
         $model = new $model;
         $select = DB::select($model->getTable() . " " . $as)->setRecord(get_called_class());
+        Event::trigger('record_before_select', [$model, $select]);
         if ($fields) {
             if (!$contain) {
                 $fieldAll = $model->getFields();
@@ -543,11 +553,13 @@ class Record implements \ArrayAccess {
      */
     public function fromArray($array) {
         if ($array instanceof Record) {
-
             $array = $array->toArray('', false);
         }
         foreach ($array as $key => $value) {
             if (isset($value)) {
+                if($value instanceof Search){
+                    $value=$value->value();
+                }
                 $this->$key = $value;
             }
         }
@@ -666,6 +678,19 @@ class Record implements \ArrayAccess {
 
     public function offsetUnset($offset) {
         $this->$offset = null;
+    }
+
+    /**
+     * 从 request 中获取
+     * @return $this
+     */
+    public static function build() {
+        $model = get_called_class();
+        /* @var $model Record */
+        $model = new $model;
+        $params = Context::get('request_params');
+        $model->fromArray($params);
+        return $model;
     }
 
 

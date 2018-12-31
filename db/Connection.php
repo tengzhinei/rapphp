@@ -528,5 +528,7 @@ abstract class Connection implements PoolAble {
 
     public abstract function getFieldsComment($table);
 
+    public abstract function getTableComments();
+
 
 }

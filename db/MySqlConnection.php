@@ -73,5 +73,16 @@ class MySqlConnection extends Connection{
        return $data;
     }
 
-
+    public function getTableComments(){
+        $sql="select database()";
+        $db_name=$this->value($sql);
+        $sql = "SELECT TABLE_NAME as name,TABLE_COMMENT as comment FROM INFORMATION_SCHEMA.TABLES  WHERE
+        table_schema=?";
+        $values=$this->query($sql,[$db_name]);
+        $data=[];
+        foreach ($values as $item) {
+            $data[$item['name']]=$item['comment'];
+        }
+        return $data;
+    }
 }

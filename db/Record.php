@@ -684,7 +684,7 @@ class Record implements \ArrayAccess {
      * 从 request 中获取
      * @return $this
      */
-    public static function build() {
+    public static function buildRequest() {
         $model = get_called_class();
         /* @var $model Record */
         $model = new $model;

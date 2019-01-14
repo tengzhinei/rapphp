@@ -37,6 +37,10 @@ class Context {
         CoContext::getContext()->set($name, $bean);
     }
 
+    public static function requestParams(){
+        return self::get('request_params');
+    }
+
     public static function get($name) {
         $context = CoContext::getContext();
 
@@ -72,7 +76,7 @@ class Context {
      * 切换数据库的 scheme
 
      *
-*@param $scheme
+     *@param $scheme
      */
     public static function useConnectionScheme($scheme) {
         CoContext::getContext()->set(CoContext::CONNECTION_scheme, $scheme);

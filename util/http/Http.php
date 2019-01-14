@@ -52,8 +52,8 @@ class Http {
             $cli->close();
             return $response;
         } else {
-            $response = \Requests::get($url, $header);
-            return new HttpResponse($response->status_code, $response->headers, $response->body);
+            $response= \Unirest\Request::get($url, $header);
+            return new HttpResponse($response->code, $response->headers, $response->raw_body);
 
         }
     }
@@ -73,8 +73,8 @@ class Http {
             $cli->close();
             return $response;
         } else {
-            $response = \Requests::post($url, $header, $data);
-            return new HttpResponse($response->status_code, $response->headers, $response->body);
+            $response= \Unirest\Request::post($url, $header, $data);
+            return new HttpResponse($response->code, $response->headers, $response->raw_body);
         }
 
     }
@@ -99,10 +99,37 @@ class Http {
             $cli->close();
             return $response;
         } else {
-            $response = \Requests::put($url, $header, $data);
-            return new HttpResponse($response->status_code, $response->headers, $response->body);
+            if(!is_string($data)){
+                $data= json_encode($data);
+            }
+            $response= \Unirest\Request::put($url, $header, $data);
+            return new HttpResponse($response->code, $response->headers, $response->raw_body);
         }
     }
 
+    public static function upload($url, $header = [], $data = [],$files=[]){
+        if (IS_SWOOLE && \Co::getuid()) {
+            $hostPath = self::parseUrl($url);
+            if(!$hostPath[0]){
+                return  new HttpResponse(-1, [], '');
+            }
+            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ]);
+            if ($header) {
+                $cli->setHeaders($header);
+            }
+            foreach ($files as $file=>$name) {
+                $cli->addFile($file,$name);
+            }
+            $cli->post($hostPath[ 1 ], $data);
+            $response = new HttpResponse($cli->statusCode, $cli->headers, $cli->body);
+            $cli->close();
+            return $response;
+        } else {
+            $body = \Unirest\Request\Body::Multipart($data, $files);
+            $response = \Unirest\Request::post($url, $header, $body);
+            return new HttpResponse($response->code, $response->headers, $response->raw_body);
+        }
+
+    }
 
 }

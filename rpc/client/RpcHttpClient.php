@@ -12,12 +12,13 @@ namespace rap\rpc\client;
 
 use rap\config\Config;
 use rap\swoole\pool\PoolTrait;
+use rap\util\http\Http;
 use Swoole\Coroutine\Http\Client;
 
 
 /**
  * 通过 http 实现的 Rpc 客户端
- * swoole环境下用协程客户端,否者自动降级为\Requests库
+ * swoole环境下用协程客户端,否者自动降级
  */
 class RpcHttpClient implements RpcClient {
     use PoolTrait;
@@ -86,7 +87,7 @@ class RpcHttpClient implements RpcClient {
         } else {
             $data = json_encode($data);
         }
-        $response = \Requests::put($scheme . $this->config[ 'host' ] . ':' . $this->config[ 'port' ] . $path, $headers, $data);
+        $response = Http::put($scheme . $this->config[ 'host' ] . ':' . $this->config[ 'port' ] . $path, $headers, $data);
         if ($response->status_code == 200) {
             $type = $response->headers[ 'content-type' ];
             $data = $response->body;

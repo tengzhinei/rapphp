@@ -124,6 +124,9 @@ class PickCaptcha {
         $base64_image = EncryptUtil::encrypt($base64_image, $sign);
         $base64_text = EncryptUtil::encrypt($base64_text, $sign);
         $sign = substr($sign, 0, 16) . $base64_image . ' ' . substr($sign, 16) . $base64_text;
+
+
+
         return ['code' => $sign];
     }
 

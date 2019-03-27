@@ -44,6 +44,7 @@ class HttpSession implements Session{
     public  function set($key,$value){
         $this->start();
         $_SESSION[$key]=$value;
+
     }
 
     /**

@@ -143,6 +143,7 @@ class Response{
      * @return Session
      */
     public function session(){
+
         if(!$this->session){
             $this->session=new HttpSession();
         }

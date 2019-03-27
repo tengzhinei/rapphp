@@ -73,6 +73,7 @@ class Http {
             $cli->close();
             return $response;
         } else {
+            $data = \Unirest\Request\Body::Form($data);
             $response= \Unirest\Request::post($url, $header, $data);
             return new HttpResponse($response->code, $response->headers, $response->raw_body);
         }
@@ -102,7 +103,7 @@ class Http {
             if(!is_string($data)){
                 $data= json_encode($data);
             }
-            $response= \Unirest\Request::put($url, $header, $data);
+            $response= \Unirest\Request::post($url, $header, $data);
             return new HttpResponse($response->code, $response->headers, $response->raw_body);
         }
     }

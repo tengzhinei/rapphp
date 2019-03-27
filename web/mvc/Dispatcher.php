@@ -70,6 +70,7 @@ class Dispatcher {
                 $view->assign($response->data());
                 $po = strpos($value, '/');
                 if ($po === 0) {
+
                     $base = Config::get('view')[ 'template_base' ];
                     $value = $base . $value;
                 } else {

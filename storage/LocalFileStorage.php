@@ -10,6 +10,7 @@ namespace rap\storage;
 
 
 use rap\exception\FileUploadException;
+use rap\util\FileUtil;
 
 class LocalFileStorage implements StorageInterface{
 
@@ -62,7 +63,7 @@ class LocalFileStorage implements StorageInterface{
             return $file_id;
         }
         if (!move_uploaded_file($file->path_tmp, $filename)) {
-            throw new FileUploadException('文件上传保存错误！');
+            FileUtil::move($file->path_tmp,$filename);
         }
         return $file_id;
     }

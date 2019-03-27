@@ -85,7 +85,7 @@ class FileUtil {
      * @param $source
      * @param $dest
      */
-    public function move($source, $dest) {
+    static function move($source, $dest) {
         rename($source, $dest);
     }
 
@@ -193,7 +193,8 @@ class FileUtil {
      * @param string $fileContent
      * @param int    $flags
      */
-    static function writeFile( $filename,  $fileContent,  $flags){
+    static function writeFile( $filename,  $fileContent,  $flags=null){
+        mkdir(dirname($filename), 0777, true);
         file_put_contents($filename,$fileContent,$flags);
     }
 

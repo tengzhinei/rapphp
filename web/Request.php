@@ -507,7 +507,7 @@ class Request{
 
     public function userId($user_id=null){
         if($user_id==null){
-            return   $this->session('user_id');
+            return  $this->session('user_id');
         }
         $this->session('user_id',$user_id);
         return null;

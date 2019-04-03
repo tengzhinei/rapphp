@@ -103,6 +103,7 @@ class Select extends Where {
      */
     public function distinct() {
         $this->distinct = " DISTINCT";
+        return $this;
     }
 
     private $having = '';

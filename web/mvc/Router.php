@@ -152,7 +152,7 @@ class Router{
 
     public function match(Request $request, $pathArray){
         //默认页
-        if($request->path()=='/'){
+        if($request->routerPath()=='/'||$request->routerPath()==''){
             $this->index->method($this->indexAction);
             return $this->index;
         }

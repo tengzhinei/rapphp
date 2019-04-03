@@ -48,6 +48,10 @@ class Dispatcher {
             if (strpos($value, 'redirect:') === 0) {
                 $value = substr($value, strlen('redirect:'));
                 $response->code(302);
+                if(strpos($value,'/')==0){
+                    $base_url=Config::get('app','url_base');
+                    $value=$base_url.$value;
+                }
                 $response->header("location", $value);
                 $response->send();
                 $response->redirect($value, 302);

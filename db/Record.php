@@ -134,6 +134,7 @@ class Record implements \ArrayAccess {
                 }
             } else if ($type == 'attach_s') {
                 $value = json_decode($value, true);
+
                 $values = [];
 
                 foreach ($value as $v) {

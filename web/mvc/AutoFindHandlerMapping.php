@@ -23,7 +23,7 @@ class AutoFindHandlerMapping implements HandlerMapping{
     }
 
     public function map(Request $request, Response $response){
-        $path=$request->path();
+        $path=$request->routerPath();
         $prefix="";
         $dir="";
         $find=false;

@@ -34,7 +34,7 @@ class RpcHandlerMapping implements HandlerMapping {
     }
 
     public function map(Request $request, Response $response) {
-        $path = $request->path();
+        $path = $request->routerPath();
         if ($path !== $this->config[ 'path' ]) {
             return null;
         }

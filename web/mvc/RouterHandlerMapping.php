@@ -28,7 +28,7 @@ class RouterHandlerMapping implements HandlerMapping{
     }
 
     public function map(Request $request, Response $response){
-            $path=$request->path();
+            $path=$request->routerPath();
             $pathArray=explode('/',$path);
             array_shift($pathArray);
             return $this->router->match($request,$pathArray);

@@ -49,7 +49,7 @@ class ArrayUtil {
      *
      * @return array
      */
-    function toTree($list,$parent_field = 'parent_id',$id_field='id',$children_field='children') {
+    static  function toTree($list,$parent_field = 'parent_id',$id_field='id',$children_field='children') {
         $map = self::groupBy($list);
         $data=[];
         foreach ($list as $item) {
@@ -70,7 +70,7 @@ class ArrayUtil {
      *
      * @return null
      */
-    function find($list, $where) {
+    static  function find($list, $where) {
         if (is_array($where)) {
             foreach ($list as $item) {
                 $is_ok = true;
@@ -95,7 +95,7 @@ class ArrayUtil {
     }
 
 
-    function where($list, $where) {
+    static function where($list, $where) {
         $items = [];
         if (is_array($where)) {
             foreach ($list as $item) {
@@ -120,7 +120,7 @@ class ArrayUtil {
         return $items;
     }
 
-    function pluck($list, $name) {
+   static function pluck($list, $name) {
         $values = [];
         foreach ($list as $item) {
             $values[] = $item[ $name ];

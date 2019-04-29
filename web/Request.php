@@ -40,7 +40,10 @@ class Request {
      */
     public function __construct($response) {
         $this->response = $response;
+        $this->response ->setRequest($this);
     }
+
+
 
     /**
      * 当前的请求类型
@@ -284,6 +287,7 @@ class Request {
      */
     public function url() {
         if (!$this->url) {
+
             if (isset($_SERVER[ 'HTTP_X_REWRITE_URL' ])) {
                 $this->url = $_SERVER[ 'HTTP_X_REWRITE_URL' ];
             } elseif (isset($_SERVER[ 'REQUEST_URI' ])) {
@@ -295,6 +299,7 @@ class Request {
             }
 
         }
+
         return $this->url;
     }
 

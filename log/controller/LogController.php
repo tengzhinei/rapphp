@@ -25,7 +25,7 @@ class LogController{
             }else{
                 Log::debugSession($name);
                 Log::debug($name.'进入调试');
-                return redirect('page');
+                return redirect('/log/page');
             }
         }
         return twig("login");
@@ -75,7 +75,7 @@ class LogController{
         if (key_exists($session_id, $session_ids) ) {
             return "log";
         }
-        return redirect('index');
+        return redirect('/log/index');
     }
 
     public function qrCode(Request $request){

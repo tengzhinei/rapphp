@@ -245,6 +245,9 @@ class DBCache {
      * @param string $sql
      */
     public function deleteCache($sql) {
+        if(strpos($sql, 'SELECT') ==0){
+            return;
+        }
         $redis = Cache::redis();
         if (!$redis) {
             return;
@@ -262,11 +265,12 @@ class DBCache {
      * 获取 sql关联的表
      *
      * @param string $sql
-     *
+     * @param bool $select
      * @return array
      */
     public function getTableNames($sql) {
         $sql = trim(strtoupper($sql));
+
         if (strpos($sql, 'SELECT') === 0) {
             return $this->express($sql, static::$selectExpression);
         } else if (strpos($sql, 'UPDATE') === 0) {

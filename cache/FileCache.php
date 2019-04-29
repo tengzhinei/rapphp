@@ -7,13 +7,14 @@
  */
 
 namespace rap\cache;
+use rap\swoole\pool\PoolAble;
 
 /**
  * 文件缓存
  * Class FileCache
  * @package rap\cache
  */
-class FileCache implements CacheInterface {
+class FileCache implements CacheInterface , PoolAble  {
     private $options = ['path' => "cache/",
                         'data_compress' => false];
 
@@ -199,4 +200,14 @@ class FileCache implements CacheInterface {
     private function unlink($path) {
         return is_file($path) && unlink($path);
     }
+
+    public function poolConfig() {
+        // TODO: Implement poolConfig() method.
+    }
+
+    public function connect() {
+        // TODO: Implement connect() method.
+    }
+
+
 }

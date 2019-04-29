@@ -150,13 +150,13 @@ class Router{
         }
     }
 
-    public function match(Request $request, $pathArray){
+    public function match(Request $request, $pathArray,$sub=false){
         //默认页
         if($request->routerPath()=='/'||$request->routerPath()==''){
             $this->index->method($this->indexAction);
             return $this->index;
         }
-        if(count($pathArray)==1){
+        if(!$sub&&count($pathArray)==1){
             $this->index->method($pathArray[0]);
             return $this->index;
         }
@@ -165,7 +165,7 @@ class Router{
         $group=$this->groups[$pathArray[0]];
         if($group){
             array_shift($pathArray);
-            $adapter=$group->match($request,$pathArray);
+            $adapter=$group->match($request,$pathArray,true);
             if($adapter)return $adapter;
         }
 

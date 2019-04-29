@@ -57,7 +57,7 @@ abstract class Connection implements PoolAble {
         }
         //非 swoole 环境下无法使用连接池,可以使用 pdo 的持久化连接方式
         //swoole 环境下,没有必要使用
-        if (!IS_SWOOLE) {
+        if (!IS_SWOOLE&&Config::get('app')['debug']==false) {
             $this->params[ PDO::ATTR_PERSISTENT ] = true;
         }
     }
@@ -181,12 +181,15 @@ abstract class Connection implements PoolAble {
             /* @var $dbCache DBCache */
             $dbCache = Ioc::get(DBCache::class);
             $value = $dbCache->queryCache($sql, $bind);
+            if($value){
+                return $value['value'];
+            }
         }
         if ($value == null) {
             $this->execute($sql, $bind);
             $value = $this->PDOStatement->fetchColumn();
             if ($cache) {
-                $dbCache->saveCache($sql, $bind, $value);
+                $dbCache->saveCache($sql, $bind, ['value'=>$value]);
             }
         }
         return $value;

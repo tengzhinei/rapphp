@@ -37,6 +37,12 @@ class Http {
         return [$host, $path, $port];
     }
 
+    /**
+     * @param       $url
+     * @param array $header
+     *
+     * @return HttpResponse
+     */
     public static function get($url, $header = []) {
         if (IS_SWOOLE && \Co::getuid()) {
             $hostPath = self::parseUrl($url);

@@ -52,6 +52,7 @@ class ResourcePool {
             /* @var $holder CoContext */
             //判定是否有没有使用的对象
             $queue = $this->getQueue($classOrName);
+            if(!$queue)return null;
             if (!$queue->isEmpty()) {
                 $bean = $queue->pop();
             }

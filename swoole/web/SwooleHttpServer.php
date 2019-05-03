@@ -4,9 +4,11 @@ namespace rap\swoole\web;
 
 use rap\aop\Event;
 use rap\config\Config;
+use rap\config\Seal;
 use rap\console\Command;
 use rap\ioc\Ioc;
 use rap\swoole\task\TaskConfig;
+use rap\util\FileUtil;
 use rap\web\Application;
 use rap\swoole\CoContext;
 use Swoole\Runtime;
@@ -30,7 +32,14 @@ class SwooleHttpServer extends Command {
                        'coroutine'=>true];
 
 
-    public function run() {
+    /**
+     * @param $host_name string 对外暴露的host
+     * @param $seal_secret string 配置中心密钥
+     */
+    public function run($host_name,$seal_secret) {
+        ServerInfo::$HOST_NAME=$host_name;
+        ServerInfo::$SEAL_SECRET=$host_name;
+
         $this->config = array_merge($this->config, Config::get('swoole_http'));
         $http = new \swoole_http_server($this->config[ 'ip' ], $this->config[ 'port' ]);
         $http->set(['buffer_output_size' => 32 * 1024 * 1024, //必须为数字
@@ -43,6 +52,7 @@ class SwooleHttpServer extends Command {
         $http->on('workerstart', [$this, 'onWorkStart']);
         $http->on('workerstop', [$this, 'onWorkerStop']);
         $http->on('start', [$this, 'onStart']);
+        $http->on('shutdown',[$this,'onShutdown']);
         $http->on('task', [$this, 'onTask']);
         $http->on('finish', [$this, 'onFinish']);
         $http->on('request', [$this, 'onRequest']);
@@ -58,7 +68,13 @@ class SwooleHttpServer extends Command {
     public function onStart($server) {
         $application = Ioc::get(Application::class);
         $application->server = $server;
+
         Event::trigger('onServerStart', '');
+    }
+
+    public function onShutdown(){
+
+        Event::trigger('onServerShutdown', '');
     }
 
     public function onWorkStart($server, $id) {

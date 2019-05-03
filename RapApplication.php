@@ -6,8 +6,10 @@ use rap\cache\CacheInterface;
 use rap\cache\FileCache;
 use rap\cache\RedisCache;
 use rap\config\Config;
+use rap\config\Seal;
 use rap\db\Connection;
 use rap\db\MySqlConnection;
+use rap\db\SqliteConnection;
 use rap\ioc\Ioc;
 use rap\log\FileLog;
 use rap\log\LogInterface;
@@ -16,6 +18,7 @@ use rap\storage\OssStorage;
 use rap\storage\StorageInterface;
 use rap\swoole\CoContext;
 use rap\swoole\pool\ResourcePool;
+use rap\util\FileUtil;
 use rap\web\Application;
 use rap\web\mvc\AutoFindHandlerMapping;
 use rap\web\mvc\Router;
@@ -40,31 +43,6 @@ class RapApplication extends Application {
                 $autoMapping->prefix($key, $value);
             }
         }
-        $item = $config[ "db" ];
-        if ($item) {
-            if ($item[ 'type' ] == 'mysql') {
-                unset($item[ 'type' ]);
-                Ioc::bind(Connection::class, MySqlConnection::class, function(MySqlConnection $connection) use ($item) {
-                    $connection->config($item);
-                });
-            }
-
-
-        }
-        $item = $config[ "storage" ];
-        if ($item) {
-            if ($item[ 'type' ] == 'oss') {
-                unset($item[ 'type' ]);
-                Ioc::bind(StorageInterface::class, OssStorage::class, function(OssStorage $ossStorage) use ($item) {
-                    $ossStorage->config($item);
-                });
-            } else if ($item[ 'type' ] == 'local') {
-                unset($item[ 'type' ]);
-                Ioc::bind(StorageInterface::class, LocalFileStorage::class, function(LocalFileStorage $ossStorage) use ($item) {
-                    $ossStorage->config($item);
-                });
-            }
-        }
         $item = $config[ "view" ];
         if ($item) {
             if ($item[ 'type' ] == 'smarty') {
@@ -83,8 +61,60 @@ class RapApplication extends Application {
                     $smartyView->config($item);
                 });
             }
-
         }
+        if($config['seal']){
+            //初始化配置中心
+            Seal::init();
+        }
+        $app = $config[ 'app' ];
+        $init = null;
+        if (IS_SWOOLE) {
+            Event::add('onServerWorkStart', Application::class, 'onServerWorkStart');
+        } else {
+            $this->onServerWorkStart();
+        }
+        if ($app[ 'init' ]) {
+            Ioc::bind(Init::class, $app[ 'init' ]);
+            /* @var $init Init */
+            $init = Ioc::get(Init::class);
+            $init->appInit($autoMapping, $router);
+            Event::trigger('app_init', []);
+        }
+
+    }
+
+    public function onServerWorkStart() {
+        //合并配置中心的配置
+        Config::loadSealConfig();
+        $config = Config::getFileConfig();
+        $item = $config[ "db" ];
+        if ($item) {
+            if ($item[ 'type' ] == 'mysql') {
+                unset($item[ 'type' ]);
+                Ioc::bind(Connection::class, MySqlConnection::class, function(MySqlConnection $connection) use ($item) {
+                    $connection->config($item);
+                });
+            }
+            if ($item[ 'type' ] == 'sqlite') {
+                unset($item[ 'type' ]);
+
+            }
+        }
+        $item = $config[ "storage" ];
+        if ($item) {
+            if ($item[ 'type' ] == 'oss') {
+                unset($item[ 'type' ]);
+                Ioc::bind(StorageInterface::class, OssStorage::class, function(OssStorage $ossStorage) use ($item) {
+                    $ossStorage->config($item);
+                });
+            } else if ($item[ 'type' ] == 'local') {
+                unset($item[ 'type' ]);
+                Ioc::bind(StorageInterface::class, LocalFileStorage::class, function(LocalFileStorage $ossStorage) use ($item) {
+                    $ossStorage->config($item);
+                });
+            }
+        }
+
         $item = $config[ "cache" ];
         if ($item) {
             if ($item[ 'type' ] == 'file') {
@@ -97,7 +127,6 @@ class RapApplication extends Application {
                 });
             }
         }
-
         $item = $config[ "log" ];
         if ($item) {
             if ($item[ 'type' ] == 'file') {
@@ -106,30 +135,16 @@ class RapApplication extends Application {
                 });
             }
         }
-        $app = $config[ 'app' ];
-        $init=null;
         if (IS_SWOOLE) {
-            Event::add('onServerWorkStart', Application::class, 'initResourcePool');
-        }
-        if ($app[ 'init' ]) {
-            Ioc::bind(Init::class, $app[ 'init' ]);
-            /* @var $init Init */
-            $init = Ioc::get(Init::class);
-            $init->appInit($autoMapping, $router);
-            Event::trigger('app_init', []);
+            if ($config[ 'db' ]) {
+                ResourcePool::instance()->preparePool(Connection::class);
+            }
+            if ($config[ 'cache' ]) {
+                ResourcePool::instance()->preparePool(CacheInterface::class);
+
+            }
         }
 
-    }
-
-    public function initResourcePool() {
-        $config = Config::getFileConfig();
-        if ($config[ 'db' ]) {
-            ResourcePool::instance()->preparePool(Connection::class);
-        }
-        if ($config[ 'cache' ]) {
-            ResourcePool::instance()->preparePool(CacheInterface::class);
-
-        }
 
     }
 

@@ -73,7 +73,7 @@ class LogController{
         $session_ids = Cache::get(md5('Log.debugSession'));
         $session_id = request()->session()->sessionId();
         if (key_exists($session_id, $session_ids) ) {
-            return "log";
+            return twig("log");
         }
         return redirect('/log/index');
     }

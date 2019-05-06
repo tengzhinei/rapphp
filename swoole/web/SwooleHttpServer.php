@@ -7,6 +7,7 @@ use rap\config\Config;
 use rap\config\Seal;
 use rap\console\Command;
 use rap\ioc\Ioc;
+use rap\swoole\ServerWatch;
 use rap\swoole\task\TaskConfig;
 use rap\util\FileUtil;
 use rap\web\Application;
@@ -29,18 +30,23 @@ class SwooleHttpServer extends Command {
                        'task_worker_num' => 3,
                        'worker_num' => 1,
                        'task_max_request' => 1000,
-                       'coroutine'=>true];
+                       'coroutine' => true,
+                       'auto_reload' => false];
 
 
     /**
-     * @param $host_name string 对外暴露的host
+     * @param $host_name   string 对外暴露的host
      * @param $seal_secret string 配置中心密钥
      */
-    public function run($host_name,$seal_secret) {
-        ServerInfo::$HOST_NAME=$host_name;
-        ServerInfo::$SEAL_SECRET=$host_name;
-
+    public function run($host_name, $seal_secret) {
+        ServerInfo::$HOST_NAME = $host_name;
+        ServerInfo::$SEAL_SECRET = $host_name;
         $this->config = array_merge($this->config, Config::get('swoole_http'));
+        if ($this->config[ 'coroutine' ]) {
+            //mysql redis 协程化
+            Runtime::enableCoroutine();
+        }
+
         $http = new \swoole_http_server($this->config[ 'ip' ], $this->config[ 'port' ]);
         $http->set(['buffer_output_size' => 32 * 1024 * 1024, //必须为数字
                     'document_root' => $this->config[ 'document_root' ],
@@ -52,15 +58,12 @@ class SwooleHttpServer extends Command {
         $http->on('workerstart', [$this, 'onWorkStart']);
         $http->on('workerstop', [$this, 'onWorkerStop']);
         $http->on('start', [$this, 'onStart']);
-        $http->on('shutdown',[$this,'onShutdown']);
+        $http->on('shutdown', [$this, 'onShutdown']);
         $http->on('task', [$this, 'onTask']);
         $http->on('finish', [$this, 'onFinish']);
         $http->on('request', [$this, 'onRequest']);
         $this->writeln("http服务启动成功");
-        if ($this->config[ 'coroutine' ]) {
-            //mysql redis 协程化
-            Runtime::enableCoroutine();
-        }
+        Event::trigger('onBeforeServerStart', $http);
         $http->start();
 
     }
@@ -68,27 +71,31 @@ class SwooleHttpServer extends Command {
     public function onStart($server) {
         $application = Ioc::get(Application::class);
         $application->server = $server;
+        Event::trigger('onServerStart', $server);
+        if ($this->config[ 'auto_reload' ] && Config::get('app')[ 'debug' ]) {
+            $this->writeln("自动加载");
+            $reload = new ServerWatch();
+            $reload->init($server);
+        }
 
-        Event::trigger('onServerStart', '');
     }
 
-    public function onShutdown(){
-
-        Event::trigger('onServerShutdown', '');
+    public function onShutdown($server) {
+        Event::trigger('onServerShutdown', $server);
     }
 
     public function onWorkStart($server, $id) {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkStart', '');
+        Event::trigger('onServerWorkStart', [$server, $id]);
     }
 
     public function onWorkerStop($server, $id) {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkerStop', '');
+        Event::trigger('onServerWorkerStop', [$server, $id]);
     }
 
     public function onTask($serv, $task_id, $from_id, $data) {

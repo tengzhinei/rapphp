@@ -51,6 +51,10 @@ class Record implements \ArrayAccess {
      */
     private $_db_data = [];
 
+
+    public function getOldDbData(){
+        return $this->_db_data;
+    }
     /**
      * 供find 使用的缓存的可以  如['user_id,open_id','cat_id,good_id']
      * 同一组用,隔开 整体是数组
@@ -283,7 +287,7 @@ class Record implements \ArrayAccess {
         $data[ $pk ] = $pk_value;
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
-        $db_cache->recordCacheSave(get_called_class(), $pk_value, $data);
+        $db_cache->recordCacheSave($this->getTable(), $pk_value, $data);
         foreach ($data as $field => $value) {
             $this->_db_data[ $field ] = $value;
         }
@@ -309,8 +313,8 @@ class Record implements \ArrayAccess {
         //删除缓存
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
-        $db_cache->recordWhereCacheDel($model, $this->cacheKeys(), $this->_db_data);
-        $db_cache->recordCacheDel($model, $this->$pk);
+        $db_cache->recordWhereCacheDel($this);
+        $db_cache->recordCacheDel($this->getTable(), $this->$pk);
         foreach ($data as $field => $value) {
             $this->_db_data[ $field ] = $value;
         }
@@ -343,8 +347,8 @@ class Record implements \ArrayAccess {
         //删除缓存
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
-        $db_cache->recordWhereCacheDel($model, $this->cacheKeys(), $this->_db_data);
-        $db_cache->recordCacheDel($model, $id);
+        $db_cache->recordWhereCacheDel($this);
+        $db_cache->recordCacheDel($this->getTable(), $id);
     }
 
     /**
@@ -433,7 +437,7 @@ class Record implements \ArrayAccess {
         $where[ $pk ] = $id;
         $data = $model::find($where);
         if ($cache && $data) {
-            $db_cache->recordCacheSave(get_called_class(), $id, $data->_db_data);
+            $db_cache->recordCacheSave($model->getTable(), $id, $data->_db_data);
         }
         return $data;
     }

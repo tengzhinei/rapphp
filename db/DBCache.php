@@ -38,13 +38,14 @@ class DBCache {
      *
      * @return mixed
      */
-    public function recordCache($model, $id) {
-        $cache_key = "record_" . $model . $id;
+    public function recordCache($model, $id){
+         /* @var $record Record */
+        $record = new $model;
+        $cache_key = "record_" . $record->getTable(). $id;
         $data = Cache::get($cache_key);
         if ($data) {
             Log::debug("命中缓存" . $model . " " . $id, 'cache');
-            /* @var $record Record */
-            $record = new $model;
+
             $record->fromDbData($data);
             return $record;
         }
@@ -54,23 +55,23 @@ class DBCache {
     /**
      * 一级缓存 id 保存
      *
-     * @param string     $model 类名
+     * @param string     $table 表名
      * @param string|int $id    主键
      * @param array      $value
      */
-    public function recordCacheSave($model, $id, $value) {
-        $cache_key = "record_" . $model . $id;
+    public function recordCacheSave($table, $id, $value) {
+        $cache_key = "record_" . $table . $id;
         Cache::set($cache_key, $value);
     }
 
     /**
      * 一级缓存 id 删除
      *
-     * @param string     $model 类名
+     * @param string     $table 表名
      * @param string|int $id    主键
      */
-    public function recordCacheDel($model, $id) {
-        $cache_key = "record_" . $model . $id;
+    public function recordCacheDel($table, $id) {
+        $cache_key = "record_" . $table . $id;
         Cache::remove($cache_key);
     }
 
@@ -97,7 +98,7 @@ class DBCache {
             sort($m);
             $cacheKey = implode(",", $m);
             if ($key == $cacheKey) {
-                $cache_key = "record_" . $model . "_" . $key . "_" . implode(",", array_values($where));
+                $cache_key = "record_" . $t->getTable() . "_" . $key . "_" . implode(",", array_values($where));
                 $data = Cache::get($cache_key);
                 if ($data) {
                     Log::debug("命中缓存 " . $model . " 条件:" . json_encode($where), 'cache');
@@ -134,7 +135,7 @@ class DBCache {
             sort($m);
             $cacheKey = implode(",", $m);
             if ($key == $cacheKey) {
-                $cache_key = "record_" . $model . "_" . $key . "_" . implode(",", array_values($where));
+                $cache_key = "record_" . $t->getTable() . "_" . $key . "_" . implode(",", array_values($where));
                 break;
             }
         }
@@ -151,7 +152,10 @@ class DBCache {
      * @param array  $cacheKeys 所有缓存的 keys
      * @param array  $_db_data  数据库原来的数据
      */
-    public function recordWhereCacheDel($model, $cacheKeys, $_db_data) {
+    public function recordWhereCacheDel($model) {
+        /* @var $model Record */
+        $cacheKeys = $model->cacheKeys();
+        $_db_data=$model->getOldDbData();
         if ($cacheKeys) {
             foreach ($cacheKeys as $cacheKey) {
                 $cks = explode(',', $cacheKey);
@@ -161,7 +165,7 @@ class DBCache {
                     $oldV[] = $_db_data[ $ck ];
                 }
                 $cacheKey = implode(",", $cks);
-                $cache_key = "record_" . $model . "_" . $cacheKey . "_" . implode(",", $oldV);
+                $cache_key = "record_" . $model->getTable() . "_" . $cacheKey . "_" . implode(",", $oldV);
                 Cache::remove($cache_key);
             }
         }

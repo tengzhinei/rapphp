@@ -10,6 +10,7 @@ use rap\db\Connection;
 use rap\ioc\Ioc;
 use rap\swoole\Context;
 use rap\swoole\pool\ResourcePool;
+use rap\swoole\ServerWatch;
 use rap\swoole\task\TaskConfig;
 use rap\swoole\web\SwooleRequest;
 use rap\swoole\web\SwooleResponse;
@@ -71,13 +72,19 @@ class WebSocketServer extends Command {
             //mysql redis 协程化
             Runtime::enableCoroutine();
         }
+        Event::trigger('onBeforeServerStart', $this->server);
         $this->server->start();
     }
 
     public function onStart(\swoole_server $server) {
         $application = Ioc::get(Application::class);
         $application->server = $server;
-        Event::trigger('onServerStart', '');
+        Event::trigger('onServerStart', $server);
+        if ($this->config[ 'auto_reload' ] && Config::get('app')[ 'debug' ]) {
+            $this->writeln("自动加载");
+            $reload = new ServerWatch();
+            $reload->init($server);
+        }
     }
 
     public function onTask(\swoole_server $server, $task_id, $from_id, $data) {
@@ -137,7 +144,7 @@ class WebSocketServer extends Command {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkStart', '');
+        Event::trigger('onServerWorkStart', [$server, $id]);
         CoContext::getContext()->release();
     }
 
@@ -145,7 +152,7 @@ class WebSocketServer extends Command {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkStop', '');
+        Event::trigger('onServerWorkStop', [$server, $id]);
         CoContext::getContext()->release();
     }
 

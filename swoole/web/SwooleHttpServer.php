@@ -25,7 +25,7 @@ class SwooleHttpServer extends Command {
 
     private $config = ['ip' => '0.0.0.0',
                        'port' => 9501,
-                       'document_root' => "",
+                       'static_handler_locations'=>[],
                        'enable_static_handler' => false,
                        'task_worker_num' => 3,
                        'worker_num' => 1,
@@ -46,10 +46,20 @@ class SwooleHttpServer extends Command {
             //mysql redis 协程化
             Runtime::enableCoroutine();
         }
+        $document_root='';
+
+        if($this->config['enable_static_handler']&&!Config::get('app')['debug']){
+            echo json_encode($this->config['static_handler_locations']);
+            foreach ($this->config['static_handler_locations'] as $dir) {
+                FileUtil::copy(ROOT_PATH.$dir,ROOT_PATH.$this->config['document_root'].'/'.$dir);
+            }
+            $document_root='.rap_static_file';
+        }
+
 
         $http = new \swoole_http_server($this->config[ 'ip' ], $this->config[ 'port' ]);
         $http->set(['buffer_output_size' => 32 * 1024 * 1024, //必须为数字
-                    'document_root' => $this->config[ 'document_root' ],
+                    'document_root' => ROOT_PATH.$document_root,
                     'enable_static_handler' => $this->config[ 'enable_static_handler' ],
                     'worker_num' => $this->config[ 'worker_num' ],
                     'task_worker_num' => $this->config[ 'task_worker_num' ],
@@ -82,6 +92,9 @@ class SwooleHttpServer extends Command {
 
     public function onShutdown($server) {
         Event::trigger('onServerShutdown', $server);
+        if($this->config['enable_static_handler']) {
+            FileUtil::delete(ROOT_PATH.'.rap_static_file');
+        }
     }
 
     public function onWorkStart($server, $id) {

@@ -15,9 +15,9 @@ class Http {
 
     private static function parseUrl($url) {
         $port = 80;
-        if (strpos($url, 'http://') == 0) {
+        if (strpos($url, 'http://') === 0) {
             $url = str_replace('http://', '', $url);
-        } elseif (strpos($url, 'https://') == 0) {
+        } elseif (strpos($url, 'https://') === 0) {
             $url = str_replace('https://', '', $url);
             $port = 443;
         }

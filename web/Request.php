@@ -40,9 +40,8 @@ class Request {
      */
     public function __construct($response) {
         $this->response = $response;
-        $this->response ->setRequest($this);
+        $this->response->setRequest($this);
     }
-
 
 
     /**
@@ -210,7 +209,7 @@ class Request {
      */
     public function server($name = "", $default = null, $filter = null) {
         if (empty($this->server)) {
-            $this->server = $_SERVER;
+            $this->server = array_change_key_case($_SERVER);
         }
         if (!$name) {
             $value = $this->server;
@@ -319,14 +318,16 @@ class Request {
      * @return bool
      */
     public function isSsl() {
-        $server = $this->server();
-        if (isset($server[ 'HTTPS' ]) && ('1' == $server[ 'HTTPS' ] || 'on' == strtolower($server[ 'HTTPS' ]))) {
+        if ($this->header('x-forwarded-proto') === 'https') {
             return true;
-        } elseif (isset($server[ 'REQUEST_SCHEME' ]) && 'https' == $server[ 'REQUEST_SCHEME' ]) {
+        }
+        if (strpos($this->server('server_protocol'), 'HTTPS')=== 0) {
             return true;
-        } elseif (isset($server[ 'SERVER_PORT' ]) && ('443' == $server[ 'SERVER_PORT' ])) {
+        }
+        if ($this->server('https') === 1 || $this->server('https') === 'on') {
             return true;
-        } elseif (isset($server[ 'HTTP_X_FORWARDED_PROTO' ]) && 'https' == $server[ 'HTTP_X_FORWARDED_PROTO' ]) {
+        }
+        if ($this->server('request_scheme') === 'https') {
             return true;
         }
         return false;
@@ -342,9 +343,11 @@ class Request {
     public function host($host = '') {
         if ($host) {
             $this->host = $host;
+            return null;
         }
-        if (!$this->host) {
-            $this->host = self::server('HTTP_HOST');
+        $this->host = $this->header('x-forwarded-host');
+        if(!$this->host){
+            $this->host=$this->header('host');
         }
         return $this->host;
     }
@@ -583,17 +586,30 @@ class Request {
      * @return mixed
      */
     public function ip($http_remote_ip = '') {
-        if (!$http_remote_ip) {
+        $ip = $this->header('x-real-ip');
+
+        if (!$ip && !$http_remote_ip) {
             $http_remote_ip = Config::get('app', 'http_remote_ip');
+
         }
-        if (!$http_remote_ip) {
-            $http_remote_ip = 'REMOTE_ADDR';
+        if ($http_remote_ip) {
+            $ip = $this->header($http_remote_ip);
         }
-        $ip = $this->server($http_remote_ip);
+
+        if (!$ip) {
+            $ip = $this->server('remote_addr');
+        }
         // IP地址合法验证
         $long = sprintf("%u", ip2long($ip));
         $ip = $long ? [$ip, $long] : ['0.0.0.0', 0];
         return $ip[ 0 ];
     }
+
+    public function isWeixin(){
+        $ua = request()->header('user-agent');
+        return strpos($ua, 'MicroMessenger') !== false;
+    }
+
+
 
 }

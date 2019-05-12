@@ -148,14 +148,6 @@ class SwooleRequest extends Request {
         return $value;
     }
 
-    public function host($host = '') {
-        if ($host) {
-            $this->host = $host;
-        } else {
-            $this->host = $this->header()[ 'host' ];;
-        }
-        return $this->host;
-    }
 
 
 }

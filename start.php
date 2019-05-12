@@ -19,7 +19,6 @@ $loader->setPsr4("rap\\aop\\build\\", RUNTIME.'aop');
 include_once 'common.php';
 //swoole 模式
 if(IS_CLI){
-    \rap\console\Console::initSealSecret($argv);
     \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);
     \rap\ioc\Ioc::get(\rap\web\Application::class)->console($argv);
 }else{

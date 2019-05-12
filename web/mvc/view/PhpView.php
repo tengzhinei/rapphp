@@ -32,7 +32,7 @@ class PhpView implements View {
         extract($this->data, EXTR_OVERWRITE);
         ob_start();
         ob_implicit_flush(0);
-        include $tpl.'.'.$this->config['postfix'];
+        include ROOT_PATH. $tpl.'.'.$this->config['postfix'];
         $content = ob_get_clean();
         return $content;
     }

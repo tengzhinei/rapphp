@@ -39,8 +39,6 @@ class SwooleHttpServer extends Command {
      * @param $seal_secret string 配置中心密钥
      */
     public function run($host_name, $seal_secret) {
-        ServerInfo::$HOST_NAME = $host_name;
-        ServerInfo::$SEAL_SECRET = $host_name;
         $this->config = array_merge($this->config, Config::get('swoole_http'));
         if ($this->config[ 'coroutine' ]) {
             //mysql redis 协程化
@@ -49,13 +47,12 @@ class SwooleHttpServer extends Command {
         $document_root='';
 
         if($this->config['enable_static_handler']&&!Config::get('app')['debug']){
-            echo json_encode($this->config['static_handler_locations']);
+            //开启静态
             foreach ($this->config['static_handler_locations'] as $dir) {
-                FileUtil::copy(ROOT_PATH.$dir,ROOT_PATH.$this->config['document_root'].'/'.$dir);
+                FileUtil::copy(ROOT_PATH.$dir,ROOT_PATH.'.rap_static_file'.'/'.$dir);
             }
             $document_root='.rap_static_file';
         }
-
 
         $http = new \swoole_http_server($this->config[ 'ip' ], $this->config[ 'port' ]);
         $http->set(['buffer_output_size' => 32 * 1024 * 1024, //必须为数字

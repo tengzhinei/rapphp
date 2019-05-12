@@ -13,7 +13,6 @@ use rap\config\Config;
 use rap\console\command\AopFileBuild;
 use rap\console\command\RecordBuild;
 use rap\ioc\Ioc;
-use rap\swoole\web\ServerInfo;
 use rap\swoole\web\SwooleHttpServer;
 use rap\swoole\websocket\WebSocketServer;
 
@@ -98,30 +97,6 @@ class Console {
         $this->invoke($command_obj, $params);
     }
 
-    public  static  function initSealSecret($argv){
-        array_shift($argv);
-        array_shift($argv);
-        $params = [];
-        for ($i = 0; $i < count($argv); $i += 2) {
-            $key = $argv[ $i ];
-            $value = $argv[ $i + 1 ];
-            if ($value === null || strpos('-', $value) === 0) {
-                $params[ substr($key, 1) ] = true;
-                $i--;
-                continue;
-            }
-            if ($value == 'true') {
-                $value = true;
-            }
-            if ($value == 'false') {
-                $value = false;
-            }
-            $params[ substr($key, 1) ] = $value;
-        }
-        if($params['seal_secret']){
-            ServerInfo::$SEAL_SECRET=$params['seal_secret'];
-        }
-    }
 
     public function invoke($command, $command_params) {
         $method = new \ReflectionMethod(get_class($command), 'run');

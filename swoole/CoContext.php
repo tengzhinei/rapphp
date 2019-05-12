@@ -21,7 +21,8 @@ class CoContext {
     const REDIS_NAME        = '___REDIS_NAME__';
     const REDIS_SELECT      = '___REDIS_SELECT__';
 
-    public $instances = [];
+    public        $instances = [];
+    public static $holder    = null;
 
     private static $coHolders = [];
 
@@ -31,7 +32,7 @@ class CoContext {
      */
     private static $id = 1;
 
-    /**`
+    /**
      * 获取作用域的id
      * @return int
      */
@@ -47,12 +48,19 @@ class CoContext {
     }
 
     public static function getContext() {
+        if (version_compare(swoole_version(), '4.3.0') >= 0) {
+            if (!self::$holder) {
+                self::$holder = new CoContext();
+            }
+            return self::$holder;
+        };
         $uid = 'cid_' . self::id();
         $holder = self::$coHolders[ $uid ];
         if (!$holder) {
             $holder = new CoContext();
             self::$coHolders[ $uid ] = $holder;
         }
+
         return $holder;
     }
 
@@ -77,39 +85,55 @@ class CoContext {
     }
 
     public function set($name, $bean = null) {
-        if (!$bean) {
-            unset($bean);
-            $this->instances[ $name ] = null;
-        } else {
-            $this->instances[ $name ] = $bean;
+        if (version_compare(swoole_version(), '4.3.0') >= 0) {
+            \Co::getContext()[$name]=$bean;
+        }else{
+            if (!$bean) {
+                unset($bean);
+                $this->instances[ $name ] = null;
+            } else {
+                $this->instances[ $name ] = $bean;
+            }
         }
     }
 
     public function get($name) {
-        return $this->instances[ $name ];
+        if (version_compare(swoole_version(), '4.3.0') >= 0) {
+            return \Co::getContext()[$name];
+        }else{
+            return $this->instances[ $name ];
+        }
     }
 
     public function remove($name) {
-        unset($this->instances[ $name ]);
+        if (version_compare(swoole_version(), '4.3.0') >= 0) {
+            unset(\Co::getContext()[$name]);
+        }else{
+            unset($this->instances[ $name ]);
+        }
     }
 
     /**
+     * swoole 4.3以上会自动释放
      * 释放协程内资源,系统调用
      */
     public function release() {
-        /* @var $pool ResourcePool */
-        $pool = ResourcePool::instance();
-        $id = CoContext::id();
-        unset(self::$coHolders[ $id ]);
-        foreach ($this->instances as $name => $bean) {
-            if ($bean instanceof PoolAble) {
-                $pool->release($bean);
-            } else {
-                unset($bean);
+        if (version_compare(swoole_version(), '4.3.0')< 0) {
+            /* @var $pool ResourcePool */
+            $pool = ResourcePool::instance();
+            $id = CoContext::id();
+            unset(self::$coHolders[ $id ]);
+            foreach ($this->instances as $name => $bean) {
+                if ($bean instanceof PoolAble) {
+                    $pool->release($bean);
+                } else {
+                    unset($bean);
+                }
             }
+            unset($this->instances);
+            $this->instances = [];
         }
-        unset($this->instances);
-        $this->instances = [];
+
     }
 
 

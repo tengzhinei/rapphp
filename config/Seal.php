@@ -9,7 +9,6 @@ namespace rap\config;
 
 use rap\aop\Event;
 use rap\ioc\Ioc;
-use rap\swoole\web\ServerInfo;
 use rap\util\FileUtil;
 use rap\util\http\Http;
 use rap\web\Application;
@@ -30,9 +29,6 @@ class Seal implements Interceptor {
         $config = Config::getFileConfig();
         $seal = $config[ 'seal' ];
         $secret = $seal[ 'secret' ];
-        if (ServerInfo::$SEAL_SECRET) {
-            $secret = ServerInfo::$SEAL_SECRET;
-        }
         $local_port = $config[ 'swoole_http' ][ 'port' ];
         if (!$local_port) {
             $local_port = $config[ 'websocket' ][ 'port' ];
@@ -110,9 +106,7 @@ class Seal implements Interceptor {
             $port = $seal[ 'port' ];
         }
         $secret = $seal[ 'secret' ];
-        if (ServerInfo::$SEAL_SECRET) {
-            $secret = ServerInfo::$SEAL_SECRET;
-        }
+
         $data = ['app_name' => $seal[ 'app_name' ],
                  'secret' => $secret,
                  'client_name' => $config[ 'app' ][ 'name' ] . '(' . self::$local_ip . ')',];

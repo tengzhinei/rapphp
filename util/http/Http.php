@@ -49,7 +49,7 @@ class Http {
             if(!$hostPath[0]){
                 return  new HttpResponse(-1, [], '');
             }
-            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ]);
+            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ],$hostPath[ 2 ]==443);
             if ($header) {
                 $cli->setHeaders($header);
             }
@@ -70,7 +70,7 @@ class Http {
             if(!$hostPath[0]){
                 return  new HttpResponse(-1, [], '');
             }
-            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ]);
+            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ],$hostPath[ 2 ]==443);
             if ($header) {
                 $cli->setHeaders($header);
             }
@@ -93,7 +93,7 @@ class Http {
             if(!$hostPath[0]){
                 return  new HttpResponse(-1, [], '');
             }
-            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ]);
+            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ],$hostPath[ 2 ]==443);
             if ($header) {
                 $cli->setHeaders($header);
             }
@@ -118,7 +118,7 @@ class Http {
         if (IS_SWOOLE && \Co::getuid()) {
             $hostPath = self::parseUrl($url);
             if(!$hostPath[0]){
-                return  new HttpResponse(-1, [], '');
+                return  new HttpResponse(-1, [], '',$hostPath[ 2 ]==443);
             }
             $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ]);
             if ($header) {

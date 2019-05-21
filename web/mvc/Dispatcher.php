@@ -6,6 +6,7 @@ use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\log\Log;
 use rap\swoole\CoContext;
+use rap\swoole\Context;
 use rap\web\mvc\view\TwigView;
 use rap\web\Request;
 use rap\web\Response;
@@ -88,8 +89,8 @@ class Dispatcher {
             $value = json_encode($value);
             $response->setContent($value);
         }
-        $time = $request->holderGet('rap-start-time');
-        $response->header('rap-time', getMillisecond() - $time);
+        $start_time=$request->server('request_time_float');
+        $response->header('rap-time', getMillisecond() - (int)($start_time*1000));
         $response->send();
     }
 

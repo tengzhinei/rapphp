@@ -5,6 +5,8 @@ use rap\config\Config;
 use rap\ioc\Ioc;
 use rap\session\Session;
 use rap\storage\File;
+use rap\swoole\CoContext;
+use rap\swoole\Context;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -321,7 +323,7 @@ class Request {
         if ($this->header('x-forwarded-proto') === 'https') {
             return true;
         }
-        if (strpos($this->server('server_protocol'), 'HTTPS')=== 0) {
+        if (strpos($this->server('server_protocol'), 'HTTPS') === 0) {
             return true;
         }
         if ($this->server('https') === 1 || $this->server('https') === 'on') {
@@ -346,8 +348,8 @@ class Request {
             return null;
         }
         $this->host = $this->header('x-forwarded-host');
-        if(!$this->host){
-            $this->host=$this->header('host');
+        if (!$this->host) {
+            $this->host = $this->header('host');
         }
         return $this->host;
     }
@@ -544,6 +546,13 @@ class Request {
     }
 
 
+    /**
+     * 如果不使用 session 请使用 Context 和拦截器做用户信息
+     *
+     * @param null $user_id
+     *
+     * @return null|Session
+     */
     public function userId($user_id = null) {
         if ($user_id == null) {
             return $this->session('user_id');
@@ -605,11 +614,10 @@ class Request {
         return $ip[ 0 ];
     }
 
-    public function isWeixin(){
+    public function isWeixin() {
         $ua = request()->header('user-agent');
         return strpos($ua, 'MicroMessenger') !== false;
     }
-
 
 
 }

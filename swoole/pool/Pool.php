@@ -43,17 +43,24 @@ class Pool {
             /* @var $bean Connection */
             $bean = ResourcePool::instance()->get($name);
             $db = $context->get(CoContext::CONNECTION_scheme);
-            $bean->userDb($db);
+            if($db!=null){
+                $bean->userDb($db);
+            }
+            return $bean;
         }
         if ($name == CacheInterface::class) {
             $connection = $context->get(CoContext::REDIS_NAME);
             if ($connection) {
                 $name = $connection;
             }
-            $select = $context->get(CoContext::REDIS_SELECT);
-            if ($connection instanceof RedisCache) {
-                $connection->select($select);
+            $bean = ResourcePool::instance()->get($name);
+            if ($bean instanceof RedisCache) {
+                $select = $context->get(CoContext::REDIS_SELECT);
+                if($select!=null){
+                    $bean->select($select);
+                }
             }
+            return $bean;
         }
         return ResourcePool::instance()->get($name);
     }

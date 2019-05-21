@@ -1,5 +1,6 @@
 <?php
 namespace rap\exception\handler;
+use rap\exception\ErrorException;
 use rap\exception\MsgException;
 use rap\log\Log;
 use rap\web\Request;
@@ -12,17 +13,21 @@ use rap\web\Response;
  */
 class ApiExceptionHandler implements ExceptionHandler{
     function handler(Request $request, Response $response, \Exception $exception){
-        $msg=$exception instanceof MsgException?$exception->getMessage():"服务器处理过程中出现问题";
+        if($exception instanceof ErrorException){
+            $exception=$exception->error;
+        }
+
+        $msg=$exception->getMessage();
+        if(!($exception instanceof MsgException)){
+            $msg  .="  |" .str_replace("rap\\exception\\","",get_class($exception))." in ". str_replace(ROOT_PATH,"",$exception->getFile())." line ".$exception->getLine();
+        }
         $response->contentType("application/json");
         $value=json_encode([
             'success'=>false,
-            'code'=>$exception->getCode(),
-            'msg'=>$msg,
-            'data'=>$exception instanceof MsgException?$exception->data:''
+            'code'=>'101010',
+            'msg'=>$msg
         ]);
-
-        Log::debug($value);
-        $response->setContent($value);
+        $response->setContent( $value);
         $response->send();
     }
 

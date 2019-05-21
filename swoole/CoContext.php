@@ -19,6 +19,7 @@ class CoContext {
     const CONNECTION_NAME   = '___CONNECTION_NAME__';
     const CONNECTION_scheme = '___CONNECTION_DB__';
     const REDIS_NAME        = '___REDIS_NAME__';
+    const LOGIN_USER        = '___LOGIN_USER__';
     const REDIS_SELECT      = '___REDIS_SELECT__';
 
     public        $instances = [];

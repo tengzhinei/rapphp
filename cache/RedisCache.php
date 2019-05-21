@@ -28,7 +28,7 @@ class RedisCache implements CacheInterface, PoolAble {
                           'password' => '',
                           'select' => 0,
                           'timeout' => 0,
-                          'expire' => 0,
+                          'expire' => -1,
                           'pool' => [],
                           'persistent' => false];
 
@@ -37,6 +37,7 @@ class RedisCache implements CacheInterface, PoolAble {
         if (!empty($options)) {
             $this->options = array_merge($this->options, $options);
         }
+
     }
 
     public function ping() {
@@ -81,6 +82,7 @@ class RedisCache implements CacheInterface, PoolAble {
         if (!$expire) {
             $expire = $this->options[ 'expire' ];
         }
+
         $key = $name;
         //为支持对象类型 进行 serialize化
         $value = serialize($value);

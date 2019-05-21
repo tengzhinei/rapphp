@@ -1,6 +1,7 @@
 <?php
 namespace rap\exception\handler;
 use rap\exception\ErrorException;
+use rap\exception\MsgException;
 use rap\web\Request;
 use rap\web\Response;
 /**
@@ -17,14 +18,17 @@ class ApiExceptionReport implements ExceptionHandler{
         if($exception instanceof ErrorException){
             $exception=$exception->error;
         }
-        $msg=$exception->getMessage()."  |" .str_replace("rap\\exception\\","",get_class($exception))." in ". str_replace(ROOT_PATH,"",$exception->getFile())." line ".$exception->getLine();
+        $msg=$exception->getMessage();
+        if(!($exception instanceof MsgException)){
+            $msg  .="  |" .str_replace("rap\\exception\\","",get_class($exception))." in ". str_replace(ROOT_PATH,"",$exception->getFile())." line ".$exception->getLine();
+        }
         $response->contentType("application/json");
         $value=json_encode([
             'success'=>false,
             'code'=>'101010',
             'msg'=>$msg
         ]);
-        $response->setContent( $msg);
+        $response->setContent( $value);
         $response->send();
     }
 }

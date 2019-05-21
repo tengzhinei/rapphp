@@ -30,6 +30,7 @@ class PickCaptcha {
     public $bgImgDir;
 
     public function build($id = '', $box = false) {
+        mt_srand();
         $this->im = imagecreate($this->w, $this->h);
         imagecolorallocate($this->im, mt_rand(1, 150), mt_rand(1, 150), mt_rand(1, 150));
         $color = imagecolorallocate($this->im, 255, 255, rand(1, 255));

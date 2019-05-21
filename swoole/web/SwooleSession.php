@@ -11,6 +11,7 @@ namespace rap\swoole\web;
 
 use rap\cache\Cache;
 use rap\session\Session;
+use rap\swoole\pool\Pool;
 
 class SwooleSession implements Session{
 
@@ -57,6 +58,7 @@ class SwooleSession implements Session{
         $session = Cache::get($session_key,[]);
         $session[$key]=$value;
         Cache::set($session_key,$session,-1);
+
     }
 
     public function get($key){

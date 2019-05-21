@@ -13,6 +13,7 @@ use rap\db\SqliteConnection;
 use rap\ioc\Ioc;
 use rap\log\FileLog;
 use rap\log\LogInterface;
+use rap\session\RedisSession;
 use rap\storage\LocalFileStorage;
 use rap\storage\OssStorage;
 use rap\storage\StorageInterface;
@@ -127,6 +128,14 @@ class RapApplication extends Application {
                 });
             }
         }
+        $item = $config[ "session" ];
+        if ($item) {
+        if ($item[ 'type' ] == 'redis') {
+                Ioc::bind(RedisSession::REDIS_CACHE_NAME, RedisCache::class, function(RedisCache $redisCache) use ($item) {
+                    $redisCache->config($item);
+                });
+            }
+        }
         $item = $config[ "log" ];
         if ($item) {
             if ($item[ 'type' ] == 'file') {
@@ -141,10 +150,11 @@ class RapApplication extends Application {
             }
             if ($config[ 'cache' ]) {
                 ResourcePool::instance()->preparePool(CacheInterface::class);
-
+            }
+            if ($config[ 'session' ]&&$config['type']=='redis') {
+                ResourcePool::instance()->preparePool(RedisSession::REDIS_CACHE_NAME);
             }
         }
-
 
     }
 

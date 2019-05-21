@@ -10,7 +10,7 @@ namespace rap\web;
 
 
 use rap\config\Config;
-use rap\session\StorageSession;
+use rap\session\RedisSession;
 use rap\session\HttpSession;
 use rap\session\Session;
 
@@ -36,7 +36,7 @@ class Response {
     private $request;
 
     public function setRequest(Request $request) {
-        $this->request=$request;
+        $this->request = $request;
     }
 
     public function send() {
@@ -157,8 +157,8 @@ class Response {
     public function session() {
 
         if (!$this->session) {
-            if (Config::get('app', 'colony_session')) {
-                $this->session = new StorageSession($this->request,$this);
+            if (Config::get('session', 'type') == 'redis') {
+                $this->session = new RedisSession($this->request, $this);
             } else {
                 $this->session = new HttpSession();
             }

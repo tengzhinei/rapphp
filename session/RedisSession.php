@@ -1,125 +1,87 @@
 <?php
-namespace rap\session;
 /**
- * 南京灵衍信息科技有限公司
  * User: jinghao@duohuo.net
- * Date: 18/1/12
- * Time: 下午2:01
+ * Date: 2019/4/10 3:21 PM
+
  */
-class RedisSession extends \SessionHandler
-{
-    /** @var \Redis */
-    protected $handler = null;
-    protected $config  = [
-        'host'         => '127.0.0.1', // redis主机
-        'port'         => 6379, // redis端口
-        'password'     => '', // 密码
-        'select'       => 0, // 操作库
-        'expire'       => 3600, // 有效期(秒)
-        'timeout'      => 0, // 超时时间(秒)
-        'persistent'   => true, // 是否长连接
-        'session_name' => '', // sessionkey前缀
-    ];
 
-    public function __construct($config = [])
-    {
-        $this->config = array_merge($this->config, $config);
-    }
+namespace rap\session;
+
+
+use rap\cache\Cache;
+use rap\web\Request;
+use rap\web\Response;
+
+class RedisSession implements Session{
+
+    const REDIS_CACHE_NAME="IOC_REDIS_CACHE_NAME";
+
+
+    /**
+     * @var Request
+     */
+    private $request;
+
+    /**
+     * @var Response
+     */
+    private $response;
+
 
 
 
     /**
-     * 打开Session
-     * @access public
-     * @param string $savePath
-     * @param mixed  $sessionName
-     * @return bool
-     * @throws \Exception
+     * SwooleSession constructor.
+     * @param Request $request
+     * @param Response $response
      */
-    public function open($savePath, $sessionName)
-    {
-        // 检测php环境
-        if (!extension_loaded('redis')) {
-            throw new \Exception('not support:redis');
+    public function __construct(Request $request, Response $response){
+        $this->request = $request;
+        $this->response = $response;
+    }
+
+
+    public function sessionId(){
+        $sessionId=$this->request->cookie('PHPSESSID');
+        if(!$sessionId){
+            $sessionId=md5(uniqid());
+            $this->response->cookie('PHPSESSID',$sessionId);
         }
-        $this->handler = new \Redis;
-
-        // 建立连接
-        $func = $this->config['persistent'] ? 'pconnect' : 'connect';
-        $this->handler->$func($this->config['host'], $this->config['port'], $this->config['timeout']);
-
-        if ('' != $this->config['password']) {
-            $this->handler->auth($this->config['password']);
-        }
-
-        if (0 != $this->config['select']) {
-            $this->handler->select($this->config['select']);
-        }
-        return true;
+        return $sessionId;
     }
 
-    /**
-     * 关闭Session
-     * @access public
-     */
-    public function close()
-    {
-        $this->gc(ini_get('session.gc_maxlifetime'));
-        $this->handler->close();
-        $this->handler = null;
-        return true;
+    public function start(){
+
     }
 
-    /**
-     * 读取Session
-     * @access public
-     * @param string $sessID
-     * @return bool|string
-     */
-    public function read($sessID)
-    {
-        return $this->handler->get($this->config['session_name'] . $sessID);
+    public function pause(){
+
     }
 
-    /**
-     * 写入Session
-     * @access public
-     * @param string $sessID
-     * @param String $sessData
-     * @return bool
-     */
-    public function write($sessID, $sessData)
-    {
-        if ($this->config['expire'] > 0) {
-            return $this->handler->setex($this->config['session_name'] . $sessID, $this->config['expire'], $sessData);
-        } else {
-            return $this->handler->set($this->config['session_name'] . $sessID, $sessData);
-        }
+    public function set($key, $value){
+        $session_key='php_session'.self::sessionId();
+        $session = Cache::get(self::REDIS_CACHE_NAME)->get($session_key,[]);
+        $session[$key]=$value;
+        Cache::get(self::REDIS_CACHE_NAME)->set($session_key,$session,60*60*24);
     }
 
-    /**
-     * 删除Session
-     * @access public
-     * @param string $sessID
-     * @return bool|void
-     */
-    public function destroy($sessID)
-    {
-        $this->handler->delete($this->config['session_name'] . $sessID);
-        return true;
+    public function get($key){
+        $session_key='php_session'.self::sessionId();
+        $session = Cache::get(self::REDIS_CACHE_NAME)->get($session_key,[]);
+        return  $session[$key];
     }
 
-    /**
-     * Session 垃圾回收
-     * @access public
-     * @param string $sessMaxLifeTime
-     * @return bool
-     */
-    public function gc($sessMaxLifeTime)
-    {
-        return true;
+    public function del($key){
+        $session_key = 'php_session' . self::sessionId();
+        $session = Cache::get(self::REDIS_CACHE_NAME)->get($session_key, []);
+        unset($session[$key]);
+        Cache::get(self::REDIS_CACHE_NAME)->set($session_key,$session,60*60*24);
     }
 
+    public function clear(){
+        $session_key = 'php_session' . self::sessionId();
+        Cache::get(self::REDIS_CACHE_NAME)->remove($session_key);
+    }
 
 
 }

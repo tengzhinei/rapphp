@@ -49,7 +49,7 @@ class CoContext {
     }
 
     public static function getContext() {
-        if (version_compare(swoole_version(), '4.3.0') >= 0) {
+        if (IS_SWOOLE&&version_compare(swoole_version(), '4.3.0') >= 0) {
             if (!self::$holder) {
                 self::$holder = new CoContext();
             }
@@ -86,7 +86,7 @@ class CoContext {
     }
 
     public function set($name, $bean = null) {
-        if (version_compare(swoole_version(), '4.3.0') >= 0) {
+        if (IS_SWOOLE&&version_compare(swoole_version(), '4.3.0') >= 0) {
             \Co::getContext()[$name]=$bean;
         }else{
             if (!$bean) {
@@ -99,7 +99,7 @@ class CoContext {
     }
 
     public function get($name) {
-        if (version_compare(swoole_version(), '4.3.0') >= 0) {
+        if (IS_SWOOLE&&version_compare(swoole_version(), '4.3.0') >= 0) {
             return \Co::getContext()[$name];
         }else{
             return $this->instances[ $name ];
@@ -107,7 +107,7 @@ class CoContext {
     }
 
     public function remove($name) {
-        if (version_compare(swoole_version(), '4.3.0') >= 0) {
+        if (IS_SWOOLE&&version_compare(swoole_version(), '4.3.0') >= 0) {
             unset(\Co::getContext()[$name]);
         }else{
             unset($this->instances[ $name ]);
@@ -119,7 +119,7 @@ class CoContext {
      * 释放协程内资源,系统调用
      */
     public function release() {
-        if (version_compare(swoole_version(), '4.3.0')< 0) {
+        if (IS_SWOOLE&&version_compare(swoole_version(), '4.3.0')< 0) {
             /* @var $pool ResourcePool */
             $pool = ResourcePool::instance();
             $id = CoContext::id();

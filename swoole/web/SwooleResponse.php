@@ -9,6 +9,7 @@
 namespace rap\swoole\web;
 
 
+use rap\session\RedisSession;
 use rap\session\Session;
 use rap\web\Response;
 
@@ -46,7 +47,7 @@ class SwooleResponse extends Response{
      */
     public function session(){
         if(!$this->session){
-            $this->session=new SwooleSession($this->request,$this);
+            $this->session=new RedisSession($this->request,$this);
         }
         return $this->session;
     }

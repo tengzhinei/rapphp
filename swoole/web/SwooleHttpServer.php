@@ -33,6 +33,7 @@ class SwooleHttpServer extends Command {
                        'worker_num' => 1,
                        'task_max_request' => 1000,
                        'coroutine' => true,
+                       'http2'=>true,
                        'auto_reload' => false];
 
 
@@ -63,7 +64,7 @@ class SwooleHttpServer extends Command {
                     'worker_num' => $this->config[ 'worker_num' ],
                     'task_worker_num' => $this->config[ 'task_worker_num' ],
                     'task_max_request' => $this->config[ 'task_max_request' ],
-                    'open_http2_protocol' => true]);
+                    'open_http2_protocol' =>  $this->config[ 'http2' ]]);
         $http->on('workerstart', [$this, 'onWorkStart']);
         $http->on('workerstop', [$this, 'onWorkerStop']);
         $http->on('start', [$this, 'onStart']);
@@ -143,9 +144,14 @@ class SwooleHttpServer extends Command {
             //生成 session
             $rep->session()->sessionId();
             CoContext::getContext()->setRequest($req);
+            //swoole  4.2.9
+            defer(function(){
+                CoContext::getContext()->release();
+                Event::trigger('onRequestDefer',[]);
+            });
             $application->start($req, $rep);
             //释放协程里的变量和
-            CoContext::getContext()->release();
+
         } catch (\Exception $exception) {
             $response->end($exception->getMessage());
             return;

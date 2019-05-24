@@ -19,8 +19,8 @@ use rap\web\Response;
 
 class RpcHandlerMapping implements HandlerMapping {
 
-    private $config = ['path' => 'rpc_____call',
-                       'token' => '',];
+    private $config = ['path' => '/rpc_____call',
+                       ];
 
     private $rpcHandlerAdapter;
 
@@ -35,9 +35,11 @@ class RpcHandlerMapping implements HandlerMapping {
 
     public function map(Request $request, Response $response) {
         $path = $request->routerPath();
+
         if ($path !== $this->config[ 'path' ]) {
             return null;
         }
+
         return $this->rpcHandlerAdapter;
     }
 

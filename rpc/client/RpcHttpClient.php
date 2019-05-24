@@ -11,7 +11,9 @@ namespace rap\rpc\client;
 
 
 use rap\config\Config;
+use rap\log\Log;
 use rap\swoole\pool\PoolTrait;
+use rap\util\FileUtil;
 use rap\util\http\Http;
 use Swoole\Coroutine\Http\Client;
 
@@ -29,10 +31,11 @@ class RpcHttpClient implements RpcClient {
 
     private $config = ['host' => '',
                        'port' => 9501,
-                       'path' => 'rpc_____call',
-                       'token' => '',
+                       'base_path'=>'',
+                       'path' => '/rpc_____call',
+                       'authorization' => '',
                        'serialize' => 'serialize',
-                       'timeout' => 0.05,
+                       'timeout' => 0.5,
                        'fuse_time'=>30,//熔断器熔断后多久进入半开状态
                        'fuse_fail_count'=>20,//连续失败多少次开启熔断
                        'pool' => ['min' => 1, 'max' => 10]];
@@ -53,17 +56,21 @@ class RpcHttpClient implements RpcClient {
     /**
      * 发起请求
      *
-     * @param string $name 接口名称
-     * @param mixed  $data 对象或数组
+     * @param $interface string 接口
+     * @param $method    string 方法名
+     * @param $data      array 参数
+     * @param $header      array 参数
+     * @return mixed
      *
      * @return mixed   返回结果
      */
-    public function query($interface, $method, $data) {
-        $headers = ['rpc_client_name' => $this->config[ 'name' ],
-                    'rpc_token' => $this->config[ 'token' ],
-                    'rpc_serialize' => $this->config[ 'serialize' ],
-                    'rpc_interface' => $interface,
-                    'rpc_method' => $method];
+    public function query($interface, $method, $data,$header=[]) {
+        $headers =array_merge(['Rpc-Client-Name' => Config::get('app')['name'],
+                               'Authorization' => $this->config[ 'authorization' ],
+                               'Rpc-Serialize' => $this->config[ 'serialize' ],
+                               'Rpc-Interface' => $interface,
+                               'Rpc-Method' => $method],$header) ;
+
         if (IS_SWOOLE && \Co::getuid()) {
             return $this->queryCoroutine($headers, $data);
         } else {
@@ -78,34 +85,27 @@ class RpcHttpClient implements RpcClient {
         if ($this->config[ 'port' ] == 443) {
             $scheme = 'https://';
         }
-        $path = $this->config[ 'path' ];
-        if (strpos($path, '/') != 0) {
-            $path = '/' . $path;
-        }
         if ($this->config[ 'serialize' ] == 'serialize') {
             $data = serialize($data);
         } else {
             $data = json_encode($data);
         }
-        $response = Http::put($scheme . $this->config[ 'host' ] . ':' . $this->config[ 'port' ] . $path, $headers, $data);
+        $response = Http::put($scheme . $this->config[ 'host' ] . ':' . $this->config[ 'port' ] . $this->config[
+            'base_path' ].$this->config[ 'path' ], $headers, $data,$this->config[ 'timeout' ]);
         if ($response->status_code == 200) {
             $type = $response->headers[ 'content-type' ];
             $data = $response->body;
-            if ($data && strpos($type, 'application/rap-rpc')) {
+            if ($data && strpos($type, 'application/php-serialize')==0) {
                 $data = unserialize($data);
-                //有错误异常直接外抛
-                if ($data instanceof \RuntimeException) {
-                    throw $data;
-                }
-            } else if ($data && strpos($type, 'application/json')) {
+            } else if ($data && strpos($type, 'application/json')==0) {
                 $data = json_decode($data, true);
-                if( $response->headers[ 'rpc-exception' ]){
-                    $type=$data['type'];
-                    $msg=$data['msg'];
-                    $code=$data['code'];
-                    $exception=new $type($msg,$code);
-                    throw $exception;
-                }
+            }
+            if($response->headers[ 'rpc-exception' ]){
+                $type=$data['type'];
+                $msg=$data['msg'];
+                $code=$data['code'];
+                $exception=new $type($msg,$code);
+                throw $exception;
             }
             return $data;
         } else {
@@ -115,32 +115,30 @@ class RpcHttpClient implements RpcClient {
 
     public function queryCoroutine($headers, $data) {
         $cli = new Client($this->config[ 'host' ], $this->config[ 'port' ]);
+        $cli->set([ 'timeout' => $this->config[ 'timeout' ]]);
         $cli->setHeaders($headers);
         if ($this->config[ 'serialize' ] == 'serialize') {
             $data = serialize($data);
         } else {
             $data = json_encode($data);
         }
-        $cli->post($this->config[ 'path' ], $data);
+        $cli->post($this->config[ 'base_path' ].$this->config[ 'path' ], $data);
         $cli->close();
+
         if ($cli->statusCode == 200) {
             $type = $cli->headers[ 'content-type' ];
             $data = $cli->body;
-            if ($data && strpos($type, 'application/rap-rpc')) {
+            if ($data && strpos($type, 'application/php-serialize')==0) {
                 $data = unserialize($data);
-                //有错误异常直接外抛
-                if ($data instanceof \RuntimeException) {
-                    throw $data;
-                }
-            } else if ($data && strpos($type, 'application/json')) {
+            } else if ($data && strpos($type, 'application/json')==0) {
                 $data = json_decode($data, true);
-                if( $cli->headers[ 'rpc-exception' ]){
-                    $type=$data['type'];
-                    $msg=$data['msg'];
-                    $code=$data['code'];
-                    $exception=new $type($msg,$code);
-                    throw $exception;
-                }
+            }
+            if( $cli->headers[ 'rpc-exception' ]){
+                $type=$data['type'];
+                $msg=$data['msg'];
+                $code=$data['code'];
+                $exception=new $type($msg,$code);
+                throw $exception;
             }
             return $data;
         } else {

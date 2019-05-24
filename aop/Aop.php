@@ -359,17 +359,23 @@ class Aop {
                     if ($param->isDefaultValueAvailable()) {
                         $value = $param->getDefaultValue();
                         $isStr = gettype($value) == "string";
+                        $isArray = gettype($value) == "array";
                         $methodArgs .= "=";
                         if ($value === null) {
                             $methodArgs .= 'null';
                         } else {
-                            if ($isStr) {
-                                $methodArgs .= "\"";
+                            if($isArray){
+                                $methodArgs .= "[]";
+                            }else{
+                                if ($isStr) {
+                                    $methodArgs .= "\"";
+                                }
+                                $methodArgs .= $param->getDefaultValue();
+                                if ($isStr) {
+                                    $methodArgs .= "\"";
+                                }
                             }
-                            $methodArgs .= $param->getDefaultValue();
-                            if ($isStr) {
-                                $methodArgs .= "\"";
-                            }
+
                         }
                     }
                     $pointArgs .= "\$pointArgs[" . $index . "]";
@@ -396,7 +402,6 @@ class Aop {
             }
             //前置操作
             \$actions = Aop::getBeforeActions($BeanClazz, __FUNCTION__);
-            \$pointArgs=\$point->getArgs();
             if(\$actions){
                 foreach (\$actions as \$action) {
                     if (\$action[ 'call' ]) {
@@ -410,20 +415,29 @@ class Aop {
                     }
                 }
             }
-            \$val=$call_parent;
+            \$pointArgs=\$point->getArgs();
             //后置操作
-            \$actions = Aop::getAfterActions($BeanClazz, __FUNCTION__);
-             if(\$actions){
-                foreach (\$actions as \$action) {
-                    if (\$action[ 'call' ]) {
-                        \$val = \$action[ 'call' ](\$point, \$val);
-                    } else {
-                        \$action_name=  \$action[ 'action' ];
-                        \$val = Ioc::get(\$action[ 'class' ])->\$action_name(\$point, \$val);
+            try{
+               \$val=$call_parent;
+               return \$val;
+            }catch (\Throwable \$e){
+                \$val=\$e;
+                 throw \$e;
+            }finally{
+                \$actions = Aop::getAfterActions($BeanClazz, __FUNCTION__);
+                 if(\$actions){
+                    foreach (\$actions as \$action) {
+                        if (\$action[ 'call' ]) {
+                             \$action[ 'call' ](\$point, \$val);
+                        } else {
+                            \$action_name=  \$action[ 'action' ];
+                             Ioc::get(\$action[ 'class' ])->\$action_name(\$point, \$val);
+                        }
                     }
                 }
             }
-            return \$val;
+          
+         
         }
 
 EOF;
@@ -444,11 +458,11 @@ class $clazzSimpleName $extend_implements $clazzExtend{
 }
 EOF;
 
-            $dir = $dir . str_replace("\\", DS, $nameSpace);
-            if (!file_exists($dir)) {
-                mkdir($dir, 0777, true);
+            $file_dir = $dir . str_replace("\\", DS, $nameSpace);
+            if (!file_exists($file_dir)) {
+                mkdir($file_dir, 0777, true);
             }
-            $path = $dir . "/" . $clazzSimpleName . ".php";
+            $path = $file_dir . "/" . $clazzSimpleName . ".php";
             $file = fopen($path, "w");
             fwrite($file, $clazzStr);
         }

@@ -97,6 +97,7 @@ class Captcha {
      * @param string $id
      */
     public function send($id = '') {
+        mt_srand();
         // 图片宽(px)
         $this->imageW || $this->imageW = $this->length * $this->fontSize * 1.5 + $this->length * $this->fontSize / 2;
         // 图片高(px)

@@ -31,7 +31,6 @@ class ServerWatch {
             }
             $this->last_time_id = swoole_timer_after(2 * 1000, function() use ($server) {
                 $this->last_time_id = 0;
-
                 $server->reload();
             });
         });

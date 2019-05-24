@@ -37,7 +37,7 @@ class Rpc {
         $dispatcher = Ioc::get(Dispatcher::class);
         //rpc 提供方
         $config = Config::getFileConfig()[ 'rpc_service' ];
-        if ($config) {
+        if ($config&&$config['open']) {
             $mapping = Ioc::get(RpcHandlerMapping::class);
             $dispatcher->addHandlerMapping($mapping);
         }

@@ -20,10 +20,10 @@ interface RpcClient extends PoolAble {
      * @param $interface string 接口
      * @param $method    string 方法名
      * @param $data      array 参数
-     *
+     * @param $header      array 参数
      * @return mixed
      */
-    public function query($interface, $method, $data);
+    public function query($interface, $method, $data,$header=[]);
 
     public function fuseConfig();
 

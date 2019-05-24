@@ -49,6 +49,7 @@ class RpcWave {
         if ($obj->FUSE_STATUS == RpcWave::FUSE_STATUS_OPEN) {
             //熔断30s
             if (time() - $obj->FUSE_OPEN_TIME < $fuseConfig[ 'fuse_time' ]) {
+                Pool::release($client);
                 //使用服务降级
                 return null;
             }

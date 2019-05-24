@@ -21,10 +21,11 @@ class RpcHttp2Client implements RpcClient {
 
     private $config = ['host' => '',
                        'port' => 9501,
-                       'path' => 'rpc_____call',
-                       'token' => '',
+                       'path' => '/rpc_____call',
+                       'base_path'=>'',
+                       'authorization' => '',
                        'serialize' => 'serialize',
-                       'timeout' => 0.05,
+                       'timeout' => 0.5,
                        'fuse_time'=>30,//熔断器熔断后多久进入半开状态
                        'fuse_fail_count'=>20,//连续失败多少次开启熔断
                        'pool' => ['min' => 1, 'max' => 10]];
@@ -52,12 +53,15 @@ class RpcHttp2Client implements RpcClient {
     /**
      * 发起请求
      *
-     * @param string $name 接口名称
-     * @param mixed  $data 对象或数组
+     * @param $interface string 接口
+     * @param $method    string 方法名
+     * @param $data      array 参数
+     * @param $header      array 参数
+     * @return mixed
      *
      * @return mixed   返回结果
      */
-    public function query($interface, $method, $data) {
+    public function query($interface, $method, $data,$header=[]) {
         //
         if (!$this->cli) {
             $this->connect();
@@ -72,12 +76,13 @@ class RpcHttp2Client implements RpcClient {
 
         $req = new \swoole_http2_request();
         $req->method = 'POST';
-        $req->path = $this->config[ 'path' ];
-        $req->headers = ['rpc_client_name' => $this->config[ 'name' ],
-                         'rpc_serialize' => $this->config[ 'serialize' ],
-                         'rpc_token' => $this->config[ 'token' ],
-                         'rpc_interface' => $interface,
-                         'rpc_method' => $method];
+        $req->path = $this->config[ 'base_path' ].$this->config[ 'path' ];
+        $header =array_merge(['Rpc-Client-Name' =>Config::get('app')['name'],
+                               'Rpc-Serialize' => $this->config[ 'serialize' ],
+                               'Authorization' => $this->config[ 'authorization' ],
+                               'Rpc-Interface' => $interface,
+                               'Rpc-Method' => $method],$header) ;
+        $req->headers=$header;
         if ($this->config[ 'serialize' ] == 'serialize') {
             $data = serialize($data);
         } else {
@@ -89,21 +94,17 @@ class RpcHttp2Client implements RpcClient {
         if (!$this->cli->errCode && $response->statusCode == 200) {
             $type = $response->headers[ 'content-type' ];
             $data = $response->data;
-            if ($data && strpos($type, 'application/rap-rpc')) {
+            if ($data && strpos($type, 'application/php-serialize')==0) {
                 $data = unserialize($data);
-                //有错误异常直接外抛
-                if ($data instanceof \RuntimeException) {
-                    throw $data;
-                }
-            } else if ($data && strpos($type, 'application/json')) {
+            } else if ($data && strpos($type, 'application/json')==0) {
                 $data = json_decode($data, true);
-                if( $response->headers[ 'rpc-exception' ]){
-                    $type=$data['type'];
-                    $msg=$data['msg'];
-                    $code=$data['code'];
-                    $exception=new $type($msg,$code);
-                    throw $exception;
-                }
+            }
+            if($response->headers[ 'rpc-exception' ]){
+                $type=$data['type'];
+                $msg=$data['msg'];
+                $code=$data['code'];
+                $exception=new $type($msg,$code);
+                throw $exception;
             }
             return $data;
         } else {

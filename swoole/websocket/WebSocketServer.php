@@ -8,6 +8,7 @@ use rap\config\Config;
 use rap\console\Command;
 use rap\db\Connection;
 use rap\ioc\Ioc;
+use rap\ServerEvent;
 use rap\swoole\Context;
 use rap\swoole\pool\ResourcePool;
 use rap\swoole\ServerWatch;
@@ -72,21 +73,23 @@ class WebSocketServer extends Command {
             //mysql redis 协程化
             Runtime::enableCoroutine();
         }
-        Event::trigger('onBeforeServerStart', $this->server);
+        Event::trigger(ServerEvent::onBeforeServerStart, $this->server);
         $this->server->start();
     }
 
     public function onStart(\swoole_server $server) {
         $application = Ioc::get(Application::class);
         $application->server = $server;
-        Event::trigger('onServerStart', $server);
+        Event::trigger(ServerEvent::onServerStart, $server);
         if ($this->config[ 'auto_reload' ] && Config::get('app')[ 'debug' ]) {
             $this->writeln("自动加载");
             $reload = new ServerWatch();
             $reload->init($server);
         }
     }
-
+    public function onShutdown($server) {
+        Event::trigger(ServerEvent::onServerShutdown, $server);
+    }
     public function onTask(\swoole_server $server, $task_id, $from_id, $data) {
         $clazz = $data[ 'clazz' ];
         $method = $data[ 'method' ];
@@ -125,9 +128,14 @@ class WebSocketServer extends Command {
             //生成 session
             $rep->session()->sessionId();
             CoContext::getContext()->setRequest($req);
+            //swoole  4.2.9
+            defer(function(){
+                CoContext::getContext()->release();
+                Event::trigger(ServerEvent::onRequestDefer);
+            });
             $application->start($req, $rep);
             //释放协程里的变量和
-            CoContext::getContext()->release();
+
         } catch (\Exception $exception) {
             $response->end($exception->getMessage());
             return;
@@ -144,7 +152,7 @@ class WebSocketServer extends Command {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkStart', $server, $id);
+        Event::trigger(ServerEvent::onServerWorkStart, $server, $id);
         CoContext::getContext()->release();
     }
 
@@ -152,7 +160,7 @@ class WebSocketServer extends Command {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkStop', $server, $id);
+        Event::trigger(ServerEvent::onServerWorkerStop, $server, $id);
         CoContext::getContext()->release();
     }
 

@@ -18,6 +18,7 @@ use rap\rpc\client\RpcClient;
 use rap\rpc\client\RpcHttp2Client;
 use rap\rpc\client\RpcHttpClient;
 use rap\rpc\service\RpcHandlerMapping;
+use rap\ServerEvent;
 use rap\swoole\pool\Pool;
 use rap\swoole\pool\ResourcePool;
 use rap\web\mvc\Dispatcher;
@@ -31,7 +32,7 @@ class Rpc {
         $rpc = Ioc::get(Rpc::class);
         $rpc->init();
         if (IS_SWOOLE) {
-            Event::add('onServerWorkStart', Rpc::class, 'onServerWorkStart');
+            Event::add(ServerEvent::onServerWorkStart, Rpc::class, 'onServerWorkStart');
         }
         /* @var $dispatcher Dispatcher */
         $dispatcher = Ioc::get(Dispatcher::class);
@@ -85,10 +86,13 @@ class Rpc {
 
     public function onServerWorkStart() {
         $rpcs = Config::getFileConfig()[ 'rpc' ];
-        //注册连接池
-        foreach ($rpcs as $rpc => $config) {
-            ResourcePool::instance()->preparePool($rpc);
+        if(IS_SWOOLE){
+            //注册连接池
+            foreach ($rpcs as $rpc => $config) {
+                ResourcePool::instance()->preparePool($rpc);
+            }
         }
+
     }
 
     /**

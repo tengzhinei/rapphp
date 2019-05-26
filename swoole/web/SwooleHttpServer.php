@@ -8,6 +8,7 @@ use rap\config\Config;
 use rap\config\Seal;
 use rap\console\Command;
 use rap\ioc\Ioc;
+use rap\ServerEvent;
 use rap\swoole\Context;
 use rap\swoole\ServerWatch;
 use rap\swoole\task\TaskConfig;
@@ -73,7 +74,7 @@ class SwooleHttpServer extends Command {
         $http->on('finish', [$this, 'onFinish']);
         $http->on('request', [$this, 'onRequest']);
         $this->writeln("http服务启动成功");
-        Event::trigger('onBeforeServerStart', $http);
+        Event::trigger(ServerEvent::onBeforeServerStart, $http);
         $http->start();
 
     }
@@ -81,7 +82,7 @@ class SwooleHttpServer extends Command {
     public function onStart($server) {
         $application = Ioc::get(Application::class);
         $application->server = $server;
-        Event::trigger('onServerStart', $server);
+        Event::trigger(ServerEvent::onServerStart, $server);
         if ($this->config[ 'auto_reload' ] && Config::get('app')[ 'debug' ]) {
             $this->writeln("自动加载");
             $reload = new ServerWatch();
@@ -91,7 +92,7 @@ class SwooleHttpServer extends Command {
     }
 
     public function onShutdown($server) {
-        Event::trigger('onServerShutdown', $server);
+        Event::trigger(ServerEvent::onServerShutdown, $server);
         if($this->config['enable_static_handler']) {
             FileUtil::delete(ROOT_PATH.'.rap_static_file');
         }
@@ -101,14 +102,14 @@ class SwooleHttpServer extends Command {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkStart', $server, $id);
+        Event::trigger(ServerEvent::onServerWorkStart, $server, $id);
     }
 
     public function onWorkerStop($server, $id) {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkerStop', $server, $id);
+        Event::trigger(ServerEvent::onServerWorkerStop, $server, $id);
     }
 
     public function onTask($serv, $task_id, $from_id, $data) {
@@ -147,7 +148,7 @@ class SwooleHttpServer extends Command {
             //swoole  4.2.9
             defer(function(){
                 CoContext::getContext()->release();
-                Event::trigger('onRequestDefer');
+                Event::trigger(ServerEvent::onRequestDefer);
             });
             $application->start($req, $rep);
             //释放协程里的变量和

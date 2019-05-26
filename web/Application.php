@@ -9,6 +9,7 @@
 namespace rap\web;
 
 
+use rap\aop\Event;
 use rap\config\Config;
 use rap\console\Console;
 use rap\exception\ErrorException;
@@ -21,6 +22,7 @@ use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\log\Log;
 use rap\rpc\Rpc;
+use rap\ServerEvent;
 use rap\util\Lang;
 use rap\web\interceptor\Interceptor;
 use rap\web\mvc\AutoFindHandlerMapping;
@@ -84,6 +86,9 @@ abstract class Application {
 
     public function start(Request $request, Response $response) {
         try {
+            if(!IS_SWOOLE){
+                Event::trigger(ServerEvent::onServerWorkStart,null,0);
+            }
             //加载语言包
             Lang::loadLand($request);
             if ($this->interceptors) {

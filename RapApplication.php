@@ -69,17 +69,13 @@ class RapApplication extends Application {
         }
         $app = $config[ 'app' ];
         $init = null;
-        if (IS_SWOOLE) {
-            Event::add('onServerWorkStart', Application::class, 'onServerWorkStart');
-        } else {
-            $this->onServerWorkStart();
-        }
+        Event::add(ServerEvent::onServerWorkStart, Application::class, 'onServerWorkStart');
         if ($app[ 'init' ]) {
             Ioc::bind(Init::class, $app[ 'init' ]);
             /* @var $init Init */
             $init = Ioc::get(Init::class);
             $init->appInit($autoMapping, $router);
-            Event::trigger('onAppInit', $autoMapping, $router);
+            Event::trigger(ServerEvent::onAppInit, $autoMapping, $router);
         }
 
     }

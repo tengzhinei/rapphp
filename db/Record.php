@@ -273,7 +273,7 @@ class Record implements \ArrayAccess {
      * 插入
      */
     public function insert() {
-        Event::trigger('record_before_insert', $this);
+        Event::trigger(RecordEvent::record_before_insert, $this);
         $pk = $this->getPkField();
         $data = $this->getDBData();
         $create_time = 'create_time';
@@ -299,7 +299,7 @@ class Record implements \ArrayAccess {
      * 更新
      */
     public function update() {
-        Event::trigger('record_before_update', $this);
+        Event::trigger(RecordEvent::record_before_update, $this);
         $model = get_called_class();
         $pk = $this->getPkField();
         $where[ $pk ] = $this->$pk;
@@ -330,7 +330,7 @@ class Record implements \ArrayAccess {
      * @param bool $force 是否强制
      */
     public function delete($force = false) {
-        Event::trigger('record_before_delete', $this);
+        Event::trigger(RecordEvent::record_before_delete, $this);
         $model = get_called_class();
         $pk = $this->getPkField();
         $id = $this->$pk;
@@ -372,7 +372,7 @@ class Record implements \ArrayAccess {
         }
         /* @var $data Record */
         $select = DB::select($t->getTable(),$t->connectionName())->where($where)->setRecord($model);
-        Event::trigger('record_before_select', $t, $select);
+        Event::trigger(RecordEvent::record_before_select, $t, $select);
         $data = $select->find();
         $db_cache->recordWhereCacheSave($model, $where, $data->_db_data);
         return $data;
@@ -457,7 +457,7 @@ class Record implements \ArrayAccess {
         /* @var $t Record */
         $t = new $model;
         $select = DB::select($t->getTable(),$t->connectionName())->where($t->getPkField(), $id)->lock()->setRecord($model);
-        Event::trigger('record_before_select', $t, $select);
+        Event::trigger(RecordEvent::record_before_select, $t, $select);
         $data = $select->find();
         return $data;
     }
@@ -486,7 +486,7 @@ class Record implements \ArrayAccess {
         /* @var $model Record */
         $model = new $model;
         $select = DB::select($model->getTable() . " " . $as,$model->connectionName())->setRecord(get_called_class());
-        Event::trigger('record_before_select', $model, $select);
+        Event::trigger(RecordEvent::record_before_select, $model, $select);
         if ($fields) {
             if (!$contain) {
                 $fieldAll = $model->getFields();

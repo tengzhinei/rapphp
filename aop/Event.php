@@ -6,6 +6,9 @@ use rap\ioc\Ioc;
 
 class Event {
 
+
+
+
     /**
      * 所有事件
      * @var array

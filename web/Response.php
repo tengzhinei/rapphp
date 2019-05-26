@@ -9,7 +9,9 @@
 namespace rap\web;
 
 
+use rap\aop\Event;
 use rap\config\Config;
+use rap\ServerEvent;
 use rap\session\RedisSession;
 use rap\session\HttpSession;
 use rap\session\Session;
@@ -56,6 +58,9 @@ class Response {
         if (function_exists('fastcgi_finish_request')) {
             // 提高页面响应
             fastcgi_finish_request();
+        }
+        if(!IS_SWOOLE){
+            Event::trigger(ServerEvent::onRequestDefer);
         }
     }
 
@@ -193,6 +198,9 @@ class Response {
             $data = fread($fp, $buffer);
             $count += $data;//计数
             echo $data;//传数据给浏览器端
+        }
+        if(!IS_SWOOLE){
+            Event::trigger(ServerEvent::onRequestDefer);
         }
         die;
     }

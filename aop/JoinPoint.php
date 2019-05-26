@@ -34,6 +34,10 @@ class JoinPoint {
 
     private $original_Class;
 
+    private $has_return;
+
+    private $has_throw;
+
     public function __construct($obj, $method, $argNames, $args, $original_Class, $callback) {
         $this->args = $args;
         $this->argNames = $argNames;
@@ -48,6 +52,19 @@ class JoinPoint {
     }
 
 
+    public function hasReturn($has_return=null){
+        if($has_return){
+            $this->has_return=true;
+        }
+        return $this->has_return;
+    }
+
+    public function hasThrow($has_throw=null){
+        if($has_throw){
+            $this->has_throw=true;
+        }
+        return $this->has_throw;
+    }
 
     /**
      * 获取方法参数

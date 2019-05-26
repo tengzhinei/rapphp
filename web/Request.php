@@ -547,18 +547,13 @@ class Request {
 
 
     /**
-     * 如果不使用 session 请使用 Context 和拦截器做用户信息
      *
      * @param null $user_id
      *
      * @return null|Session
      */
     public function userId($user_id = null) {
-        if ($user_id == null) {
-            return $this->session('user_id');
-        }
-        $this->session('user_id', $user_id);
-        return null;
+        return Context::userId($user_id);
     }
 
     /**

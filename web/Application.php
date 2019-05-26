@@ -49,7 +49,9 @@ abstract class Application {
         include_once __DIR__ . "/../" . 'common.php';
         $interceptors = Config::getFileConfig()[ 'interceptors' ];
         if ($interceptors) {
-            $this->interceptors = $interceptors;
+            foreach ($interceptors as $interceptor) {
+                $this->interceptors[$interceptor] = 100;
+            }
         }
         $interceptors_except = Config::getFileConfig()[ 'interceptors_except' ];
         if ($interceptors_except) {
@@ -67,9 +69,10 @@ abstract class Application {
      * 添加拦截器
      *
      * @param $clazz
+     * @param int $priority 优先
      */
-    public function addInterceptor($clazz) {
-        $this->interceptors[] = $clazz;
+    public function addInterceptor($clazz,$priority) {
+        $this->interceptors[$clazz] =$priority;
     }
 
 
@@ -80,7 +83,7 @@ abstract class Application {
         $routerMapping = new RouterHandlerMapping($router);
         $this->dispatcher->addHandlerMapping($routerMapping);
         $this->init($autoMapping, $router);
-
+        asort($this->interceptors);
     }
 
 
@@ -102,7 +105,7 @@ abstract class Application {
                     }
                 }
                 if ($is_interceptor) {
-                    foreach ($this->interceptors as $interceptor) {
+                    foreach ($this->interceptors as $interceptor=>$priority) {
                         $interceptor = Ioc::get($interceptor);
                         $value = $interceptor->handler($request, $response);
                         if ($value) {

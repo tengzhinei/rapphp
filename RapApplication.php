@@ -79,7 +79,7 @@ class RapApplication extends Application {
             /* @var $init Init */
             $init = Ioc::get(Init::class);
             $init->appInit($autoMapping, $router);
-            Event::trigger('app_init', []);
+            Event::trigger('app_init', $autoMapping, $router);
         }
 
     }

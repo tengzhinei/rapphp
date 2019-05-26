@@ -370,7 +370,7 @@ class Record implements \ArrayAccess {
         }
         /* @var $data Record */
         $select = DB::select($t->getTable())->where($where)->setRecord($model);
-        Event::trigger('record_before_select', [$t, $select]);
+        Event::trigger('record_before_select', $t, $select);
         $data = $select->find();
         $db_cache->recordWhereCacheSave($model, $where, $data->_db_data);
         return $data;
@@ -455,7 +455,7 @@ class Record implements \ArrayAccess {
         /* @var $t Record */
         $t = new $model;
         $select = DB::select($t->getTable())->where($t->getPkField(), $id)->lock()->setRecord($model);
-        Event::trigger('record_before_select', [$t, $select]);
+        Event::trigger('record_before_select', $t, $select);
         $data = $select->find();
         return $data;
     }
@@ -484,7 +484,7 @@ class Record implements \ArrayAccess {
         /* @var $model Record */
         $model = new $model;
         $select = DB::select($model->getTable() . " " . $as)->setRecord(get_called_class());
-        Event::trigger('record_before_select', [$model, $select]);
+        Event::trigger('record_before_select', $model, $select);
         if ($fields) {
             if (!$contain) {
                 $fieldAll = $model->getFields();

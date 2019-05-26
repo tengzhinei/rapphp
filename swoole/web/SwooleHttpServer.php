@@ -101,14 +101,14 @@ class SwooleHttpServer extends Command {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkStart', [$server, $id]);
+        Event::trigger('onServerWorkStart', $server, $id);
     }
 
     public function onWorkerStop($server, $id) {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkerStop', [$server, $id]);
+        Event::trigger('onServerWorkerStop', $server, $id);
     }
 
     public function onTask($serv, $task_id, $from_id, $data) {
@@ -147,7 +147,7 @@ class SwooleHttpServer extends Command {
             //swoole  4.2.9
             defer(function(){
                 CoContext::getContext()->release();
-                Event::trigger('onRequestDefer',[]);
+                Event::trigger('onRequestDefer');
             });
             $application->start($req, $rep);
             //释放协程里的变量和

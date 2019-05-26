@@ -19,7 +19,7 @@ class Event {
      * @param $class
      * @param $action
      */
-    public static function add($name, $class, $action) {
+    public static function add($name, $class, $action=null) {
         if (!$action) {
             $action = "on" . ucfirst($name);
         }
@@ -34,33 +34,27 @@ class Event {
      * 触发事件
      *
      * @param $name
-     * @param $args
      */
-    public static function trigger($name, $args) {
+    public static function trigger($name) {
+        $args=func_get_args();
+        array_shift($args);
         if (array_key_exists($name, static::$events)) {
             $infos = static::$events[ $name ];
             if ($infos) {
                 foreach ($infos as $info) {
-                    $module = Ioc::get($info[ 'class' ]);
-                    if ($info[ 'action' ]) {
-                        static::doAction($module, $info[ 'action' ], $args);
+                    $clazz=$info[ 'class' ];
+                    if($clazz instanceof \Closure){
+                        call_user_func_array($clazz, $args);
+                    }else{
+                        $module = Ioc::get($info[ 'class' ]);
+                        $method = new \ReflectionMethod(get_class($module), $info['action']);
+                        $method->invokeArgs($module, $args);
                     }
+
                 }
             }
         }
     }
 
-    /**
-     * 执行任务
-     *
-     * @param $module
-     * @param $action
-     * @param $args
-     *
-     * @return mixed
-     */
-    private static function doAction($module, $action, $args) {
-        return $module->$action($args);
-    }
 
 }

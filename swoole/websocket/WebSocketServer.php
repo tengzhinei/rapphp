@@ -144,7 +144,7 @@ class WebSocketServer extends Command {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkStart', [$server, $id]);
+        Event::trigger('onServerWorkStart', $server, $id);
         CoContext::getContext()->release();
     }
 
@@ -152,7 +152,7 @@ class WebSocketServer extends Command {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger('onServerWorkStop', [$server, $id]);
+        Event::trigger('onServerWorkStop', $server, $id);
         CoContext::getContext()->release();
     }
 

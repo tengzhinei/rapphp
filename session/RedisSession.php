@@ -60,27 +60,27 @@ class RedisSession implements Session{
 
     public function set($key, $value){
         $session_key='php_session'.self::sessionId();
-        $session = Cache::get(self::REDIS_CACHE_NAME)->get($session_key,[]);
+        $session = Cache::getCache(self::REDIS_CACHE_NAME)->get($session_key,[]);
         $session[$key]=$value;
-        Cache::get(self::REDIS_CACHE_NAME)->set($session_key,$session,60*60*24);
+        Cache::getCache(self::REDIS_CACHE_NAME)->set($session_key,$session,60*60*24);
     }
 
     public function get($key){
         $session_key='php_session'.self::sessionId();
-        $session = Cache::get(self::REDIS_CACHE_NAME)->get($session_key,[]);
+        $session = Cache::getCache(self::REDIS_CACHE_NAME)->get($session_key,[]);
         return  $session[$key];
     }
 
     public function del($key){
         $session_key = 'php_session' . self::sessionId();
-        $session = Cache::get(self::REDIS_CACHE_NAME)->get($session_key, []);
+        $session = Cache::getCache(self::REDIS_CACHE_NAME)->get($session_key, []);
         unset($session[$key]);
-        Cache::get(self::REDIS_CACHE_NAME)->set($session_key,$session,60*60*24);
+        Cache::getCache(self::REDIS_CACHE_NAME)->set($session_key,$session,60*60*24);
     }
 
     public function clear(){
         $session_key = 'php_session' . self::sessionId();
-        Cache::get(self::REDIS_CACHE_NAME)->remove($session_key);
+        Cache::getCache(self::REDIS_CACHE_NAME)->remove($session_key);
     }
 
 

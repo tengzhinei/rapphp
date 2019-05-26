@@ -402,42 +402,90 @@ class Aop {
             }
             //前置操作
             \$actions = Aop::getBeforeActions($BeanClazz, __FUNCTION__);
-            if(\$actions){
-                foreach (\$actions as \$action) {
-                    if (\$action[ 'call' ]) {
-                        \$value = \$action[ 'call' ](\$point);
-                    } else {
-                       \$action_name=  \$action[ 'action' ];
-                       \$value =  Ioc::get(\$action[ 'class' ])->\$action_name(\$point);
+            try{
+                if(\$actions){
+                    \$val = null;
+                    foreach (\$actions as \$action) {
+                        \$value_data=null;
+                        if (\$action[ 'call' ]) {
+                            try{
+                                 \$value = \$action[ 'call' ](\$point);
+                            }catch (\Throwable \$throwable){
+                                if(!\$val){
+                                    \$val=\$throwable;
+                                }
+                                \$point->hasThrow(true);
+                                 \$point->hasReturn(true);
+                            }
+                        } else {
+                           \$action_name=  \$action[ 'action' ];
+                           try{
+                                \$value =  Ioc::get(\$action[ 'class' ])->\$action_name(\$point);
+                           }catch (\Throwable \$throwable){
+                                if(!\$val){
+                                    \$val=\$throwable;
+                                }
+                                \$point->hasThrow(true);
+                                 \$point->hasReturn(true);
+                           }
+                        }
+                          if (\$value_data&&!\$val) {
+                            \$val = \$value_data;
+                            \$point->hasReturn(true);
+                        }
                     }
-                    if(\$value !==null){
-                        return \$value;                     
+                    if(\$val instanceof \Throwable){
+                        throw \$val;
+                    }
+                    if (\$val) {
+                        return \$val;
                     }
                 }
-            }
-            \$pointArgs=\$point->getArgs();
-            //后置操作
-            try{
-               \$val=$call_parent;
-               return \$val;
+                \$pointArgs=\$point->getArgs();
+                \$val=$call_parent;
+                return \$val;
             }catch (\Throwable \$e){
                 \$val=\$e;
                  throw \$e;
             }finally{
                 \$actions = Aop::getAfterActions($BeanClazz, __FUNCTION__);
                  if(\$actions){
+                    \$value=null;
                     foreach (\$actions as \$action) {
+                        \$value_data=null;
                         if (\$action[ 'call' ]) {
-                             \$action[ 'call' ](\$point, \$val);
+                            try{
+                                 \$value = \$action[ 'call' ](\$point, \$val);
+                            }catch (\Throwable \$throwable){
+                                if(!\$value){
+                                  \$value=\$throwable;
+                                }
+                                \$point->hasThrow(true);
+                            }
                         } else {
-                            \$action_name=  \$action[ 'action' ];
-                             Ioc::get(\$action[ 'class' ])->\$action_name(\$point, \$val);
+                              \$action_name=  \$action[ 'action' ];
+                              try{
+                                    \$value =  Ioc::get(\$action[ 'class' ])->\$action_name(\$point, \$val);
+                               }catch (\Throwable \$throwable){
+                                    if(!\$value){
+                                     \$value=\$throwable;
+                                    }
+                                    \$point->hasThrow(true);
+                               }
                         }
+                         if (\$value_data &&!\$value) {
+                            \$value = \$value_data;
+                        }
+                        
+                    }
+                    if(\$value instanceof \Throwable){
+                        throw \$value;
+                    }
+                    if(\$value){
+                        return \$value;
                     }
                 }
             }
-          
-         
         }
 
 EOF;

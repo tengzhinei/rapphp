@@ -22,16 +22,21 @@ class Delete extends Where {
 
     protected $deleteSql = '%COMMENT% DELETE FROM %TABLE% %WHERE% %ORDER%%LIMIT% %LOCK%';
 
-   
+
+    private $connection_name = Connection::class;
 
     /**
-     * @param   string        $table
+     * @param   string $table
+     * @param string   $connection_name 连接名称
      *
      * @return Delete
      */
-    public static function table($table) {
+    public static function table($table, $connection_name = '') {
         $delete = new Delete();
         $delete->table = $table;
+        if ($connection_name) {
+            $delete->connection_name = $connection_name;
+        }
         return $delete;
     }
 
@@ -48,7 +53,7 @@ class Delete extends Where {
                                      $this->limit,
                                      $this->lock,
                                      $this->comment,], $this->deleteSql);
-        $connection = Pool::get(Connection::class);
+        $connection = Pool::get($this->connection_name);
         try {
             $connection->execute($sql, $this->whereParams());
             $count = $connection->rowCount();
@@ -68,11 +73,12 @@ class Delete extends Where {
      *
      * @param                 $table
      * @param                 $where
+     * @param                 $connection_name
      *
      * @return int
      */
-    public static function delete($table, $where) {
-        $delete = Delete::table($table);
+    public static function delete($table, $where, $connection_name = '') {
+        $delete = Delete::table($table, $connection_name);
         if (is_array($where)) {
             foreach ($where as $field => $value) {
                 $delete->where($field, $value);

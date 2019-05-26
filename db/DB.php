@@ -24,27 +24,28 @@ class DB {
      *
      * @return Insert|string
      */
-    public static function insert($table, $data = null) {
+    public static function insert($table, $data = null, $connection_name = '') {
         if ($data !== null) {
-            return Insert::insert($table, $data);
+            return Insert::insert($table, $data, $connection_name);
         } else {
-            return Insert::table($table);
+            return Insert::table($table, $connection_name);
         }
     }
 
     /**
      * 删除
      *
-     * @param string $table 表
-     * @param array  $where 条件
+     * @param string     $table 表
+     * @param array      $where 条件
+     * @param string $connection_name
      *
      * @return null|Delete
      */
-    public static function delete($table, $where = null) {
+    public static function delete($table, $where = null, $connection_name = '') {
         if ($where) {
-            Delete::delete($table, $where);
+            Delete::delete($table, $where, $connection_name);
         } else {
-            return Delete::table($table);
+            return Delete::table($table, $connection_name);
         }
         return null;
     }
@@ -56,15 +57,16 @@ class DB {
      * @param string $table 表
      * @param array  $data  数据
      * @param array  $where
+     * @param string $connection_name
      *
      * @return null|Update
      */
-    public static function update($table, $data = null, $where = null) {
+    public static function update($table, $data = null, $where = null, $connection_name = '') {
         if ($data) {
-            Update::update($table, $data, $where);
+            Update::update($table, $data, $where, $connection_name);
             return null;
         } else {
-            return Update::table($table);
+            return Update::table($table, $connection_name);
         }
     }
 
@@ -72,11 +74,11 @@ class DB {
      * 查询
      *
      * @param string $table 表
-     *
+     * @param string $connection_name 连接名
      * @return Select
      */
-    public static function select($table) {
-        return Select::table($table);
+    public static function select($table,$connection_name='') {
+        return Select::table($table,$connection_name);
     }
 
     /**

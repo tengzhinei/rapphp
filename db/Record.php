@@ -52,9 +52,10 @@ class Record implements \ArrayAccess {
     private $_db_data = [];
 
 
-    public function getOldDbData(){
+    public function getOldDbData() {
         return $this->_db_data;
     }
+
     /**
      * 供find 使用的缓存的可以  如['user_id,open_id','cat_id,good_id']
      * 同一组用,隔开 整体是数组
@@ -279,7 +280,8 @@ class Record implements \ArrayAccess {
         if (property_exists(get_called_class(), $create_time) && !$data[ $create_time ]) {
             $data[ $create_time ] = time() - 10;
         }
-        $pk_value = DB::insert($this->getTable(), $data);
+
+        $pk_value = DB::insert($this->getTable(), $data, $this->connectionName());
         if (!$this->$pk) {
             $this->$pk = $pk_value;
         }
@@ -309,7 +311,7 @@ class Record implements \ArrayAccess {
         if (property_exists(get_called_class(), $update_time)) {
             $data[ $update_time ] = time();
         }
-        DB::update($this->getTable(), $data, $where);
+        DB::update($this->getTable(), $data, $where, $this->connectionName());
         //删除缓存
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
@@ -342,7 +344,7 @@ class Record implements \ArrayAccess {
                     return;
                 }
             }
-            DB::delete($this->getTable(), null)->where($pk, $id)->excuse();
+            DB::delete($this->getTable(), null, $this->connectionName())->where($pk, $id)->excuse();
         }
         //删除缓存
         /* @var $db_cache DBCache */
@@ -369,7 +371,7 @@ class Record implements \ArrayAccess {
             return $data;
         }
         /* @var $data Record */
-        $select = DB::select($t->getTable())->where($where)->setRecord($model);
+        $select = DB::select($t->getTable(),$t->connectionName())->where($where)->setRecord($model);
         Event::trigger('record_before_select', $t, $select);
         $data = $select->find();
         $db_cache->recordWhereCacheSave($model, $where, $data->_db_data);
@@ -454,7 +456,7 @@ class Record implements \ArrayAccess {
         $model = get_called_class();
         /* @var $t Record */
         $t = new $model;
-        $select = DB::select($t->getTable())->where($t->getPkField(), $id)->lock()->setRecord($model);
+        $select = DB::select($t->getTable(),$t->connectionName())->where($t->getPkField(), $id)->lock()->setRecord($model);
         Event::trigger('record_before_select', $t, $select);
         $data = $select->find();
         return $data;
@@ -483,7 +485,7 @@ class Record implements \ArrayAccess {
         }
         /* @var $model Record */
         $model = new $model;
-        $select = DB::select($model->getTable() . " " . $as)->setRecord(get_called_class());
+        $select = DB::select($model->getTable() . " " . $as,$model->connectionName())->setRecord(get_called_class());
         Event::trigger('record_before_select', $model, $select);
         if ($fields) {
             if (!$contain) {
@@ -562,8 +564,8 @@ class Record implements \ArrayAccess {
         }
         foreach ($array as $key => $value) {
             if (isset($value)) {
-                if($value instanceof Search){
-                    $value=$value->value();
+                if ($value instanceof Search) {
+                    $value = $value->value();
                 }
                 $this->$key = $value;
             }
@@ -694,13 +696,17 @@ class Record implements \ArrayAccess {
         /* @var $model Record */
         $model = new $model;
         $params = Context::get('request_params');
-        $pk=$model->getPkField();
-        $pk=$params[$pk];
-        if($pk){
-            $model=$model::get($pk);
+        $pk = $model->getPkField();
+        $pk = $params[ $pk ];
+        if ($pk) {
+            $model = $model::get($pk);
         }
         $model->fromArray($params);
         return $model;
+    }
+
+    public function connectionName() {
+        return Connection::class;
     }
 
 

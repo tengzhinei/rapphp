@@ -22,17 +22,22 @@ class Insert {
 
     protected $insertSql = '%COMMENT% %INSERT% INTO %TABLE% (%FIELD%) VALUES (%DATA%) ';
 
+    private $connection_name=Connection::class;
 
     /**
      * 设置表
      *
      * @param string $table 表名
+     * @param string $connection_name 连接名称
      *
      * @return Insert
      */
-    public static function table($table) {
+    public static function table($table,$connection_name='') {
         $insert = new Insert();
         $insert->table = $table;
+        if($connection_name){
+            $insert->connection_name=$connection_name;
+        }
         return $insert;
     }
 
@@ -78,7 +83,7 @@ class Insert {
                                            $fields,
                                            $valuePlace,
                                            $this->comment], $this->insertSql);
-        $connection = Pool::get(Connection::class);
+        $connection = Pool::get($this->connection_name);
         try {
             $connection->execute($sql, $values);
             $id = $connection->getLastInsID();
@@ -99,11 +104,12 @@ class Insert {
      *
      * @param string $table
      * @param array  $data
+     * @param string  $connection_name
      *
      * @return int|string
      */
-    public static function insert($table, $data) {
-        $insert = Insert::table($table);
+    public static function insert($table, $data,$connection_name='') {
+        $insert = Insert::table($table,$connection_name);
         foreach ($data as $field => $value) {
             $insert->set($field, $value);
         }

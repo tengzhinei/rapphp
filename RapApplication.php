@@ -79,7 +79,7 @@ class RapApplication extends Application {
             /* @var $init Init */
             $init = Ioc::get(Init::class);
             $init->appInit($autoMapping, $router);
-            Event::trigger('app_init', $autoMapping, $router);
+            Event::trigger('onAppInit', $autoMapping, $router);
         }
 
     }
@@ -98,7 +98,9 @@ class RapApplication extends Application {
             }
             if ($item[ 'type' ] == 'sqlite') {
                 unset($item[ 'type' ]);
-
+                Ioc::bind(Connection::class, SqliteConnection::class, function(SqliteConnection $connection) use ($item) {
+                    $connection->config($item);
+                });
             }
         }
         $item = $config[ "storage" ];

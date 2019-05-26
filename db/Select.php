@@ -37,17 +37,21 @@ class Select extends Where {
      */
     private $joins = [];
 
+    private $connection_name=Connection::class;
 
     /**
      * 设置表
      *
      * @param                 $table
-     *
+     * @param string $connection_name 连接名称
      * @return Select
      */
-    public static function table($table) {
+    public static function table($table,$connection_name='') {
         $select = new Select();
         $select->table = $table;
+        if($connection_name){
+            $select->connection_name=$connection_name;
+        }
         return $select;
     }
 
@@ -202,7 +206,7 @@ class Select extends Where {
     public function findAll() {
         $sql = $this->getSql();
         $params = array_merge($this->whereParams(), $this->having_params);
-        $connection = Pool::get(Connection::class);
+        $connection = Pool::get($this->connection_name);
         try {
             $data = $connection->query($sql, $params, $this->cache);
             Pool::release($connection);
@@ -403,7 +407,7 @@ class Select extends Where {
         $this->order("");
         $this->fields($field);
         $this->limit(0, 1);
-        $connection = Pool::get(Connection::class);
+        $connection = Pool::get($this->connection_name);
         try {
             $value = $connection->value($this->getSql(), $this->whereParams(), $this->cache);
             Pool::release($connection);
@@ -429,7 +433,7 @@ class Select extends Where {
         $this->fields = [];
         $this->order("");
         $this->fields($field);
-        $connection = Pool::get(Connection::class);
+        $connection = Pool::get($this->connection_name);
         try {
             $values = $connection->values($this->getSql(), $this->whereParams(), $this->cache);
             Pool::release($connection);

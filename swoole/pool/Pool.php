@@ -18,7 +18,6 @@ use rap\swoole\CoContext;
 class Pool {
 
 
-
     public static function getDbConnection() {
         return self::get(Connection::class);
     }
@@ -28,7 +27,6 @@ class Pool {
     }
 
     /**
-     *
      * @param $name
      *
      * @return mixed
@@ -43,7 +41,7 @@ class Pool {
             /* @var $bean Connection */
             $bean = ResourcePool::instance()->get($name);
             $db = $context->get(CoContext::CONNECTION_scheme);
-            if($db!=null){
+            if ($db != null) {
                 $bean->userDb($db);
             }
             return $bean;
@@ -56,13 +54,28 @@ class Pool {
             $bean = ResourcePool::instance()->get($name);
             if ($bean instanceof RedisCache) {
                 $select = $context->get(CoContext::REDIS_SELECT);
-                if($select!=null){
+                if ($select != null) {
                     $bean->select($select);
                 }
             }
             return $bean;
         }
-        return ResourcePool::instance()->get($name);
+        $item = ResourcePool::instance()->get($name);
+        if ($item instanceof Connection) {
+            $db = $context->get(CoContext::CONNECTION_scheme);
+            if ($db != null) {
+                $item->userDb($db);
+            }
+            return $item;
+        }
+        if ($item instanceof RedisCache) {
+            $db = $context->get(CoContext::REDIS_SELECT);
+            if ($db != null) {
+                $item->select($db);
+            }
+            return $item;
+        }
+        return $item;
     }
 
     public static function release(PoolAble $bean) {
@@ -77,7 +90,6 @@ class Pool {
     public static function unLock(PoolAble $bean) {
         ResourcePool::instance()->unLock($bean);
     }
-
 
 
 }

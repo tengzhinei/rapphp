@@ -1,7 +1,7 @@
 {
     "name": "duohuo/rapphp",
     "description": "php IOC&AOP framework",
-    "type": "project",
+    "type": "library",
     "keywords": [
         "framework",
         "Spring",
@@ -18,10 +18,10 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=7.1.0",
+        "monolog/monolog": "^1.24",
         "mashape/unirest-php": "3.*",
-        "twig/twig": "~1.0",
-        "endroid/qrcode": "^1.9"
+        "twig/twig": "~2.0"
     },
     "require-dev": {
         "eaglewu/swoole-ide-helper": "dev-master"
@@ -36,10 +36,10 @@
         }
     },"autoload": {
         "psr-4": {
-            "rap\\": ""
+            "rap\\": "src"
         },
         "files": [
-            "common.php"
+            "src/common.php"
         ]
     }   
 }

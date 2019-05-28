@@ -18,12 +18,6 @@ use rap\swoole\Context;
 
 class Log {
 
-    /**
-     * @var bool 自动保存
-     */
-    private static $autoSave = false;
-    private static $logs     = [];
-
 
     /**
      * @param string $name

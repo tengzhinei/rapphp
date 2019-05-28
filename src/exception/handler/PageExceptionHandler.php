@@ -10,23 +10,31 @@ namespace rap\exception\handler;
 
 
 use rap\config\Config;
+use rap\exception\ErrorException;
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
+use rap\web\mvc\view\TwigView;
 use rap\web\mvc\view\View;
 use rap\web\Request;
 use rap\web\Response;
 
 class PageExceptionHandler implements  ExceptionHandler{
     function handler(Request $request, Response $response, \Exception $exception){
-        $msg=$exception->getMessage();
+
+        if ($exception instanceof ErrorException) {
+            $exception = $exception->error;
+        }
+        $msg = $exception->getMessage();
+        if (!($exception instanceof MsgException)) {
+            $msg .= "  |" . str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
+        }
         $template_base = Config::get('view','template_base');
         $file=$template_base.'/exception';
-        $msg .= "  |" . str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
         if(!is_file(ROOT_PATH.$file.'.html')){
             $file=str_replace(ROOT_PATH,'',__DIR__).'/exception';
         }
         /* @var $view View  */
-        $view=Ioc::get(View::class);
+        $view=Ioc::get(TwigView::class);
         $view->assign(['msg'=>$msg,'exception'=>$exception]);
         $response->setContent($view->fetch($file));
         $response->send();

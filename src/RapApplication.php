@@ -60,12 +60,13 @@ class RapApplication extends Application {
         $app = $config[ 'app' ];
         $init = null;
         Event::add(ServerEvent::onServerWorkStart, Application::class, 'onServerWorkStart');
+        Event::trigger(ServerEvent::onAppInit, $autoMapping, $router);
         if ($app[ 'init' ]) {
             Ioc::bind(Init::class, $app[ 'init' ]);
             /* @var $init Init */
             $init = Ioc::get(Init::class);
             $init->appInit($autoMapping, $router);
-            Event::trigger(ServerEvent::onAppInit, $autoMapping, $router);
+
         }
 
     }

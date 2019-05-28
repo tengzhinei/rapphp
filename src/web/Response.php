@@ -219,6 +219,7 @@ class Response {
                       'jpg' => 'image/jpeg',
                       'gif' => 'image/*'];
             if (key_exists($type, $types)) {
+
                 $this->header[ 'Content-Type' ] = $types[ $type ];
             } else {
                 $this->header[ 'Content-Type' ] = "application/octet-stream";

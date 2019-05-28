@@ -6,7 +6,6 @@
 
 namespace rap\log;
 
-
 use rap\swoole\Context;
 
 class LogProcessor {
@@ -14,7 +13,7 @@ class LogProcessor {
     public function process($record) {
         $record[ 'extra' ][ 'user_id' ] = Context::userId();
         $request = request();
-        if($request){
+        if ($request) {
             $record[ 'extra' ][ 'session_id' ] = $request->session()->sessionId();
         }
         return $record;

@@ -23,8 +23,7 @@ class ServerWatch {
                        IN_DELETE => 'File Deleted'];
 
     public function init($server) {
-
-        $this->watchDir(APP_PATH, function() use ($server) {
+        $callback=function() use ($server) {
             //重启 worker 进车功能
             if ($this->last_time_id) {
                 swoole_timer_clear($this->last_time_id);
@@ -33,8 +32,15 @@ class ServerWatch {
                 $this->last_time_id = 0;
                 $server->reload();
             });
-        });
-
+        };
+        $dir = Config::get('swoole_http')[ 'auto_reload_dir' ];
+        if(!$dir){
+            foreach ($dir as $item) {
+                $this->watchDir(ROOT_PATH.$item,$callback);
+            }
+        }else{
+            $this->watchDir(APP_PATH,$callback);
+        }
     }
 
 

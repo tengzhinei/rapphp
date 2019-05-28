@@ -1,6 +1,6 @@
 <?php
 error_reporting(E_ALL& ~E_NOTICE& ~E_WARNING&~E_DEPRECATED);
-define('RAP_VERSION', '2.0.6');
+define('RAP_VERSION', '3.2.2');
 define('DS', DIRECTORY_SEPARATOR);
 ini_set("display_errors", "On");
 define('RAP_DIR',__DIR__);
@@ -16,7 +16,6 @@ defined('IS_SWOOLE') or define('IS_SWOOLE', IS_CLI&&$argv[1]=='http'||$argv[1]==
 $loader = require ROOT_PATH . '/vendor/autoload.php';
 $loader->setPsr4(APP_DIR."\\", ROOT_PATH.APP_DIR);
 $loader->setPsr4("rap\\aop\\build\\", RUNTIME.'aop');
-include_once 'common.php';
 //swoole 模式
 if(IS_CLI){
     \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);

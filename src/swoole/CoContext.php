@@ -46,6 +46,7 @@ class CoContext {
 
     public static function setId($id) {
         self::$id = $id;
+
     }
 
     public static function getContext() {

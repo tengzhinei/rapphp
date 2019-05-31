@@ -1,8 +1,10 @@
 <?php
 namespace rap\console\command;
+use rap\aop\Event;
 use rap\console\Command;
 use rap\db\Connection;
 use rap\ioc\Ioc;
+use rap\ServerEvent;
 use rap\swoole\pool\Pool;
 
 /**
@@ -55,6 +57,7 @@ class RecordBuild extends Command{
     }
 
     public function create($table_name,$prefix,$namespace){
+        Event::trigger(ServerEvent::onServerWorkStart);
         if(!$namespace){
             $namespace='app\model';
         }

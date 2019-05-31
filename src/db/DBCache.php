@@ -38,10 +38,10 @@ class DBCache {
      *
      * @return mixed
      */
-    public function recordCache($model, $id){
-         /* @var $record Record */
+    public function recordCache($model, $id) {
+        /* @var $record Record */
         $record = new $model;
-        $cache_key = "record_" . $record->getTable(). $id;
+        $cache_key = "record_" . $record->getTable() . $id;
         $data = Cache::get($cache_key);
         if ($data) {
             Log::info("命中缓存" . $model . " " . $id);
@@ -100,7 +100,7 @@ class DBCache {
                 $cache_key = "record_" . $t->getTable() . "_" . $key . "_" . implode(",", array_values($where));
                 $data = Cache::get($cache_key);
                 if ($data) {
-                    Log::info("命中缓存 " . $model ,$where);
+                    Log::info("命中缓存 " . $model, $where);
                     $t->fromDbData($data);
                     return $t;
                 }
@@ -154,7 +154,7 @@ class DBCache {
     public function recordWhereCacheDel($model) {
         /* @var $model Record */
         $cacheKeys = $model->cacheKeys();
-        $_db_data=$model->getOldDbData();
+        $_db_data = $model->getOldDbData();
         if ($cacheKeys) {
             foreach ($cacheKeys as $cacheKey) {
                 $cks = explode(',', $cacheKey);
@@ -180,16 +180,12 @@ class DBCache {
      * @return null
      */
     public function queryCache($sql, $bind = []) {
-        $redis = Cache::redis();
-        if (!$redis) {
-            //没有使用 redis 不支持二级缓存
-            return null;
-        }
+
         $key = $this->cacheKey($sql, $bind);
         $cache_name = $this->cacheName($sql);
         $result = Cache::hashGet($cache_name, $key);
         if ($result) {
-            Log::info("命中缓存" . $sql ,$bind);
+            Log::info("命中缓存" . $sql, $bind);
         }
         return $result;
     }
@@ -223,23 +219,27 @@ class DBCache {
     /**
      * 保存二级缓存
      *
-     * @param  string     $sql
-     * @param array $bind
-     * @param   array     $value
+     * @param  string $sql
+     * @param array   $bind
+     * @param   array $value
      */
     public function saveCache($sql, $bind = [], $value) {
-        $redis = Cache::redis();
-        if (!$redis) {
-            //没有使用 redis 不支持二级缓存
-            return;
-        }
+
+
         $key = $this->cacheKey($sql, $bind);
         $cache_name = $this->cacheName($sql);
         Cache::hashSet($cache_name, $key, $value);
         $tables = $this->getTableNames($sql);
-        foreach ($tables as $t) {
-            $redis->sAdd(static::$second_table_prefix . $t, $cache_name);
+        $redis = Cache::redis();
+        try {
+            foreach ($tables as $t) {
+                $redis->sAdd(static::$second_table_prefix . $t, $cache_name);
+            }
+        } finally {
+            Cache::release();
         }
+
+
     }
 
     /**
@@ -248,16 +248,20 @@ class DBCache {
      * @param string $sql
      */
     public function deleteCache($sql) {
-        if(strpos($sql, 'SELECT') ==0){
-            return;
-        }
-        $redis = Cache::redis();
-        if (!$redis) {
+        if (strpos($sql, 'SELECT') == 0) {
             return;
         }
         $tables = $this->getTableNames($sql);
         foreach ($tables as $table) {
-            $caches = $redis->sMembers(static::$second_table_prefix . $table);
+            $caches=[];
+            try {
+                $redis = Cache::redis();
+                if($redis){
+                    $caches = $redis->sMembers(static::$second_table_prefix . $table);
+                }
+            } finally {
+                Cache::release();
+            }
             foreach ($caches as $cache) {
                 Cache::remove($cache);
             }
@@ -268,7 +272,8 @@ class DBCache {
      * 获取 sql关联的表
      *
      * @param string $sql
-     * @param bool $select
+     * @param bool   $select
+     *
      * @return array
      */
     public function getTableNames($sql) {
@@ -289,7 +294,7 @@ class DBCache {
     /**
      * 正则出 sql 的表
      *
-     * @param string $sql  sql
+     * @param string $sql        sql
      * @param string $expression 表达式
      *
      * @return array

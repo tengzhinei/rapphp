@@ -8,9 +8,7 @@
 namespace rap\db;
 
 
-use rap\ioc\Ioc;
 use rap\swoole\pool\Pool;
-use rap\swoole\pool\ResourcePool;
 
 class Update extends Where {
     use Comment;
@@ -86,14 +84,9 @@ class Update extends Where {
         try {
             $connection->execute($sql, array_merge($values, $this->whereParams()));
             $count = $connection->rowCount();
-            Pool::release($connection);
             return $count;
-        } catch (\RuntimeException $e) {
+        } finally{
             Pool::release($connection);
-            throw $e;
-        } catch (\Error $e) {
-            Pool::release($connection);
-            throw $e;
         }
     }
 

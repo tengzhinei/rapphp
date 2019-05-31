@@ -10,6 +10,7 @@ namespace rap\db;
 
 
 use rap\ioc\Ioc;
+use rap\log\Log;
 use rap\swoole\pool\Pool;
 use rap\swoole\pool\ResourcePool;
 
@@ -37,20 +38,21 @@ class Select extends Where {
      */
     private $joins = [];
 
-    private $connection_name=Connection::class;
+    private $connection_name = Connection::class;
 
     /**
      * 设置表
      *
      * @param                 $table
-     * @param string $connection_name 连接名称
+     * @param string          $connection_name 连接名称
+     *
      * @return Select
      */
-    public static function table($table,$connection_name='') {
+    public static function table($table, $connection_name = '') {
         $select = new Select();
         $select->table = $table;
-        if($connection_name){
-            $select->connection_name=$connection_name;
+        if ($connection_name) {
+            $select->connection_name = $connection_name;
         }
         return $select;
     }
@@ -209,13 +211,8 @@ class Select extends Where {
         $connection = Pool::get($this->connection_name);
         try {
             $data = $connection->query($sql, $params, $this->cache);
+        }  finally {
             Pool::release($connection);
-        } catch (\RuntimeException $e) {
-            Pool::release($connection);
-            throw $e;
-        } catch (\Error $e) {
-            Pool::release($connection);
-            throw $e;
         }
         if ($this->clazz) {
             $results = [];
@@ -409,15 +406,11 @@ class Select extends Where {
         $this->limit(0, 1);
         $connection = Pool::get($this->connection_name);
         try {
+            /* @var $connection Connection  */
             $value = $connection->value($this->getSql(), $this->whereParams(), $this->cache);
-            Pool::release($connection);
             return $value;
-        } catch (\RuntimeException $e) {
+        }finally {
             Pool::release($connection);
-            throw $e;
-        } catch (\Error $e) {
-            Pool::release($connection);
-            throw $e;
         }
     }
 
@@ -436,14 +429,9 @@ class Select extends Where {
         $connection = Pool::get($this->connection_name);
         try {
             $values = $connection->values($this->getSql(), $this->whereParams(), $this->cache);
-            Pool::release($connection);
             return $values;
-        } catch (\RuntimeException $e) {
+        } finally{
             Pool::release($connection);
-            throw $e;
-        } catch (\Error $e) {
-            Pool::release($connection);
-            throw $e;
         }
     }
 

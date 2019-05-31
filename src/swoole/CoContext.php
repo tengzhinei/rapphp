@@ -133,6 +133,17 @@ class CoContext {
             }
             unset($this->instances);
             $this->instances = [];
+        }else if(IS_SWOOLE){
+            $pool = ResourcePool::instance();
+            $instances= \Co::getContext();
+            foreach ($instances as $name => $bean) {
+                if ($bean instanceof PoolAble) {
+                    $pool->release($bean);
+                } else {
+                    unset($bean);
+                }
+            }
+
         }
 
     }

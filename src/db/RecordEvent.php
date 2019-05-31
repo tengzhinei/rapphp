@@ -10,10 +10,9 @@ namespace rap\db;
 
 class RecordEvent {
 
-    public const record_before_insert="record_before_insert";
-    public const record_before_update="record_before_update";
-    public const record_before_delete="record_before_delete";
-    public const record_before_select="record_before_select";
-
+     const record_before_insert="record_before_insert";
+     const record_before_update="record_before_update";
+     const record_before_delete="record_before_delete";
+     const record_before_select="record_before_select";
 
 }

@@ -97,19 +97,12 @@ class DB {
         $pool->lock($connection);
         try {
             $value = $connection->runInTrans($closure);
+            return $value;
+        } finally{
             //释放锁
             $pool->unLock($connection);
             //释放连接
             $pool->release($connection);
-            return $value;
-        } catch (\RuntimeException $e) {
-            $pool->unLock($connection);
-            $pool->release($connection);
-            throw $e;
-        } catch (\Error $e) {
-            $pool->unLock($connection);
-            $pool->release($connection);
-            throw $e;
         }
     }
 
@@ -126,13 +119,8 @@ class DB {
         $connection = Pool::get(Connection::class);
         try {
             $connection->execute($sql, $bind);
+        } finally{
             Pool::release($connection);
-        } catch (\RuntimeException $e) {
-            Pool::release($connection);
-            throw $e;
-        } catch (\Error $e) {
-            Pool::release($connection);
-            throw $e;
         }
 
     }
@@ -152,14 +140,9 @@ class DB {
         $connection = Pool::get(Connection::class);
         try {
             $items = $connection->query($sql, $bind, $cache);
-            Pool::release($connection);
             return $items;
-        } catch (\RuntimeException $e) {
+        }finally{
             Pool::release($connection);
-            throw $e;
-        } catch (\Error $e) {
-            Pool::release($connection);
-            throw $e;
         }
     }
 }

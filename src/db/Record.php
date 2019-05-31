@@ -514,14 +514,9 @@ class Record implements \ArrayAccess {
         $connection = Pool::get(Connection::class);
         try {
             $fields = $connection->getFields($this->getTable());
-            Pool::release($connection);
             return $fields;
-        } catch (\RuntimeException $e) {
+        }finally{
             Pool::release($connection);
-            throw $e;
-        } catch (\Error $e) {
-            Pool::release($connection);
-            throw $e;
         }
 
     }

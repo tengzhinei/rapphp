@@ -87,14 +87,9 @@ class Insert {
         try {
             $connection->execute($sql, $values);
             $id = $connection->getLastInsID();
-            Pool::release($connection);
             return $id;
-        } catch (\RuntimeException $e) {
+        } finally{
             Pool::release($connection);
-            throw $e;
-        } catch (\Error $e) {
-            Pool::release($connection);
-            throw $e;
         }
 
     }

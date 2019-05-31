@@ -57,14 +57,9 @@ class Delete extends Where {
         try {
             $connection->execute($sql, $this->whereParams());
             $count = $connection->rowCount();
-            Pool::release($connection);
             return $count;
-        } catch (\RuntimeException $e) {
+        }finally{
             Pool::release($connection);
-            throw $e;
-        } catch (\Error $e) {
-            Pool::release($connection);
-            throw $e;
         }
     }
 

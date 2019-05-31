@@ -40,7 +40,7 @@ class Cache {
      */
     public static function getCache($name = '') {
         if ($name) {
-            return Ioc::get($name);
+            return Pool::get($name);
         }
         return Pool::get(CacheInterface::class);
     }

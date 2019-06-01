@@ -7,6 +7,11 @@
  */
 
 namespace rap\console;
+use rap\aop\Event;
+use rap\ioc\Ioc;
+use rap\RapApplication;
+use rap\ServerEvent;
+use rap\web\Application;
 
 /**
  * 命令
@@ -110,4 +115,10 @@ abstract class Command {
         echo "\n";
     }
 
+    /**
+     * 完成需要在 worker 进程中完成的初始化
+     */
+    public function initWork(){
+        Event::trigger(ServerEvent::onServerWorkStart);
+    }
 }

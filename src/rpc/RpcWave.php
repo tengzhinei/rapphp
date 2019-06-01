@@ -60,7 +60,12 @@ class RpcWave {
             $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
             try {
                 $args = $point->getArgs();
-                $value = $client->query($point->getOriginalClass(), $method->getName(), $args);
+                $request = request();
+                $header=[];
+                if ($request) {
+                    $header = request()->header();
+                }
+                $value = $client->query($point->getOriginalClass(), $method->getName(), $args,$header);
                 Pool::release($client);
                 $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_CLOSE;
                 if ($value == null) {

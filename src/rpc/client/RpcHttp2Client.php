@@ -77,11 +77,11 @@ class RpcHttp2Client implements RpcClient {
         $req = new \swoole_http2_request();
         $req->method = 'POST';
         $req->path = $this->config[ 'base_path' ].$this->config[ 'path' ];
-        $header =array_merge(['Rpc-Client-Name' =>Config::get('app')['name'],
+        $header =array_merge($header,['Rpc-Client-Name' =>Config::get('app')['name'],
                                'Rpc-Serialize' => $this->config[ 'serialize' ],
                                'Authorization' => $this->config[ 'authorization' ],
                                'Rpc-Interface' => $interface,
-                               'Rpc-Method' => $method],$header) ;
+                               'Rpc-Method' => $method]) ;
         $req->headers=$header;
         if ($this->config[ 'serialize' ] == 'serialize') {
             $data = serialize($data);

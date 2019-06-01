@@ -63,11 +63,11 @@ class RpcHttpClient implements RpcClient {
      * @return mixed   返回结果
      */
     public function query($interface, $method, $data,$header=[]) {
-        $headers =array_merge(['Rpc-Client-Name' => Config::get('app')['name'],
+        $headers =array_merge($header,['Rpc-Client-Name' => Config::get('app')['name'],
                                'Authorization' => $this->config[ 'authorization' ],
                                'Rpc-Serialize' => $this->config[ 'serialize' ],
                                'Rpc-Interface' => $interface,
-                               'Rpc-Method' => $method],$header) ;
+                               'Rpc-Method' => $method]) ;
 
         if (IS_SWOOLE && \Co::getuid()) {
             return $this->queryCoroutine($headers, $data);

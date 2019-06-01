@@ -36,17 +36,23 @@ class Seal implements Interceptor {
         if (!$local_port) {
             $local_port = '9501';
         }
-        self::$local_ip = '';
-        $ips = swoole_get_local_ip();
-        if ($ips[ "eth0" ]) {
-            self::$local_ip = $ips[ "eth0" ];
+        if(IS_SWOOLE){
+            self::$local_ip = '';
+            $ips = swoole_get_local_ip();
+            if ($ips[ "eth0" ]) {
+                self::$local_ip = $ips[ "eth0" ];
+            }
+            $MY_HOST = self::$local_ip . ':' . $local_port;
+            self::$push_secret = md5(time() . rand(1, 1000) . $MY_HOST);
+            $push_url= 'http://' . $MY_HOST . '/seal________push?push_secret=' . self::$push_secret;
+        }else{
+            $push_url="";
         }
-        $MY_HOST = self::$local_ip . ':' . $local_port;
+
         $port = '9501';
         if ($seal[ 'port' ]) {
             $port = $seal[ 'port' ];
         }
-        self::$push_secret = md5(time() . rand(1, 1000) . $MY_HOST);
         $url = $seal[ 'url' ];
         if (!$url) {
             $url = 'http://' . $seal[ 'host' ] . ':' . $port;
@@ -54,7 +60,7 @@ class Seal implements Interceptor {
         $response = \Unirest\Request::post($url . '/api/register', [], ['app_name' => $seal[ 'app_name' ],
                                                                         'secret' => $secret,
                                                                         'client_name' => $config[ 'app' ][ 'name' ] . '(' . self::$local_ip . ')',
-                                                                        'push_link' => 'http://' . $MY_HOST . '/seal________push?push_secret=' . self::$push_secret]);
+                                                                        'push_link' =>$push_url]);
         FileUtil::writeFile(Seal::SEAL_FILE, $response->raw_body);
         //添加拦截器
         /* @var $app Application */

@@ -4,6 +4,7 @@ namespace rap\config;
 use rap\cache\Cache;
 use rap\db\Select;
 use rap\db\Update;
+use rap\ioc\Ioc;
 use rap\util\http\Http;
 
 /**
@@ -14,8 +15,6 @@ use rap\util\http\Http;
  */
 class Config {
 
-
-    private static $fileDate = [];
 
 
     /**
@@ -28,19 +27,26 @@ class Config {
      * @return mixed
      */
     public static function get($module, $key = "", $default = "") {
-        $data = self::getFileConfig()[ $module ];
-        if ($data === null) {
-            $data = self::getModuleFromDB($module);
+        /* @var $file FileConfig */
+        $file = Ioc::get(FileConfig::class);
+        $data = $file->get($module);
+        if (!$data) {
+            /* @var $db DbConfig  */
+            $db = Ioc::get(DbConfig::class);
+            $data = $db->get($module);
+        }
+        if (!$data) {
+            return $default;
         }
         if ($key) {
             $value = $data[ $key ];
+            if (!$value) {
+                return $default;
+            }
+            return $value;
         } else {
-            $value = $data;
+            return $data;
         }
-        if ($value === null) {
-            $value = $default;
-        }
-        return $value;
     }
 
     /**
@@ -51,22 +57,9 @@ class Config {
      * @param string|array $value
      */
     public static function set($module, $key, $value = null) {
-        $data = self::getModuleFromDB($module);
-        if (!$data) {
-            $data = [];
-        }
-        if (is_array($key)) {
-            $data = array_merge($data, $key);
-        } else {
-            $data[ $key ] = $value;
-        }
-        $data = json_encode($data);
-        $config = self::get("config");
-        $table = $config && key_exists('db_table', $config) ? $config[ 'db_table' ] : "config";
-        $module_key = $config && key_exists('module_field', $config) ? $config[ 'module_field' ] : "module";
-        $content = $config && key_exists('content_field', $config) ? $config[ 'content_field' ] : "content";
-        Update::table($table)->set($content, $data)->where($module_key, $module)->excuse();
-        Cache::remove(md5("config_" . $module));
+        /* @var $db DbConfig  */
+        $db = Ioc::get(DbConfig::class);
+        $db->set($module,$key,$value);
     }
 
     /**
@@ -76,65 +69,20 @@ class Config {
      * @param array  $data
      */
     public static function setAll($module, $data) {
-        $data = json_encode($data);
-        $config = self::get("config");
-        $table = $config && key_exists('db_table', $config) ? $config[ 'db_table' ] : "config";
-        $module_key = $config && key_exists('module_field', $config) ? $config[ 'module_field' ] : "module";
-        $content = $config && key_exists('content_field', $config) ? $config[ 'content_field' ] : "content";
-        Update::table($table)->set($content, $data)->where($module_key, $module)->excuse();
-        Cache::remove(md5("config_" . $module));
+        /* @var $db DbConfig  */
+        $db = Ioc::get(DbConfig::class);
+        $db->setAll($module,$data);
     }
 
-    /**
-     * 从数据库中获取数据
-     *
-     * @param $module
-     *
-     * @return mixed|null|string
-     */
-    private static function getModuleFromDB($module) {
-        $data = Cache::get(md5("config_" . $module));
-        if (!$data) {
-            $config = self::get("config");
-            $table = $config && key_exists('db_table', $config) ? $config[ 'db_table' ] : "config";
-            $module_key = $config && key_exists('module_field', $config) ? $config[ 'module_field' ] : "module";
-            $content = $config && key_exists('content_field', $config) ? $config[ 'content_field' ] : "content";
-            $data = Select::table($table)->where($module_key, $module)->value($content);
-            Cache::set(md5("config_" . $module), $data);
-        }
-        if ($data) {
-            $data = json_decode($data, true);
-        }
-        return $data;
-    }
 
     /**
      * 获取文件配置
      * @return array
      */
     public static function getFileConfig() {
-        if (!static::$fileDate) {
-            static::$fileDate = include APP_PATH . 'config.php';
-        }
-        return static::$fileDate;
-    }
-
-    /**
-     * 加载配置中心的配置
-     */
-    public static function loadSealConfig() {
-        $fileConfig = self::getFileConfig();
-        $config=Seal::loadConfig();
-        foreach ($config as $w=>$item) {
-            if(!$fileConfig[$w]){
-                $fileConfig[$w]=$item;
-            }else{
-                foreach ($item as $k=>$v) {
-                    $fileConfig[$w][$k]=$v;
-                }
-            }
-        }
-        static::$fileDate=$fileConfig;
+        /* @var $file FileConfig */
+        $file = Ioc::get(FileConfig::class);
+        return $file->getAll();
     }
 
 }

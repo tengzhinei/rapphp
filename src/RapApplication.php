@@ -6,7 +6,7 @@ use rap\cache\CacheInterface;
 use rap\cache\FileCache;
 use rap\cache\RedisCache;
 use rap\config\Config;
-use rap\config\Seal;
+use rap\config\FileConfig;
 use rap\db\Connection;
 use rap\db\MySqlConnection;
 use rap\db\SqliteConnection;
@@ -53,10 +53,7 @@ class RapApplication extends Application {
                 });
             }
         }
-        if($config['seal']){
-            //初始化配置中心
-            Seal::init();
-        }
+
         $app = $config[ 'app' ];
         $init = null;
         Event::add(ServerEvent::onServerWorkStart, Application::class, 'onServerWorkStart');
@@ -72,8 +69,10 @@ class RapApplication extends Application {
     }
 
     public function onServerWorkStart() {
+        /* @var $fileConfig  FileConfig*/
+        $fileConfig = Ioc::get(FileConfig::class);
+        $fileConfig->mergeProvide();
         //合并配置中心的配置
-        Config::loadSealConfig();
         $config = Config::getFileConfig();
         $item = $config[ "db" ];
         if ($item) {
@@ -119,7 +118,7 @@ class RapApplication extends Application {
         }
         $item = $config[ "session" ];
         if ($item) {
-        if ($item[ 'type' ] == 'redis') {
+            if ($item[ 'type' ] == 'redis') {
                 Ioc::bind(RedisSession::REDIS_CACHE_NAME, RedisCache::class, function(RedisCache $redisCache) use ($item) {
                     $redisCache->config($item);
                 });
@@ -132,7 +131,7 @@ class RapApplication extends Application {
             if ($config[ 'cache' ]) {
                 ResourcePool::instance()->preparePool(CacheInterface::class);
             }
-            if ($config[ 'session' ]&&$config['type']=='redis') {
+            if ($config[ 'session' ] && $config[ 'type' ] == 'redis') {
                 ResourcePool::instance()->preparePool(RedisSession::REDIS_CACHE_NAME);
             }
         }

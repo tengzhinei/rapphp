@@ -3,13 +3,10 @@ namespace rap\swoole\web;
 
 
 use rap\aop\Event;
-use rap\cache\RedisCache;
 use rap\config\Config;
-use rap\config\Seal;
 use rap\console\Command;
 use rap\ioc\Ioc;
 use rap\ServerEvent;
-use rap\swoole\Context;
 use rap\swoole\ServerWatch;
 use rap\swoole\task\TaskConfig;
 use rap\util\FileUtil;

@@ -131,7 +131,7 @@ class RapApplication extends Application {
             if ($config[ 'cache' ]) {
                 ResourcePool::instance()->preparePool(CacheInterface::class);
             }
-            if ($config[ 'session' ] && $config[ 'type' ] == 'redis') {
+            if ($config[ 'session' ] && $config[ 'session' ][ 'type' ] == 'redis') {
                 ResourcePool::instance()->preparePool(RedisSession::REDIS_CACHE_NAME);
             }
         }

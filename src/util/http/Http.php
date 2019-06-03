@@ -43,14 +43,14 @@ class Http {
      *
      * @return HttpResponse
      */
-    public static function get($url, $header = [],$timeout=0.5) {
-        if (IS_SWOOLE && \Co::getuid()) {
+    public static function get($url, $header = [], $timeout = 0.5) {
+        if (IS_SWOOLE && \Co::getuid() !== -1) {
             $hostPath = self::parseUrl($url);
-            if(!$hostPath[0]){
-                return  new HttpResponse(-1, [], '');
+            if (!$hostPath[ 0 ]) {
+                return new HttpResponse(-1, [], '');
             }
-            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ],$hostPath[ 2 ]==443);
-            $cli-> set([ 'timeout' => $timeout]);
+            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ], $hostPath[ 2 ] == 443);
+            $cli->set(['timeout' => $timeout]);
             if ($header) {
                 $cli->setHeaders($header);
             }
@@ -60,20 +60,20 @@ class Http {
             return $response;
         } else {
             \Unirest\Request::timeout($timeout);
-            $response= \Unirest\Request::get($url, $header);
+            $response = \Unirest\Request::get($url, $header);
             return new HttpResponse($response->code, $response->headers, $response->raw_body);
 
         }
     }
 
-    public static function post($url, $header = [], $data = [],$timeout=0.5) {
-        if (IS_SWOOLE && \Co::getuid()) {
+    public static function post($url, $header = [], $data = [], $timeout = 0.5) {
+        if (IS_SWOOLE && \Co::getuid() !== -1) {
             $hostPath = self::parseUrl($url);
-            if(!$hostPath[0]){
-                return  new HttpResponse(-1, [], '');
+            if (!$hostPath[ 0 ]) {
+                return new HttpResponse(-1, [], '');
             }
-            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ],$hostPath[ 2 ]==443);
-            $cli-> set([ 'timeout' => $timeout]);
+            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ], $hostPath[ 2 ] == 443);
+            $cli->set(['timeout' => $timeout]);
             if ($header) {
                 $cli->setHeaders($header);
             }
@@ -84,21 +84,21 @@ class Http {
         } else {
             $data = \Unirest\Request\Body::Form($data);
             \Unirest\Request::timeout($timeout);
-            $response= \Unirest\Request::post($url, $header, $data);
+            $response = \Unirest\Request::post($url, $header, $data);
             return new HttpResponse($response->code, $response->headers, $response->raw_body);
         }
 
     }
 
-    public static function put($url, $header = [], $data = [],$timeout=0.5) {
+    public static function put($url, $header = [], $data = [], $timeout = 0.5) {
         //在 swoole 协程环境
-        if (IS_SWOOLE && \Co::getuid()) {
+        if (IS_SWOOLE && \Co::getuid() !== -1) {
             $hostPath = self::parseUrl($url);
-            if(!$hostPath[0]){
-                return  new HttpResponse(-1, [], '');
+            if (!$hostPath[ 0 ]) {
+                return new HttpResponse(-1, [], '');
             }
-            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ],$hostPath[ 2 ]==443);
-            $cli-> set([ 'timeout' => $timeout]);
+            $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ], $hostPath[ 2 ] == 443);
+            $cli->set(['timeout' => $timeout]);
             if ($header) {
                 $cli->setHeaders($header);
             }
@@ -111,28 +111,28 @@ class Http {
             $cli->close();
             return $response;
         } else {
-            if(!is_string($data)){
-                $data= json_encode($data);
+            if (!is_string($data)) {
+                $data = json_encode($data);
             }
             \Unirest\Request::timeout($timeout);
-            $response= \Unirest\Request::post($url, $header, $data);
+            $response = \Unirest\Request::post($url, $header, $data);
             return new HttpResponse($response->code, $response->headers, $response->raw_body);
         }
     }
 
-    public static function upload($url, $header = [], $data = [],$files=[],$timeout=5){
-        if (IS_SWOOLE && \Co::getuid()) {
+    public static function upload($url, $header = [], $data = [], $files = [], $timeout = 5) {
+        if (IS_SWOOLE && \Co::getuid() !== -1) {
             $hostPath = self::parseUrl($url);
-            if(!$hostPath[0]){
-                return  new HttpResponse(-1, [], '',$hostPath[ 2 ]==443);
+            if (!$hostPath[ 0 ]) {
+                return new HttpResponse(-1, [], '', $hostPath[ 2 ] == 443);
             }
             $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ]);
-            $cli-> set([ 'timeout' => $timeout]);
+            $cli->set(['timeout' => $timeout]);
             if ($header) {
                 $cli->setHeaders($header);
             }
-            foreach ($files as $file=>$name) {
-                $cli->addFile($file,$name);
+            foreach ($files as $file => $name) {
+                $cli->addFile($file, $name);
             }
             $cli->post($hostPath[ 1 ], $data);
             $response = new HttpResponse($cli->statusCode, $cli->headers, $cli->body);

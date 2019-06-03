@@ -69,7 +69,7 @@ class RpcHttpClient implements RpcClient {
                                'Rpc-Interface' => $interface,
                                'Rpc-Method' => $method]) ;
 
-        if (IS_SWOOLE && \Co::getuid()) {
+        if (IS_SWOOLE && \Co::getuid()!==-1) {
             return $this->queryCoroutine($headers, $data);
         } else {
             return $this->queryByRequest($headers, $data);

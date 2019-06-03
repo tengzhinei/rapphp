@@ -61,20 +61,7 @@ class Pool {
             return $bean;
         }
         $item = ResourcePool::instance()->get($name);
-        if ($item instanceof Connection) {
-            $db = $context->get(CoContext::CONNECTION_scheme);
-            if ($db != null) {
-                $item->userDb($db);
-            }
-            return $item;
-        }
-        if ($item instanceof RedisCache) {
-            $db = $context->get(CoContext::REDIS_SELECT);
-            if ($db != null) {
-                $item->select($db);
-            }
-            return $item;
-        }
+        //只动态切换主库的 其他库不切换
         return $item;
     }
 

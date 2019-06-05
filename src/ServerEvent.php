@@ -9,13 +9,13 @@ namespace rap;
 
 class ServerEvent {
     
-    public const onAppInit           = 'onAppInit';
-    public const onBeforeServerStart = 'onBeforeServerStart';
-    public const onServerStart       = 'onServerStart';
-    public const onServerWorkStart   = 'onServerWorkStart';
-    public const onRequestDefer      = 'onRequestDefer';
-    public const onServerWorkerStop  = 'onServerWorkerStop';
-    public const onServerShutdown    = 'onServerShutdown';
+     const onAppInit           = 'onAppInit';
+     const onBeforeServerStart = 'onBeforeServerStart';
+     const onServerStart       = 'onServerStart';
+     const onServerWorkStart   = 'onServerWorkStart';
+     const onRequestDefer      = 'onRequestDefer';
+     const onServerWorkerStop  = 'onServerWorkerStop';
+     const onServerShutdown    = 'onServerShutdown';
 
 
 }

@@ -109,7 +109,11 @@ class $name extends Record {
 
 EOF;
         $i = 0;
-        foreach ($fields as $key => $value) {
+        foreach ($fields as $key => $value){
+            $comment = $comments[ $key ];
+            if(strpos($comment,'json')>0||strpos($comment,'object')>0||strpos($comment,'array')>0){
+                $value='json';
+            }
             $txt .= "            '$key'=>'$value'";
             if ($i < count($fields) - 1) {
                 $txt .= ",\r\n";
@@ -126,6 +130,9 @@ EOF;
         $txt .= "    /**** 对应数据库字段 start *****/\r\n\r\n";
         foreach ($fields as $key => $value) {
             $comment = $comments[ $key ];
+            if(strpos($comment,'json')>0||strpos($comment,'object')>0||strpos($comment,'array')>0){
+                $value='array';
+            }
             $txt .="   /**\r\n";
             $txt .="     * $comment\r\n";
             $txt .="     * @var $value\r\n";

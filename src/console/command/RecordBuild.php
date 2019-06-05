@@ -56,7 +56,7 @@ class RecordBuild extends Command {
 
     public function create($table_name, $prefix, $namespace) {
         if (!$namespace) {
-            $namespace = 'app\model';
+            $namespace = 'app\record';
         }
         $connection = Pool::get(Connection::class);
         /* @var Connection $connection */
@@ -123,19 +123,20 @@ EOF;
     }
 
 EOF;
-        $txt .= "     /**** 对应数据库字段 start *****/\r\n\r\n";
+        $txt .= "    /**** 对应数据库字段 start *****/\r\n\r\n";
         foreach ($fields as $key => $value) {
             $comment = $comments[ $key ];
-            if ($comment) {
-                $txt .= "     //$comment\r\n ";
-            }
-            $txt .= "     public $$key;\r\n ";
+            $txt .="   /**\r\n";
+            $txt .="     * $comment\r\n";
+            $txt .="     * @var $value\r\n";
+            $txt .="     */\r\n";
+            $txt .= "    public $$key;\r\n ";
             $txt .= "    \r\n ";
         }
-        $txt .= "     /**** 对应数据库字段 end *****/\r\n\r\n";
+        $txt .= "    /**** 对应数据库字段 end *****/\r\n\r\n";
         $txt .= "}";
-        mkdir(RUNTIME . "model" . DS);
-        file_put_contents(RUNTIME . 'model' . DS . $name . '.php', $txt);
+        mkdir(RUNTIME . "record" . DS);
+        file_put_contents(RUNTIME . 'record' . DS . $name . '.php', $txt);
     }
 
 }

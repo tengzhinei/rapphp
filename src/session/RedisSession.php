@@ -28,6 +28,7 @@ class RedisSession implements Session{
     private $response;
 
 
+    private $session_id;
 
 
     /**
@@ -42,12 +43,14 @@ class RedisSession implements Session{
 
 
     public function sessionId(){
-        $sessionId=$this->request->cookie('PHPSESSID');
-        if(!$sessionId){
-            $sessionId=md5(uniqid());
-            $this->response->cookie('PHPSESSID',$sessionId);
+        if(!$this->session_id){
+            $this->session_id=$this->request->cookie('PHPSESSID');
         }
-        return $sessionId;
+        if(!$this->session_id) {
+            $this->session_id = md5(uniqid());
+            $this->response->cookie('PHPSESSID', $this->session_id);
+        }
+        return $this->session_id;
     }
 
     public function start(){

@@ -2,6 +2,7 @@
 namespace rap\swoole\web;
 
 
+use rap\aop\Aop;
 use rap\aop\Event;
 use rap\config\Config;
 use rap\console\Command;
@@ -40,6 +41,8 @@ class SwooleHttpServer extends Command {
      * @param $seal_secret string 配置中心密钥
      */
     public function run($host_name, $seal_secret) {
+        Aop::buildProxy();
+        $this->writeln("AOP文件生成成功,文件在" . RUNTIME . 'aop下');
         $this->config = array_merge($this->config, Config::get('swoole_http'));
         if ($this->config[ 'coroutine' ]) {
             //mysql redis 协程化

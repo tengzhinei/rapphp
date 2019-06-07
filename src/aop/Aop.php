@@ -409,7 +409,7 @@ class Aop {
                         \$value_data=null;
                         if (\$action[ 'call' ]) {
                             try{
-                                 \$value = \$action[ 'call' ](\$point);
+                                 \$value_data = \$action[ 'call' ](\$point);
                             }catch (\Throwable \$throwable){
                                 if(!\$val){
                                     \$val=\$throwable;
@@ -420,7 +420,7 @@ class Aop {
                         } else {
                            \$action_name=  \$action[ 'action' ];
                            try{
-                                \$value =  Ioc::get(\$action[ 'class' ])->\$action_name(\$point);
+                                \$value_data =  Ioc::get(\$action[ 'class' ])->\$action_name(\$point);
                            }catch (\Throwable \$throwable){
                                 if(!\$val){
                                     \$val=\$throwable;
@@ -455,7 +455,7 @@ class Aop {
                         \$value_data=null;
                         if (\$action[ 'call' ]) {
                             try{
-                                 \$value = \$action[ 'call' ](\$point, \$val);
+                                 \$value_data = \$action[ 'call' ](\$point, \$val);
                             }catch (\Throwable \$throwable){
                                 if(!\$value){
                                   \$value=\$throwable;
@@ -465,7 +465,7 @@ class Aop {
                         } else {
                               \$action_name=  \$action[ 'action' ];
                               try{
-                                    \$value =  Ioc::get(\$action[ 'class' ])->\$action_name(\$point, \$val);
+                                    \$value_data =  Ioc::get(\$action[ 'class' ])->\$action_name(\$point, \$val);
                                }catch (\Throwable \$throwable){
                                     if(!\$value){
                                      \$value=\$throwable;

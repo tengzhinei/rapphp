@@ -156,7 +156,7 @@ class Router{
             $this->index->method($this->indexAction);
             return $this->index;
         }
-        if(!$sub&&count($pathArray)==1){
+        if(!$sub&&count($pathArray)==1&&$this->index){
             $this->index->method($pathArray[0]);
             return $this->index;
         }

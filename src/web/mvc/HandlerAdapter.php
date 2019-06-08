@@ -120,13 +120,7 @@ abstract class HandlerAdapter {
                         $className = $class->getName();
                         $bean = method_exists($className, 'instance') ? $className::instance() : new $className();
                         if ($bean instanceof Record) {
-                            $data = $bean->jsonSerialize();
-                            foreach ($data as $key=>$value) {
-                                $value = $request->param($key);
-                                if (isset($value)) {
-                                    $bean->$key = $value;
-                                }
-                            }
+                            $bean->parseRequest($request);
                         } else {
                             $properties = $class->getProperties();
                             foreach ($properties as $property) {
@@ -184,12 +178,16 @@ abstract class HandlerAdapter {
                         $args[ $name ] = $request->file($name);
                     } else {
                         $bean = method_exists($className, 'instance') ? $className::instance() : new $className();
-                        $properties = $class->getProperties();
-                        foreach ($properties as $property) {
-                            $name = $property->getName();
-                            $val = $request->param($name);
-                            if (isset($val)) {
-                                $bean->$name = $val;
+                        if ($bean instanceof Record) {
+                            $bean->parseRequest($request);
+                        } else {
+                            $properties = $class->getProperties();
+                            foreach ($properties as $property) {
+                                $name = $property->getName();
+                                $val = $request->param($name);
+                                if (isset($val)) {
+                                    $bean->$name = $val;
+                                }
                             }
                         }
                         $args[ $name ] = $bean;

@@ -7,6 +7,7 @@ use rap\storage\Storage;
 use rap\swoole\Context;
 use rap\swoole\pool\Pool;
 use rap\web\mvc\Search;
+use rap\web\Request;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -14,7 +15,7 @@ use rap\web\mvc\Search;
  * Date: 17/9/22
  * Time: 上午10:28
  */
-class Record implements \ArrayAccess,\JsonSerializable {
+class Record implements \ArrayAccess, \JsonSerializable {
 
     /**
      * 获取表名,包含 as 时会添加上as  如 User::table('u') 返回user u
@@ -370,7 +371,7 @@ class Record implements \ArrayAccess,\JsonSerializable {
             return $data;
         }
         /* @var $data Record */
-        $select = DB::select($t->getTable(),$t->connectionName())->where($where)->setRecord($model);
+        $select = DB::select($t->getTable(), $t->connectionName())->where($where)->setRecord($model);
         Event::trigger(RecordEvent::record_before_select, $t, $select);
         $data = $select->find();
         $db_cache->recordWhereCacheSave($model, $where, $data->_db_data);
@@ -455,7 +456,10 @@ class Record implements \ArrayAccess,\JsonSerializable {
         $model = get_called_class();
         /* @var $t Record */
         $t = new $model;
-        $select = DB::select($t->getTable(),$t->connectionName())->where($t->getPkField(), $id)->lock()->setRecord($model);
+        $select = DB::select($t->getTable(), $t->connectionName())
+                    ->where($t->getPkField(), $id)
+                    ->lock()
+                    ->setRecord($model);
         Event::trigger(RecordEvent::record_before_select, $t, $select);
         $data = $select->find();
         return $data;
@@ -484,7 +488,7 @@ class Record implements \ArrayAccess,\JsonSerializable {
         }
         /* @var $model Record */
         $model = new $model;
-        $select = DB::select($model->getTable() . " " . $as,$model->connectionName())->setRecord(get_called_class());
+        $select = DB::select($model->getTable() . " " . $as, $model->connectionName())->setRecord(get_called_class());
         Event::trigger(RecordEvent::record_before_select, $model, $select);
         if ($fields) {
             if (!$contain) {
@@ -514,7 +518,7 @@ class Record implements \ArrayAccess,\JsonSerializable {
         try {
             $fields = $connection->getFields($this->getTable());
             return $fields;
-        }finally{
+        } finally {
             Pool::release($connection);
         }
 
@@ -715,7 +719,61 @@ class Record implements \ArrayAccess,\JsonSerializable {
      * @return array|mixed|string
      */
     function jsonSerialize() {
-        return $this->toArray();
+        $fb = $this->toJsonField();
+        if (is_array($fb)) {
+            return $this->toArray($fb[ 0 ], $fb[ 1 ]);
+        } else {
+            return $this->toArray($fb);
+        }
+    }
+
+    /**
+     *  通过request 参数构建对象
+     *
+     * @param Request $request
+     */
+    function parseRequest(Request $request) {
+        $fb = $this->requestField();
+        if (!is_array($fb)) {
+            $fb = [$fb, true];
+        }
+        if (!$fb[ 1 ]) {
+            $fields = explode(',', $fb[ 0 ]);
+            $data = RecordArray::toArray($this, '', true);
+            foreach ($data as $key => $value) {
+                if (!in_array($key, $fields)) {
+                    $this->$key = $request->param($key);
+                }
+            }
+            return;
+        } else {
+            $keys = explode(',', $fb[ 0 ]);
+        }
+        foreach ($keys as $key) {
+            $this->$key = $request->param($key);
+        }
+    }
+    /**
+     * 获取通过 request 创建时摘取的字段
+     * 默认返回同toJsonField相同
+     * return '字段1,字段2' 或return ['字段1,字段2',false]//反向字段
+     * @return string|array
+     *
+     */
+    function requestField() {
+        return $this->toJsonField();
+    }
+
+
+    /**
+     * 获取转换为json时的字段
+     * 默认返回所有 public的字段
+     * return '字段1,字段2' 或return ['字段1,字段2',false]//反向字段
+     * @return string|array
+     *
+     */
+    function toJsonField() {
+        return "";
     }
 
 }

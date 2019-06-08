@@ -109,7 +109,7 @@ class Record implements \ArrayAccess {
             } else if ($type == 'time') {
                 $time = (int)$value;
                 if ($time . "" == $value . "") {
-                    $value = date("Y-m-d H:i", $this->_db_data[ $item ]);
+                    $value = date("Y-m-d H:i:s", $this->_db_data[ $item ]);
                 }
             } else if ($type == 'date') {
                 $time = (int)$value;

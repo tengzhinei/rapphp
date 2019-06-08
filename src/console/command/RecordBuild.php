@@ -114,6 +114,12 @@ EOF;
             if(strpos($comment,'json')>0||strpos($comment,'object')>0||strpos($comment,'array')>0){
                 $value='json';
             }
+            if(strpos($comment,'时间')>0&&strpos($comment,'时间戳')===false){
+                $value='time';
+            }
+            if(strpos($comment,'日期')>0){
+                $value='date';
+            }
             $txt .= "            '$key'=>'$value'";
             if ($i < count($fields) - 1) {
                 $txt .= ",\r\n";

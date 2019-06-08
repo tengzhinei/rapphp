@@ -14,7 +14,7 @@ use rap\web\mvc\Search;
  * Date: 17/9/22
  * Time: 上午10:28
  */
-class Record implements \ArrayAccess {
+class Record implements \ArrayAccess,\JsonSerializable {
 
     /**
      * 获取表名,包含 as 时会添加上as  如 User::table('u') 返回user u
@@ -574,23 +574,8 @@ class Record implements \ArrayAccess {
      *
      * @return array|mixed|string
      */
-    public function toArray($fields, $contain = true) {
-        $keys = explode(',', $fields);
-        $data = [];
-        if ($contain) {
-            foreach ($keys as $key) {
-                $data[ $key ] = $this->$key;
-            }
-        } else {
-            $data = json_encode($this);
-            $data = json_decode($data, true);
-            foreach ($data as $key => $value) {
-                if (in_array($key, $keys)) {
-                    unset($data[ $key ]);
-                }
-            }
-        }
-        return $data;
+    public function toArray($fields = '', $contain = true) {
+        return RecordArray::toArray($this, $fields, $contain);
     }
 
     /**
@@ -682,7 +667,25 @@ class Record implements \ArrayAccess {
     }
 
     /**
-     * 从 request 中获取
+     * 从数据库中加载数据并覆盖当前对象,只覆盖空的属性
+     */
+    public function load() {
+        $pk = $this->getPk();
+        if (!$this->$pk) {
+            return;
+        }
+        $data = self::get($this->$pk);
+        $data = $data->toArray('', false);
+        foreach ($data as $key => $value) {
+            $value = $this->$key;
+            if (empty($value)) {
+                $this->$key = $value;
+            }
+        }
+    }
+
+    /**
+     * 从 request 中获取 不建议使用
      * @return $this
      */
     public static function buildRequest() {
@@ -699,9 +702,20 @@ class Record implements \ArrayAccess {
         return $model;
     }
 
+    /**
+     * 返回连接名称多连接池可覆盖
+     * @return mixed
+     */
     public function connectionName() {
         return Connection::class;
     }
 
+    /**
+     * 转化为 json/数组 可以覆盖
+     * @return array|mixed|string
+     */
+    function jsonSerialize() {
+        return $this->toArray();
+    }
 
 }

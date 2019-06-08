@@ -1,6 +1,7 @@
 <?php
 namespace rap\web\mvc;
 
+use rap\db\Record;
 use rap\exception\MsgException;
 use rap\session\Session;
 use rap\storage\File;
@@ -16,10 +17,10 @@ use rap\web\Response;
  * Time: 下午9:47
  */
 abstract class HandlerAdapter {
-    private $pattern;
-    private $header;
+    private   $pattern;
+    private   $header;
     protected $method;
-    private $params=[];
+    private   $params = [];
 
     public abstract function viewBase();
 
@@ -105,28 +106,38 @@ abstract class HandlerAdapter {
                 if ($class) {
                     $className = $class->getName();
                     if ($className == Search::class) {
-                        $args[$name] = new Search($search[ $search_index ]);
+                        $args[ $name ] = new Search($search[ $search_index ]);
                         $search_index++;
                     } elseif ($className == Request::class) {
-                        $args[$name] = $request;
+                        $args[ $name ] = $request;
                     } elseif ($className == Response::class) {
-                        $args[$name] = $response;
+                        $args[ $name ] = $response;
                     } elseif ($className == Session::class) {
-                        $args[$name] = $request->session();
+                        $args[ $name ] = $request->session();
                     } elseif ($className == File::class) {
-                        $args[$name] = $request->file($name);
+                        $args[ $name ] = $request->file($name);
                     } else {
                         $className = $class->getName();
                         $bean = method_exists($className, 'instance') ? $className::instance() : new $className();
-                        $properties = $class->getProperties();
-                        foreach ($properties as $property) {
-                            $name = $property->getName();
-                            $val = $request->param($name);
-                            if (isset($val)) {
-                                $bean->$name = $val;
+                        if ($bean instanceof Record) {
+                            $data = $bean->jsonSerialize();
+                            foreach ($data as $key=>$value) {
+                                $value = $request->param($key);
+                                if (isset($value)) {
+                                    $bean->$key = $value;
+                                }
+                            }
+                        } else {
+                            $properties = $class->getProperties();
+                            foreach ($properties as $property) {
+                                $name = $property->getName();
+                                $val = $request->param($name);
+                                if (isset($val)) {
+                                    $bean->$name = $val;
+                                }
                             }
                         }
-                        $args[$name] = $bean;
+                        $args[ $name ] = $bean;
                     }
                 } else {
                     if (key_exists($name, $this->params)) {
@@ -137,7 +148,7 @@ abstract class HandlerAdapter {
                 }
             }
         }
-        Context::set('request_params',$args);
+        Context::set('request_params', $args);
         $val = $method->invokeArgs($obj, $args);
         return $val;
     }
@@ -161,16 +172,16 @@ abstract class HandlerAdapter {
                 if ($class) {
                     $className = $class->getName();
                     if ($className == Search::class) {
-                        $args[$name] = new Search($search[ $search_index ]);
+                        $args[ $name ] = new Search($search[ $search_index ]);
                         $search_index++;
                     } elseif ($className == Request::class) {
-                        $args[$name] = $request;
+                        $args[ $name ] = $request;
                     } elseif ($className == Response::class) {
-                        $args[$name] = $response;
+                        $args[ $name ] = $response;
                     } elseif ($className == Session::class) {
-                        $args[$name] = $request->session();
+                        $args[ $name ] = $request->session();
                     } elseif ($className == File::class) {
-                        $args[$name] = $request->file($name);
+                        $args[ $name ] = $request->file($name);
                     } else {
                         $bean = method_exists($className, 'instance') ? $className::instance() : new $className();
                         $properties = $class->getProperties();
@@ -192,7 +203,7 @@ abstract class HandlerAdapter {
                 }
             }
         }
-        Context::set('request_params',$args);
+        Context::set('request_params', $args);
         $result = call_user_func_array($closure, $args);
         return $result;
     }

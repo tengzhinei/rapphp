@@ -331,6 +331,8 @@ class Validate {
 
     /**
      * 检查文件类型
+     *
+     * @param string|array $mime 类型
      */
     public function fileMime($mime) {
         $this->check_role = 'fileMime';
@@ -340,7 +342,7 @@ class Validate {
         $this->rule = implode(',', $mime);
         if (!$this->value) {
             $result = false;
-        } else{
+        } else {
             if (!($this->value instanceof File)) {
                 $file = File::fromRequest(['tmp_name' => $this->value]);
                 $this->value = $file;
@@ -363,9 +365,9 @@ class Validate {
         $this->p1 = $size;
         $this->check_role = 'fileSize';
         if ($this->value instanceof File) {
-            $result = filesize($this->value->path_tmp) <= $this->strToSize($size) ;
+            $result = filesize($this->value->path_tmp) <= $this->strToSize($size);
         } else {
-            $result = filesize($this->value) <= $this->strToSize($size) ;
+            $result = filesize($this->value) <= $this->strToSize($size);
         }
         $this->checkResult($result);
         return $this;
@@ -387,7 +389,7 @@ class Validate {
         return $this;
     }
 
-    public function imageSize($width,$height){
+    public function imageSize($width, $height) {
 
     }
 
@@ -545,7 +547,7 @@ class Validate {
         $this->check_role = 'require';
         $result = true;
         if ($key == $value) {
-            $result = !empty($this->value) || '0' == $this->value;
+            $result = !empty($this->value) || '0' == $this->value || 'null' == $this->value;
         }
         $this->checkResult($result);
     }
@@ -560,7 +562,7 @@ class Validate {
         $this->check_role = 'require';
         $result = true;
         if ($need) {
-            $result = !empty($this->value) || '0' == $this->value;
+            $result = !empty($this->value) || '0' == $this->value || 'null' == $this->value;
         }
         $this->checkResult($result);
     }
@@ -574,7 +576,7 @@ class Validate {
         $this->check_role = 'require';
         $result = true;
         if ($value) {
-            $result = !empty($this->value) || '0' == $this->value;
+            $result = !empty($this->value) || '0' == $this->value|| 'null' == $this->value;
         }
         $this->checkResult($result);
     }
@@ -705,6 +707,7 @@ class Validate {
 
     /**
      * 符合正则
+     *
      * @param $rule
      *
      * @return $this
@@ -731,6 +734,7 @@ class Validate {
 
     /**
      * 检查数据库是唯一值
+     *
      * @param $model
      * @param $field
      *
@@ -747,6 +751,7 @@ class Validate {
 
     /**
      * 允许的ip
+     *
      * @param $rule
      *
      * @return $this
@@ -764,6 +769,7 @@ class Validate {
 
     /**
      * 禁止的 ip
+     *
      * @param $rule
      *
      * @return $this
@@ -914,14 +920,14 @@ class Validate {
         $this->rule = null;
     }
 
-    private function strToSize($str){
-        if(strpos($str,'M')>0||strpos($str,'m')>0){
-            return substr($str,0,strlen($str)-1)*1024*1024;
+    private function strToSize($str) {
+        if (strpos($str, 'M') > 0 || strpos($str, 'm') > 0) {
+            return substr($str, 0, strlen($str) - 1) * 1024 * 1024;
         }
-        if(strpos($str,'k')>0||strpos($str,'k')>0){
-            return substr($str,0,strlen($str)-1)*1024;
+        if (strpos($str, 'k') > 0 || strpos($str, 'k') > 0) {
+            return substr($str, 0, strlen($str) - 1) * 1024;
         }
-        return $str*1024;
+        return $str * 1024;
     }
 
 }

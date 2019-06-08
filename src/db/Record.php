@@ -70,7 +70,7 @@ class Record implements \ArrayAccess {
      * 表明是否替换
      * @var bool
      */
-    private $to_updata = false;
+    private $to_update = false;
 
     /**
      * 表明时候是替换
@@ -78,7 +78,7 @@ class Record implements \ArrayAccess {
      * @param bool $update
      */
     public function isUpdate($update = true) {
-        $this->to_updata = $update;
+        $this->to_update = $update;
     }
 
     /**
@@ -87,7 +87,7 @@ class Record implements \ArrayAccess {
      * @param $items
      */
     public function fromDbData($items) {
-        $this->to_updata = true;
+        $this->to_update = true;
         $_fields = $this->getFields();
         $this->_db_data = $items;
         foreach ($items as $item => $value) {
@@ -167,13 +167,13 @@ class Record implements \ArrayAccess {
     public function save() {
         $pk = $this->getPkField();
         //主键是id
-        if (($pk == 'id' && $this->$pk) || $this->to_updata) {
+        if (($pk == 'id' && $this->$pk) || $this->to_update) {
             $this->update();
         } else {
             if ($this->$pk) {
                 $this->checkHas();
             }
-            if ($this->to_updata) {
+            if ($this->to_update) {
                 $this->update();
             } else {
                 $this->insert();
@@ -300,7 +300,6 @@ class Record implements \ArrayAccess {
      */
     public function update() {
         Event::trigger(RecordEvent::record_before_update, $this);
-        $model = get_called_class();
         $pk = $this->getPkField();
         $where[ $pk ] = $this->$pk;
         $data = $this->getDBData();

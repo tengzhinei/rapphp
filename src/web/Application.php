@@ -120,7 +120,7 @@ abstract class Application {
 
     public function handlerException(Request $request, Response $response, \Exception $exception) {
         $ext = $request->ext();
-        if (($ext == 'json' || strpos($request->header('accept'), '/json') > 0) && $ext != 'html') {
+        if (($ext == 'json' || strpos($request->header('accept'), 'html') ===false||$request->header('rpc-interface')) && $ext != 'html') {
             $handler = ApiExceptionHandler::class;
         } else {
             $handler = PageExceptionHandler::class;

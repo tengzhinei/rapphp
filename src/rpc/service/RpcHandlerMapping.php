@@ -11,8 +11,6 @@ namespace rap\rpc\service;
 
 
 use rap\config\Config;
-use rap\rpc\RpcClientException;
-use rap\web\mvc\ControllerHandlerAdapter;
 use rap\web\mvc\HandlerMapping;
 use rap\web\Request;
 use rap\web\Response;

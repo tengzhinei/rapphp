@@ -499,7 +499,7 @@ EOF;
 <?php
 namespace rap\aop\build$nameSpace;
 use rap\aop\Aop;
-use rap\Aop\JoinPoint;
+use rap\aop\JoinPoint;
 use rap\ioc\Ioc;
 class $clazzSimpleName $extend_implements $clazzExtend{
          $methodsStr

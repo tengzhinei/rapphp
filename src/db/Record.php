@@ -735,7 +735,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
     function parseRequest(Request $request) {
         $fb = $this->requestField();
         if (!is_array($fb)) {
-            $fb = [$fb, true];
+            $fb = [$fb, trim($fb)!=''];
         }
         if (!$fb[ 1 ]) {
             $fields = explode(',', $fb[ 0 ]);

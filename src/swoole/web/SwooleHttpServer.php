@@ -30,6 +30,7 @@ class SwooleHttpServer extends Command {
                        'enable_static_handler' => false,
                        'task_worker_num' => 3,
                        'worker_num' => 1,
+                       'max_request'=>0,
                        'task_max_request' => 1000,
                        'coroutine' => true,
                        'http2'=>true,
@@ -63,6 +64,7 @@ class SwooleHttpServer extends Command {
                     'document_root' => ROOT_PATH.$document_root,
                     'enable_static_handler' => $this->config[ 'enable_static_handler' ],
                     'worker_num' => $this->config[ 'worker_num' ],
+                    'max_request'=>$this->config['max_request'],
                     'task_worker_num' => $this->config[ 'task_worker_num' ],
                     'task_max_request' => $this->config[ 'task_max_request' ],
                     'open_http2_protocol' =>  $this->config[ 'http2' ]]);

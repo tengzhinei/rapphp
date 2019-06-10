@@ -37,83 +37,75 @@ class RpcWave {
         $this->rpc = $rpc;
     }
 
-
     public function before(JoinPoint $point) {
         $method = $point->getMethod();//对应的反射方法
         /* @var $obj RpcSTATUS */
         $obj = $point->getObj();//对应包装对象
         /* @var $client RpcClient */
         $client = $this->rpc->getRpcClient($point->getOriginalClass());
-        $fuseConfig = $client->fuseConfig();
-        //熔断器开启
-        if ($obj->FUSE_STATUS == RpcWave::FUSE_STATUS_OPEN) {
-            //熔断30s
-            if (time() - $obj->FUSE_OPEN_TIME < $fuseConfig[ 'fuse_time' ]) {
-                Pool::release($client);
-                //使用服务降级
-                return null;
+        try{
+            $fuseConfig = $client->fuseConfig();
+            //熔断器开启
+            if ($obj->FUSE_STATUS == RpcWave::FUSE_STATUS_OPEN) {
+                //熔断30s
+                if (time() - $obj->FUSE_OPEN_TIME < $fuseConfig[ 'fuse_time' ]) {
+                    //使用服务降级
+                    return null;
+                }
+                $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_HALF_OPEN;
+                //半开
             }
-            $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_HALF_OPEN;
-            //半开
-        }
-        if ($obj->FUSE_STATUS == RpcWave::FUSE_STATUS_HALF_OPEN) {
-            $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
-            try {
-                $args = $point->getArgs();
-                $request = request();
-                $header=[];
-                if ($request) {
-                    $header = request()->header();
-                }
-                $value = $client->query($point->getOriginalClass(), $method->getName(), $args,$header);
-                Pool::release($client);
-                $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_CLOSE;
-                if ($value == null) {
-                    $value = true;
-                }
-                return $value;
-            } catch (RpcClientException $exception) {
-                Pool::release($client);
+            if ($obj->FUSE_STATUS == RpcWave::FUSE_STATUS_HALF_OPEN) {
                 $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
-                return null;
-            } catch (\RuntimeException $e) {
-                Pool::release($client);
-                throw $e;
-            } catch (\Error $e) {
-                Pool::release($client);
-                throw $e;
-            }
-        } else {
-            try {
-                $args = $point->getArgs();
-                $value = $client->query($point->getOriginalClass(), $method->getName(), $args);
-                Pool::release($client);
-                if ($obj->FUSE_FAIL_COUNT) {
-                    $obj->FUSE_FAIL_COUNT = 0;
-                }
-                if ($value == null) {
-                    $value = true;
-                }
-                return $value;
-            } catch (RpcClientException $exception) {
-                Pool::release($client);
-                $obj->FUSE_FAIL_COUNT++;
-                //失败一定次数开启熔断
-                if ($obj->FUSE_FAIL_COUNT > $fuseConfig[ 'fuse_fail_count' ]) {
-                    $obj->FUSE_OPEN_TIME = time();
+                try {
+                    $args = $point->getArgs();
+                    $request = request();
+                    $header=[];
+                    if ($request) {
+                        $header = request()->header();
+                    }
+                    $value = $client->query($point->getOriginalClass(), $method->getName(), $args,$header);
+                    $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_CLOSE;
+                    if ($value == null) {
+                        $value = true;
+                    }
+                    return $value;
+                } catch (RpcClientException $exception) {
                     $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
+                    return null;
                 }
-                //TODO 日志记录
-                //失败就服务降级
-                return null;
-            } catch (\RuntimeException $e) {
-                Pool::release($client);
-                throw $e;
-            } catch (\Error $e) {
-                Pool::release($client);
-                throw $e;
+            } else {
+                try {
+                    $args = $point->getArgs();
+                    $request = request();
+                    $header=[];
+                    if ($request) {
+                        $header = request()->header();
+                    }
+                    $value = $client->query($point->getOriginalClass(), $method->getName(), $args,$header);
+                    if ($obj->FUSE_FAIL_COUNT) {
+                        $obj->FUSE_FAIL_COUNT = 0;
+                    }
+                    if ($value == null) {
+                        $value = true;
+                    }
+                    return $value;
+                } catch (RpcClientException $exception) {
+                    $obj->FUSE_FAIL_COUNT++;
+                    //失败一定次数开启熔断
+                    if ($obj->FUSE_FAIL_COUNT > $fuseConfig[ 'fuse_fail_count' ]) {
+                        $obj->FUSE_OPEN_TIME = time();
+                        $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
+                    }
+                    //TODO 日志记录
+                    //失败就服务降级
+                    return null;
+                }
             }
+        }finally{
+            Pool::release($client);
         }
+        return null;
     }
 
 

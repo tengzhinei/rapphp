@@ -262,6 +262,13 @@ class Request {
         return $this->value($value, $default, $filter);
     }
 
+    public function setHeader($name,$value){
+        if(empty($this->header)){
+            $this->header();
+        }
+        $this->header[$name]=$value;
+    }
+
 
     /**
      * 获取当前包含协议的域名

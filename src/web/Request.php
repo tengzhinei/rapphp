@@ -306,6 +306,7 @@ class Request {
                 $this->url = '';
             }
 
+
         }
 
         return $this->url;

@@ -44,6 +44,10 @@ class RedisSession implements Session{
 
     public function sessionId(){
         if(!$this->session_id){
+            $this->session_id=  $session_id=$this->request->header('x-session-id');
+
+        }
+        if(!$this->session_id){
             $this->session_id=$this->request->cookie('PHPSESSID');
         }
         if(!$this->session_id) {

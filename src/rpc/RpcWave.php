@@ -80,7 +80,8 @@ class RpcWave {
                     $request = request();
                     $header=[];
                     if ($request) {
-                        $header = request()->header();
+                        $header = $request->header();
+                        $header['x-session-id']=$request->session()->sessionId();
                     }
                     $value = $client->query($point->getOriginalClass(), $method->getName(), $args,$header);
                     if ($obj->FUSE_FAIL_COUNT) {

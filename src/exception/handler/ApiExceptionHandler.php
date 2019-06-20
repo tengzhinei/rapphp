@@ -18,14 +18,16 @@ class ApiExceptionHandler implements ExceptionHandler {
         if ($exception instanceof ErrorException) {
             $exception = $exception->error;
         }
+        $code='101010';
         $msg = $exception->getMessage();
         if (!($exception instanceof MsgException)) {
             $msg .= "  |" . str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
-
+        }else{
+            $code=$exception->getCode();
         }
         $response->contentType("application/json");
         $value = json_encode(['success' => false,
-                              'code' => '101010',
+                              'code' => $code,
                               'msg' => $msg]);
         $response->setContent($value);
         $response->send();

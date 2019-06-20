@@ -24,9 +24,12 @@ class PageExceptionHandler implements  ExceptionHandler{
         if ($exception instanceof ErrorException) {
             $exception = $exception->error;
         }
+        $code='101010';
         $msg = $exception->getMessage();
         if (!($exception instanceof MsgException)) {
             $msg .= "  |" . str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
+        }else{
+            $code=$exception->getCode();
         }
         $template_base = Config::get('view','template_base');
         $file=$template_base.'/exception';
@@ -35,7 +38,7 @@ class PageExceptionHandler implements  ExceptionHandler{
         }
         /* @var $view View  */
         $view=Ioc::get(TwigView::class);
-        $view->assign(['msg'=>$msg,'exception'=>$exception]);
+        $view->assign(['msg'=>$msg,'code'=>$code,'exception'=>$exception]);
         $response->setContent($view->fetch($file));
         $response->send();
 

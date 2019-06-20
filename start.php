@@ -15,7 +15,7 @@ defined('IS_WIN') or define('IS_WIN', strpos(PHP_OS, 'WIN') !== false);
 defined('IS_SWOOLE') or define('IS_SWOOLE', IS_CLI&&$argv[1]=='http'||$argv[1]=='websocket');
 $loader = require ROOT_PATH . '/vendor/autoload.php';
 $loader->setPsr4(APP_DIR."\\", ROOT_PATH.APP_DIR);
-$loader->setPsr4("rap\\aop\\build\\", RUNTIME.'aop');
+$loader->setPsr4("rap\\aop\\build\\", ROOT_PATH.'aop');
 //swoole 模式
 if(IS_CLI){
     \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);

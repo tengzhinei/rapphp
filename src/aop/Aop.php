@@ -305,7 +305,7 @@ class Aop {
      * 创建代理文件
      */
     public static function buildProxy() {
-        $dir = RUNTIME . 'aop';
+        $dir = ROOT_PATH . 'aop';
         self::deleteAll($dir);
         if (!file_exists($dir)) {
             mkdir($dir, 0777, true);

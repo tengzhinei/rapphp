@@ -9,6 +9,7 @@
 
 namespace rap\rpc;
 
+use rap\aop\Aop;
 use rap\aop\JoinPoint;
 use rap\rpc\client\RpcClient;
 use rap\rpc\client\RpcClientException;
@@ -67,7 +68,7 @@ class RpcWave {
                     $value = $client->query($point->getOriginalClass(), $method->getName(), $args,$header);
                     $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_CLOSE;
                     if ($value == null) {
-                        $value = true;
+                        $value = Aop::NuLL;
                     }
                     return $value;
                 } catch (RpcClientException $exception) {
@@ -88,7 +89,7 @@ class RpcWave {
                         $obj->FUSE_FAIL_COUNT = 0;
                     }
                     if ($value == null) {
-                        $value = true;
+                        $value = Aop::NuLL;
                     }
                     return $value;
                 } catch (RpcClientException $exception) {

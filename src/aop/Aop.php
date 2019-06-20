@@ -9,6 +9,7 @@ use rap\ioc\Ioc;
  */
 class Aop {
 
+    const NuLL="Aop___NULL";
     /**
      * 所有前置拦截器
      * @var array
@@ -438,12 +439,12 @@ class Aop {
                         throw \$val;
                     }
                     if (\$val) {
-                        return \$val;
+                        return Aop::NuLL==\$val?null:\$val;
                     }
                 }
                 \$pointArgs=\$point->getArgs();
                 \$val=$call_parent;
-                return \$val;
+                 return Aop::NuLL==\$val?null:\$val;
             }catch (\Throwable \$e){
                 \$val=\$e;
                  throw \$e;
@@ -482,7 +483,7 @@ class Aop {
                         throw \$value;
                     }
                     if(\$value){
-                        return \$value;
+                       return Aop::NuLL==\$value?null:\$value;
                     }
                 }
             }
@@ -518,7 +519,7 @@ EOF;
     }
 
     public static function clear() {
-        $dir = RUNTIME . 'aop';
+        $dir = ROOT_PATH . 'aop';
         self::deleteAll($dir);
     }
 

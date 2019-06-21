@@ -9,10 +9,7 @@
 namespace rap\db;
 
 
-use rap\ioc\Ioc;
-use rap\log\Log;
 use rap\swoole\pool\Pool;
-use rap\swoole\pool\ResourcePool;
 
 class Select extends Where {
 

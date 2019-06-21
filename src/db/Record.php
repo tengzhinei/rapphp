@@ -675,7 +675,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
      */
     public function load() {
         $pk = $this->getPk();
-        if (!$this->$pk) {
+        if (!$pk) {
             return;
         }
         $data = self::get($this->$pk);

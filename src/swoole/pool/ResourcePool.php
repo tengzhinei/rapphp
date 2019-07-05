@@ -10,7 +10,6 @@
 namespace rap\swoole\pool;
 
 
-use rap\aop\Event;
 use rap\ioc\Ioc;
 use rap\swoole\CoContext;
 use Swoole\Coroutine\Channel;
@@ -176,7 +175,6 @@ class ResourcePool {
                     }
                     $time = time() - $buffer->lastActiveTime;
                     if ($time > $idle) {
-                        unset($buffer->bean);
                         $buffer->bean = null;
                     }
                 }

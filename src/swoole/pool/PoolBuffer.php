@@ -32,10 +32,10 @@ class PoolBuffer {
     public function get() {
         if (!$this->bean) {
             $this->bean = Ioc::beanCreate($this->className);
-            $this->lastActiveTime = time();
             $this->bean->_poolBuffer_ = $this;
             $this->bean->_poolName_ = $this->className;
         }
+        $this->lastActiveTime = time();
         $this->is_use = true;
         return $this->bean;
     }

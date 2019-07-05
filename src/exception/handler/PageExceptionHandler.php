@@ -13,6 +13,7 @@ use rap\config\Config;
 use rap\exception\ErrorException;
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
+use rap\log\Log;
 use rap\web\mvc\view\TwigView;
 use rap\web\mvc\view\View;
 use rap\web\Request;
@@ -28,6 +29,7 @@ class PageExceptionHandler implements  ExceptionHandler{
         $msg = $exception->getMessage();
         if (!($exception instanceof MsgException)) {
             $msg .= "  |" . str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
+            Log::error($exception->getCode() . ' : ' . $msg);
         }else{
             $code=$exception->getCode();
         }

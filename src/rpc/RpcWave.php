@@ -11,6 +11,7 @@ namespace rap\rpc;
 
 use rap\aop\Aop;
 use rap\aop\JoinPoint;
+use rap\log\Log;
 use rap\rpc\client\RpcClient;
 use rap\rpc\client\RpcClientException;
 use rap\swoole\pool\Pool;
@@ -42,15 +43,29 @@ class RpcWave {
         $method = $point->getMethod();//对应的反射方法
         /* @var $obj RpcSTATUS */
         $obj = $point->getObj();//对应包装对象
+
+        $request = request();
+        $header = [];
+        if ($request) {
+            $header = $request->header();
+            $header[ 'x-session-id' ] = $request->session()->sessionId();
+        }
+
+        $context = ['clazz' => $point->getOriginalClass(),
+                    'name' => $method->getName(),
+                    'args' => $point->getArgs(),
+                    'header' => $header];
+
         /* @var $client RpcClient */
         $client = $this->rpc->getRpcClient($point->getOriginalClass());
-        try{
+        try {
             $fuseConfig = $client->fuseConfig();
             //熔断器开启
             if ($obj->FUSE_STATUS == RpcWave::FUSE_STATUS_OPEN) {
                 //熔断30s
                 if (time() - $obj->FUSE_OPEN_TIME < $fuseConfig[ 'fuse_time' ]) {
                     //使用服务降级
+                    Log::info('RPC 调用降级服务', $context);
                     return null;
                 }
                 $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_HALF_OPEN;
@@ -61,30 +76,27 @@ class RpcWave {
                 try {
                     $args = $point->getArgs();
                     $request = request();
-                    $header=[];
+                    $header = [];
                     if ($request) {
                         $header = request()->header();
                     }
-                    $value = $client->query($point->getOriginalClass(), $method->getName(), $args,$header);
+                    $value = $client->query($point->getOriginalClass(), $method->getName(), $args, $header);
                     $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_CLOSE;
+                    Log::alert('RPC FUSE_STATUS_CLOSE rpc 关闭熔断', $context);
                     if ($value == null) {
                         $value = Aop::NuLL;
                     }
                     return $value;
                 } catch (RpcClientException $exception) {
+
                     $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
                     return null;
                 }
             } else {
                 try {
                     $args = $point->getArgs();
-                    $request = request();
-                    $header=[];
-                    if ($request) {
-                        $header = $request->header();
-                        $header['x-session-id']=$request->session()->sessionId();
-                    }
-                    $value = $client->query($point->getOriginalClass(), $method->getName(), $args,$header);
+                    Log::info('RPC 调用', $context);
+                    $value = $client->query($point->getOriginalClass(), $method->getName(), $args, $header);
                     if ($obj->FUSE_FAIL_COUNT) {
                         $obj->FUSE_FAIL_COUNT = 0;
                     }
@@ -98,13 +110,13 @@ class RpcWave {
                     if ($obj->FUSE_FAIL_COUNT > $fuseConfig[ 'fuse_fail_count' ]) {
                         $obj->FUSE_OPEN_TIME = time();
                         $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
+                        Log::alert('RPC FUSE_OPEN rpc 开启熔断', $context);
                     }
-                    //TODO 日志记录
-                    //失败就服务降级
+                    Log::warning('RPC FUSE_OPEN rpc 开启熔断', $context);
                     return null;
                 }
             }
-        }finally{
+        } finally {
             Pool::release($client);
         }
         return null;

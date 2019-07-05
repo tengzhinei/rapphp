@@ -10,6 +10,7 @@ namespace rap\config;
 use rap\cache\Cache;
 use rap\db\Select;
 use rap\db\Update;
+use rap\log\Log;
 
 class DbConfig {
 
@@ -31,8 +32,6 @@ class DbConfig {
 
     /**
      * 获取缓存
-     *
-     *
      * @return mixed
      */
     public function get($module) {
@@ -63,6 +62,7 @@ class DbConfig {
               ->where($this->config[ 'module_field' ], $module)
               ->excuse();
         Cache::remove(md5("config_" . $module));
+        Log::notice('设置配置:' . $module . ' 值:' . $data);
     }
 
     /**
@@ -78,6 +78,7 @@ class DbConfig {
               ->where($this->config[ 'module_field' ], $module)
               ->excuse();
         Cache::remove(md5("config_" . $module));
+        Log::notice('设置配置:' . $module . ' 值:' . $data);
     }
 
 

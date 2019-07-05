@@ -13,13 +13,19 @@ use Monolog\Handler\RotatingFileHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use rap\cache\Cache;
+use rap\config\Config;
 use rap\ioc\Ioc;
 use rap\swoole\Context;
 
+/**
+ * 日志服务
+ * @author: 藤之内
+ */
 class Log {
 
 
     /**
+     *
      * @param string $name
      *
      * @return LoggerInterface
@@ -28,8 +34,13 @@ class Log {
         /* @var LoggerInterface */
         $logger = Ioc::getInstance($name);
         if (!$logger) {
+            $log_config = Config::get('log');
+            $log_config = array_merge(['max' => 10, 'level' => 'notice'], $log_config);
+            $level = $log_config[ 'level' ];
             $logger = new Logger("rap.log");
-            $handler = new RotatingFileHandler(RUNTIME . 'log/log');
+            $level = strtoupper($level);
+            $log_config[ 'level' ] = constant(Logger::class . "::" . $level);
+            $handler = new RotatingFileHandler(RUNTIME . 'log/log', $log_config[ 'max' ]);
             $logger->pushHandler($handler);
             $handler->pushProcessor(function($record) {
                 /* @var $processor LogProcessor */
@@ -42,84 +53,37 @@ class Log {
         return $logger;
     }
 
-    /**
-     * 记录同一 session 下的debug日志
-     *
-     * @param string $name
-     */
-    public static function debugSession($name = "") {
-        $session_id = request()->session()->sessionId();
-        $sessionIds = Cache::get(md5('Log.debugSession'), []);
-        $sessionIds[ $session_id ] = $name;
-        Cache::set(md5('Log.debugSession'), $sessionIds);
-    }
 
     /**
      * 日志记录 等级debug
+     * Detailed debug information
      *
-     * @param string $message string 消息
-     * @param string $type    类型
-     * @param bool   $force   是否强制记录
+     * @param string $message 日志内容
+     * @param array  $context 上下文
      */
-    public static function debugtest($message, $type = 'user', $force = false) {
-        if (!(is_string($message) || is_int($message))) {
-            $message = json_decode($message);
-        }
-        if (!request()) {
-            return;
-        }
-        $session_ids = Cache::get(md5('Log.debugSession'));
-        $session_id = request()->session()->sessionId();
-        if ($session_ids && key_exists($session_id, $session_ids) || $force) {
-            $name = $session_ids[ $session_id ];
-            list($usec, $sec) = explode(" ", microtime());
-            $time = ((float)$usec + (float)$sec);
-            list($usec, $sec) = explode(".", $time);
-            $date = date('H:i:s.x', $usec);
-            $time = str_replace('x', $sec, $date);
-
-            $msg = ['name' => $name,
-                    'session' => $session_id,
-                    'type' => $type,
-                    'time' => $time,
-                    'msg' => $message];
-            $msgs = Cache::get(md5("Log.debugMsg"), []);
-            $msgs[] = $msg;
-            Cache::set(md5("Log.debugMsg"), $msgs, 60);
-        }
-        //        self::log('debug', $message);
-
-    }
-
-    /**
-     * 获取debug日志
-     * @return array|mixed
-     */
-    public static function debugMsg() {
-        $msgs = Cache::get(md5("Log.debugMsg"), []);
-        Cache::remove(md5("Log.debugMsg"));
-        return $msgs;
-    }
-
-
     public static function debug($message, array $context = array()) {
         self::getLog()->debug($message, $context);
     }
 
 
     /**
-     * 日志记录 等级debug
+     * 日志记录 等级info
+     * Interesting events
+     * Examples: User logs in, SQL logs.
      *
-     * @param $message
+     * @param string $message 日志内容
+     * @param array  $context 上下文
      */
     public static function info($message, array $context = array()) {
         self::getLog()->info($message, $context);
     }
 
     /**
-     * 日志记录 等级debug
+     * 日志记录 等级notice
+     * Uncommon events
      *
-     * @param $message
+     * @param string $message 日志内容
+     * @param array  $context 上下文
      */
     public static function notice($message, array $context = array()) {
         self::getLog()->notice($message, $context);
@@ -127,42 +91,56 @@ class Log {
 
     /**
      * 日志记录 等级warning
+     * Exceptional occurrences that are not errors
+     * Examples: Use of deprecated APIs, poor use of an API,
+     * undesirable things that are not necessarily wrong.
      *
-     * @param $message
+     * @param string $message 日志内容
+     * @param array  $context 上下文
      */
     public static function warning($message, array $context = array()) {
         self::getLog()->warning($message, $context);
     }
 
     /**
-     * 日志记录 等级debug
+     * 日志记录 等级error
+     *  Runtime errors
      *
-     * @param $message
+     * @param string $message 日志内容
+     * @param array  $context 上下文
      */
     public static function error($message, array $context = array()) {
         self::getLog()->error($message, $context);
     }
 
     /**
-     * 日志记录 等级debug
+     * 日志记录 等级critical
+     * Critical conditions
+     * Example: Application component unavailable, unexpected exception.
      *
-     * @param $message
+     * @param string $message 日志内容
+     * @param array  $context 上下文
      */
     public static function critical($message, array $context = array()) {
         self::getLog()->critical($message, $context);
     }
 
     /**
-     * 日志记录 等级debug
+     * 日志记录 等级alert
+     * Action must be taken immediately
+     * Example: Entire website down, database unavailable, etc.
+     * This should trigger the SMS alerts and wake you up.
      *
-     * @param $message
+     * @param string $message 日志内容
+     * @param array  $context 上下文
      */
     public static function alert($message, array $context = array()) {
         self::getLog()->alert($message, $context);
     }
 
     /**
-     * 日志记录 等级debug
+     * 日志记录 等级emergency
+     * Urgent alert.
      *
      * @param $message
      */

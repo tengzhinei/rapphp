@@ -149,9 +149,16 @@ class SwooleHttpServer extends Command {
             Log::info('请求开始', ['url' => $req->url(), 'session_id' => $req->session()->sessionId()]);
             //swoole  4.2.9
             defer(function() use ($req) {
-                CoContext::getContext()->release();
-                Event::trigger(ServerEvent::onRequestDefer);
-                Log::info('请求结束', ['url' => $req->url(), 'session_id' => $req->session()->sessionId()]);
+                try {
+                    Event::trigger(ServerEvent::onRequestDefer);
+                } catch (\Throwable $throwable) {
+                    Log::error('onRequestDeferError', ['message' => $throwable->getMessage()]);
+                } catch (\Error $throwable) {
+                    Log::error('onRequestDeferError', ['message' => $throwable->getMessage()]);
+                } finally {
+                    Log::info('请求结束', ['url' => $req->url(), 'session_id' => $req->session()->sessionId()]);
+                    CoContext::getContext()->release();
+                }
             });
             $application->start($req, $rep);
             //释放协程里的变量和

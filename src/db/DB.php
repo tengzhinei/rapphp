@@ -9,7 +9,6 @@
 namespace rap\db;
 
 
-use rap\ioc\Ioc;
 use rap\swoole\pool\Pool;
 use rap\swoole\pool\ResourcePool;
 
@@ -21,7 +20,7 @@ class DB {
      *
      * @param string $table 表
      * @param array  $data  数据
-     *
+     * @param string  $connection_name  名称
      * @return Insert|string
      */
     public static function insert($table, $data = null, $connection_name = '') {

@@ -57,9 +57,9 @@ abstract class Connection implements PoolAble {
         }
         //非 swoole 环境下无法使用连接池,可以使用 pdo 的持久化连接方式
         //swoole 环境下,没有必要使用
-//        if (!IS_SWOOLE) {
-//            $this->params[ PDO::ATTR_PERSISTENT ] = true;
-//        }
+        if (!IS_SWOOLE) {
+            $this->params[ PDO::ATTR_PERSISTENT ] = true;
+        }
     }
 
     public function poolConfig() {
@@ -76,7 +76,7 @@ abstract class Connection implements PoolAble {
                        PDO::ATTR_STRINGIFY_FETCHES => false,
                        PDO::ATTR_EMULATE_PREPARES => false,
                        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
-                       PDO::ATTR_PERSISTENT=>true];
+                      ];
 
     /**
      * PDO操作实例

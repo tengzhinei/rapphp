@@ -148,8 +148,6 @@ class DBCache {
      * 一级缓存 where 删除
      *
      * @param string $model     类名
-     * @param array  $cacheKeys 所有缓存的 keys
-     * @param array  $_db_data  数据库原来的数据
      */
     public function recordWhereCacheDel($model) {
         /* @var $model Record */
@@ -272,7 +270,6 @@ class DBCache {
      * 获取 sql关联的表
      *
      * @param string $sql
-     * @param bool   $select
      *
      * @return array
      */

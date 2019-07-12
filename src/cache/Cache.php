@@ -8,9 +8,7 @@
 
 namespace rap\cache;
 
-use rap\ioc\Ioc;
 use rap\swoole\pool\Pool;
-use rap\swoole\pool\ResourcePool;
 use rap\swoole\CoContext;
 
 

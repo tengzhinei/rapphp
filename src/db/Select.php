@@ -19,7 +19,7 @@ class Select extends Where {
      * 表
      * @var string
      */
-    private $table = '';
+    public $table = '';
 
     const REMOVED = "REMOVED";
 

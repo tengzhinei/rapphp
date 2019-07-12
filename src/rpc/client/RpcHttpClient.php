@@ -11,7 +11,6 @@ namespace rap\rpc\client;
 
 
 use rap\config\Config;
-use rap\log\Log;
 use rap\swoole\pool\PoolTrait;
 use rap\util\http\Http;
 use Swoole\Coroutine\Http\Client;

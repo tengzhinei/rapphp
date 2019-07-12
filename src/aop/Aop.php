@@ -321,7 +321,6 @@ class Aop {
             $clazzExtend = "\\" . $clazz;
 
             $aop_reflection = new \ReflectionClass($aop_clazz);
-
             $methods = $aop_reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
             $methodsStr = "";
 

@@ -1,11 +1,7 @@
 <?php
 namespace rap\config;
 
-use rap\cache\Cache;
-use rap\db\Select;
-use rap\db\Update;
 use rap\ioc\Ioc;
-use rap\util\http\Http;
 
 /**
  * 南京灵衍信息科技有限公司

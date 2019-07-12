@@ -20,7 +20,7 @@ class DbConfig {
 
 
     /**
-     * DbConfig _initialize.
+     * @param FileConfig $fileConfig
      */
     public function _initialize(FileConfig $fileConfig) {
         $config = $fileConfig->get('config');
@@ -32,7 +32,9 @@ class DbConfig {
 
     /**
      * 获取缓存
-     * @return mixed
+     * @param string $module 模块
+     *
+     * @return mixed|null|string
      */
     public function get($module) {
         $data = $this->getModuleFromDB($module);

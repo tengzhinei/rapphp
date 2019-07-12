@@ -11,7 +11,6 @@ namespace rap\swoole\web;
 
 use rap\cache\Cache;
 use rap\session\Session;
-use rap\swoole\pool\Pool;
 
 class SwooleSession implements Session{
 

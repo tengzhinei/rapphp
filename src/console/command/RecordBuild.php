@@ -1,11 +1,8 @@
 <?php
 namespace rap\console\command;
 
-use rap\aop\Event;
 use rap\console\Command;
 use rap\db\Connection;
-use rap\ioc\Ioc;
-use rap\ServerEvent;
 use rap\swoole\pool\Pool;
 
 /**

@@ -7,7 +7,6 @@
 namespace rap\config;
 
 
-use rap\aop\Event;
 use rap\util\FileUtil;
 
 class FileConfig {

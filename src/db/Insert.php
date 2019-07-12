@@ -9,9 +9,7 @@
 namespace rap\db;
 
 
-use rap\ioc\Ioc;
 use rap\swoole\pool\Pool;
-use rap\swoole\pool\ResourcePool;
 
 class Insert {
     use Comment;

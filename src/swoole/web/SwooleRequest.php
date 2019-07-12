@@ -9,7 +9,6 @@
 namespace rap\swoole\web;
 
 
-use rap\config\Config;
 use rap\storage\File;
 use rap\web\Request;
 

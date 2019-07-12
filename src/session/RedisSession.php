@@ -9,7 +9,6 @@ namespace rap\session;
 
 
 use rap\cache\Cache;
-use rap\log\Log;
 use rap\web\Request;
 use rap\web\Response;
 

@@ -8,10 +8,7 @@
 
 namespace rap\console;
 use rap\aop\Event;
-use rap\ioc\Ioc;
-use rap\RapApplication;
 use rap\ServerEvent;
-use rap\web\Application;
 
 /**
  * 命令

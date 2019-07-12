@@ -3,10 +3,6 @@ namespace rap\ioc;
 
 
 use rap\aop\Aop;
-use rap\db\Connection;
-use rap\swoole\pool\ResourcePool;
-use rap\swoole\pool\PoolAble;
-use rap\swoole\pool\PoolTrait;
 
 class Ioc {
 

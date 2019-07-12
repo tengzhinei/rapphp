@@ -5,7 +5,6 @@ use rap\config\Config;
 use rap\ioc\Ioc;
 use rap\session\Session;
 use rap\storage\File;
-use rap\swoole\CoContext;
 use rap\swoole\Context;
 
 /**
@@ -515,7 +514,10 @@ class Request {
     }
 
     /**
-     * @return Session
+     * @param string $key
+     * @param mixed $value
+     *
+     * @return mixed|Session
      */
     public function session($key = null, $value = null) {
         if ($key) {

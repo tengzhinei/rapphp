@@ -9,13 +9,12 @@
 namespace rap\log;
 
 
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\RotatingFileHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
-use rap\cache\Cache;
 use rap\config\Config;
 use rap\ioc\Ioc;
-use rap\swoole\Context;
 
 /**
  * 日志服务
@@ -35,12 +34,13 @@ class Log {
         $logger = Ioc::getInstance($name);
         if (!$logger) {
             $log_config = Config::get('log');
-            $log_config = array_merge(['max' => 10, 'level' => 'notice'], $log_config);
+            $log_config = array_merge(['max' => 10, 'level' => 'notice','channel'=>"rap.log"], $log_config);
             $level = $log_config[ 'level' ];
             $logger = new Logger("rap.log");
             $level = strtoupper($level);
             $log_config[ 'level' ] = constant(Logger::class . "::" . $level);
-            $handler = new RotatingFileHandler(RUNTIME . 'log/log', $log_config[ 'max' ]);
+            $handler = new RotatingFileHandler(RUNTIME . 'log/log.log', $log_config[ 'max' ],$log_config[ 'level' ]);
+            $handler->setFormatter(new JsonFormatter());
             $logger->pushHandler($handler);
             $handler->pushProcessor(function($record) {
                 /* @var $processor LogProcessor */
@@ -143,6 +143,7 @@ class Log {
      * Urgent alert.
      *
      * @param $message
+     * @param array  $context 上下文
      */
     public static function emergency($message, array $context = array()) {
         self::getLog()->emergency($message, $context);

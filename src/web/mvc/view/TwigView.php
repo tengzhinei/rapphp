@@ -10,7 +10,6 @@
 namespace rap\web\mvc\view;
 
 use rap\config\Config;
-use rap\util\Lang;
 
 /**
  * 推荐的模板引擎

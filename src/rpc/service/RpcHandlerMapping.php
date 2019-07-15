@@ -11,6 +11,7 @@ namespace rap\rpc\service;
 
 
 use rap\config\Config;
+use rap\ioc\Ioc;
 use rap\web\mvc\HandlerMapping;
 use rap\web\Request;
 use rap\web\Response;
@@ -20,15 +21,9 @@ class RpcHandlerMapping implements HandlerMapping {
     private $config = ['path' => '/rpc_____call',
                        ];
 
-    private $rpcHandlerAdapter;
-
-    /**
-     * @param RpcHandlerAdapter $rpcHandlerAdapter
-     */
-    public function _initialize(RpcHandlerAdapter $rpcHandlerAdapter) {
+    public function _initialize() {
         $config = Config::getFileConfig()[ 'rpc_service' ];
         $this->config = array_merge($this->config, $config);
-        $this->rpcHandlerAdapter = $rpcHandlerAdapter;
     }
 
     public function map(Request $request, Response $response) {
@@ -38,7 +33,7 @@ class RpcHandlerMapping implements HandlerMapping {
             return null;
         }
 
-        return $this->rpcHandlerAdapter;
+        return Ioc::get(RpcHandlerAdapter::class);
     }
 
 

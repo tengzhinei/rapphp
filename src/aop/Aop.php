@@ -363,7 +363,9 @@ class Aop {
                         $methodArgs .= "=";
                         if ($value === null) {
                             $methodArgs .= 'null';
-                        } else {
+                        }else if ($value === false){
+                            $methodArgs .= 'false';
+                        }  else {
                             if($isArray){
                                 $methodArgs .= "[]";
                             }else{

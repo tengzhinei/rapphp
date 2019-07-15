@@ -42,7 +42,7 @@ class RedisLocker {
                 for ($i = 0; $i < $timeout / 5; $i++) {
                     $ok = $redis->eval($script, ["_RedisLocker_$key", 'lock_' . Context::id()], 1);
                     if ($ok) {
-                        Log::info('RedisLock 加锁成功 :'.$key);
+                        Log::info('RedisLock success:加锁成功 '.$key);
                         return true;
                     }
                     if (IS_SWOOLE) {
@@ -56,7 +56,7 @@ class RedisLocker {
         }finally{
             Pool::release($cache);
         }
-        Log::info('RedisLock 加锁失败 :'.$key);
+        Log::info('RedisLock fail:加锁失败 '.$key);
         return false;
     }
 
@@ -86,7 +86,7 @@ class RedisLocker {
         }finally{
             Pool::release($cache);
         }
-        Log::info('RedisLock 释放锁'.$ok?'成功:':'失败:'.$key);
+        Log::info('RedisLock unlock: 释放锁'.$ok?'成功':'失败'.$key);
         return $ok;
     }
 
@@ -108,14 +108,14 @@ class RedisLocker {
                 $script = "if(redis.call('setnx',  KEYS[1],ARGV[1])==1)then return redis.call('expire',KEYS[1],10) else return 0 end";
                 $ok = $redis->eval($script, ["_RedisLocker_$key", 'lock_' . Context::id()], 1);
                 if ($ok) {
-                    Log::info('RedisLock 尝试加锁成功 :'.$key);
+                    Log::info('RedisLock tryLock success: 尝试加锁成功 '.$key);
                     return true;
                 }
             }
         }finally{
             Pool::release($cache);
         }
-        Log::info('RedisLock 尝试加锁失败 :'.$key);
+        Log::info('RedisLock tryLock fail: 尝试加锁失败 :'.$key);
         return false;
     }
 
@@ -140,7 +140,7 @@ class RedisLocker {
                 for ($i = 0; $i < $timeout / 5; $i++) {
                     $ok = $redis->eval($script, ["_RedisLocker_$key"], 1);
                     if ($ok) {
-                        Log::info('RedisLock 添加只读锁成功 :'.$key);
+                        Log::info('RedisLock lockRead success:  添加只读锁成功 '.$key);
                         return true;
                     }
                     if (IS_SWOOLE) {
@@ -154,7 +154,7 @@ class RedisLocker {
         } finally{
             Pool::release($cache);
         }
-        Log::info('RedisLock 添加只读锁失败 :'.$key);
+        Log::info('RedisLock lockRead fail: 添加只读锁失败 '.$key);
         return false;
     }
 
@@ -177,14 +177,14 @@ class RedisLocker {
              return 0 end redis.call('set',KEYS[1],v+1) return return redis.call('expire',KEYS[1],10)";
                 $ok = $redis->eval($script, ["_RedisLocker_$key"], 1);
                 if ($ok) {
-                    Log::info('RedisLock 尝试添加只读锁成功 :'.$key);
+                    Log::info('RedisLock tryLockRead success: 尝试添加只读锁成功 '.$key);
                     return true;
                 }
             }
         }finally{
             Pool::release($cache);
         }
-        Log::info('RedisLock 尝试添加只读锁失败 :'.$key);
+        Log::info('RedisLock tryLockRead fail: 尝试添加只读锁失败 '.$key);
         return false;
     }
 

@@ -64,7 +64,7 @@ class DbConfig {
               ->where($this->config[ 'module_field' ], $module)
               ->excuse();
         Cache::remove(md5("config_" . $module));
-        Log::notice('设置配置:' . $module . ' 值:' . $data);
+        Log::notice('config set:设置配置:' . $module . ' 值:' . $data);
     }
 
     /**
@@ -80,7 +80,7 @@ class DbConfig {
               ->where($this->config[ 'module_field' ], $module)
               ->excuse();
         Cache::remove(md5("config_" . $module));
-        Log::notice('设置配置:' . $module . ' 值:' . $data);
+        Log::notice('config setAll:设置配置:' . $module . ' 值:' . $data);
     }
 
 

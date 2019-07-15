@@ -23,7 +23,7 @@ class ApiExceptionHandler implements ExceptionHandler {
         $msg = $exception->getMessage();
         if (!($exception instanceof MsgException)) {
             $msg .= "  |" . str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
-            Log::error('服务异常 :' . $exception->getCode() . ' : ' . $msg);
+            Log::error('http request error handler :' . $exception->getCode() . ' : ' . $msg);
         } else {
             $code = $exception->getCode();
         }

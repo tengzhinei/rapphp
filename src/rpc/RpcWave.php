@@ -65,7 +65,7 @@ class RpcWave {
                 //熔断30s
                 if (time() - $obj->FUSE_OPEN_TIME < $fuseConfig[ 'fuse_time' ]) {
                     //使用服务降级
-                    Log::info('RPC 调用降级服务', $context);
+                    Log::info('RPC degrade service:服务降级', $context);
                     return null;
                 }
                 $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_HALF_OPEN;
@@ -82,7 +82,7 @@ class RpcWave {
                     }
                     $value = $client->query($point->getOriginalClass(), $method->getName(), $args, $header);
                     $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_CLOSE;
-                    Log::alert('RPC FUSE_STATUS_CLOSE rpc 关闭熔断', $context);
+                    Log::alert('RPC FUSE_STATUS_CLOSE :关闭熔断', $context);
                     if ($value == null) {
                         $value = Aop::NuLL;
                     }
@@ -95,7 +95,7 @@ class RpcWave {
             } else {
                 try {
                     $args = $point->getArgs();
-                    Log::info('RPC 调用', $context);
+                    Log::info('RPC query :调用', $context);
                     $value = $client->query($point->getOriginalClass(), $method->getName(), $args, $header);
                     if ($obj->FUSE_FAIL_COUNT) {
                         $obj->FUSE_FAIL_COUNT = 0;
@@ -110,9 +110,9 @@ class RpcWave {
                     if ($obj->FUSE_FAIL_COUNT > $fuseConfig[ 'fuse_fail_count' ]) {
                         $obj->FUSE_OPEN_TIME = time();
                         $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
-                        Log::alert('RPC FUSE_OPEN rpc 开启熔断', $context);
+                        Log::alert('RPC FUSE_OPEN :开启熔断', $context);
                     }
-                    Log::warning('RPC FUSE_OPEN rpc 开启熔断', $context);
+                    Log::warning('RPC FUSE_OPEN :开启熔断', $context);
                     return null;
                 }
             }

@@ -76,7 +76,7 @@ class SwooleHttpServer extends Command {
     }
 
     public function onStart($server) {
-        Log::notice('http服务启动');
+        Log::notice('swoole http start 服务启动');
         $application = Ioc::get(Application::class);
         $application->server = $server;
         Event::trigger(ServerEvent::onServerStart, $server);
@@ -89,7 +89,7 @@ class SwooleHttpServer extends Command {
     }
 
     public function onShutdown($server) {
-        Log::notice('http服务停止');
+        Log::notice('swoole http shutdown : http服务停止');
         Event::trigger(ServerEvent::onServerShutdown, $server);
         if ($this->config[ 'enable_static_handler' ]) {
             FileUtil::delete(ROOT_PATH . '.rap_static_file');
@@ -97,7 +97,7 @@ class SwooleHttpServer extends Command {
     }
 
     public function onWorkStart($server, $id) {
-        Log::info('worker进程启动:' . $id);
+        Log::info('swoole worker start:' . $id);
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
@@ -105,7 +105,7 @@ class SwooleHttpServer extends Command {
     }
 
     public function onWorkerStop($server, $id) {
-        Log::info('worker进程停止:' . $id);
+        Log::info('swoole worker stop:' . $id);
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
@@ -113,7 +113,7 @@ class SwooleHttpServer extends Command {
     }
 
     public function onTask($serv, $task_id, $from_id, $data) {
-        Log::info('Task开始:' . $task_id);
+        Log::info('swoole task start:' . $task_id);
         $clazz = $data[ 'clazz' ];
         $method = $data[ 'method' ];
         $params = $data[ 'params' ];
@@ -146,17 +146,17 @@ class SwooleHttpServer extends Command {
             //生成 session
             $rep->session()->sessionId();
             CoContext::getContext()->setRequest($req);
-            Log::info('请求开始', ['url' => $req->url(), 'session_id' => $req->session()->sessionId()]);
+            Log::info('http request start', ['url' => $req->url(), 'session_id' => $req->session()->sessionId()]);
             //swoole  4.2.9
             defer(function() use ($req) {
                 try {
                     Event::trigger(ServerEvent::onRequestDefer);
                 } catch (\Throwable $throwable) {
-                    Log::error('onRequestDeferError', ['message' => $throwable->getMessage()]);
+                    Log::error('http request error', ['message' => $throwable->getMessage()]);
                 } catch (\Error $throwable) {
-                    Log::error('onRequestDeferError', ['message' => $throwable->getMessage()]);
+                    Log::error('http request error', ['message' => $throwable->getMessage()]);
                 } finally {
-                    Log::info('请求结束', ['url' => $req->url(), 'session_id' => $req->session()->sessionId()]);
+                    Log::info('http request end', ['url' => $req->url(), 'session_id' => $req->session()->sessionId()]);
                     CoContext::getContext()->release();
                 }
             });
@@ -165,12 +165,12 @@ class SwooleHttpServer extends Command {
         } catch (\Exception $exception) {
             $response->end($exception->getMessage());
             $msg = str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
-            Log::error('服务异常 :' . $exception->getCode() . ' : ' . $msg);
+            Log::error('http request error :' . $exception->getCode() . ' : ' . $msg);
             return;
         } catch (\Error $e) {
             $response->end($e->getMessage());
             $msg = str_replace("rap\\exception\\", "", get_class($e)) . " in " . str_replace(ROOT_PATH, "", $e->getFile()) . " line " . $e->getLine();
-            Log::error('服务异常 :' . $e->getCode() . ' : ' . $msg);
+            Log::error('http request error :' . $e->getCode() . ' : ' . $msg);
             return;
         }
     }

@@ -678,7 +678,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
         if (!$pk) {
             return;
         }
-        $data = self::get($this->$pk);
+        $data = self::get($pk);
         $data = $data->toArray('', false);
         foreach ($data as $key => $value) {
             if (empty($this->$key)) {

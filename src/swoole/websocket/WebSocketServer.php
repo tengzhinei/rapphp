@@ -3,10 +3,8 @@ namespace rap\swoole\websocket;
 
 use rap\aop\Event;
 use rap\cache\Cache;
-use rap\cache\CacheInterface;
 use rap\config\Config;
 use rap\console\Command;
-use rap\db\Connection;
 use rap\ioc\Ioc;
 use rap\ServerEvent;
 use rap\swoole\Context;
@@ -21,7 +19,7 @@ use rap\swoole\CoContext;
 use Swoole\Runtime;
 
 /**
- * 南京灵衍信息科技有限公司
+ * 功能暂未完善 请勿使用 暂时只有公司内部使用
  * User: jinghao@duohuo.net
  * Date: 18/6/9
  * Time: 下午11:45

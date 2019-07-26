@@ -39,10 +39,8 @@ class SwooleHttpServer extends Command {
 
     public function run() {
         $this->config = array_merge($this->config, Config::get('swoole_http'));
-        if ($this->config[ 'coroutine' ]) {
-            //mysql redis 协程化
-            Runtime::enableCoroutine();
-        }
+        //mysql redis 协程化
+        Runtime::enableCoroutine();
         $document_root = '';
 
         if ($this->config[ 'enable_static_handler' ] && !Config::get('app')[ 'debug' ]) {
@@ -53,15 +51,21 @@ class SwooleHttpServer extends Command {
             $document_root = '.rap_static_file';
         }
 
+        $config = array_merge($this->config, ['open_http2_protocol' => $this->config[ 'http2' ],
+                                              'document_root' => ROOT_PATH . $document_root,
+                                              'buffer_output_size' => 32 * 1024 * 1024]);
+
+
         $http = new \swoole_http_server($this->config[ 'ip' ], $this->config[ 'port' ]);
-        $http->set(['buffer_output_size' => 32 * 1024 * 1024, //必须为数字
-                    'document_root' => ROOT_PATH . $document_root,
-                    'enable_static_handler' => $this->config[ 'enable_static_handler' ],
-                    'worker_num' => $this->config[ 'worker_num' ],
-                    'max_request' => $this->config[ 'max_request' ],
-                    'task_worker_num' => $this->config[ 'task_worker_num' ],
-                    'task_max_request' => $this->config[ 'task_max_request' ],
-                    'open_http2_protocol' => $this->config[ 'http2' ]]);
+        //        $http->set(['buffer_output_size' => 32 * 1024 * 1024, //必须为数字
+        //                    'document_root' => ROOT_PATH . $document_root,
+        //                    'enable_static_handler' => $this->config[ 'enable_static_handler' ],
+        //                    'worker_num' => $this->config[ 'worker_num' ],
+        //                    'max_request' => $this->config[ 'max_request' ],
+        //                    'task_worker_num' => $this->config[ 'task_worker_num' ],
+        //                    'task_max_request' => $this->config[ 'task_max_request' ],
+        //                    'open_http2_protocol' => $this->config[ 'http2' ]]);
+        $http->set($config);
         $http->on('workerstart', [$this, 'onWorkStart']);
         $http->on('workerstop', [$this, 'onWorkerStop']);
         $http->on('start', [$this, 'onStart']);

@@ -13,6 +13,10 @@ use OSS\Core\OssException;
 use OSS\OssClient;
 use rap\config\Config;
 
+/**
+ *
+ * @author: 藤之内
+ */
 class OssStorage implements StorageInterface{
 
     private $config=[

@@ -15,7 +15,7 @@ use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use rap\config\Config;
 use rap\ioc\Ioc;
-
+use rap\swoole\Context;
 /**
  * 日志服务
  * @author: 藤之内
@@ -29,7 +29,7 @@ class Log {
      *
      * @return LoggerInterface
      */
-    private static function getLog($name = LoggerInterface::class) {
+    public static function getLog($name = LoggerInterface::class) {
         /* @var LoggerInterface */
         $logger = Ioc::getInstance($name);
         if (!$logger) {
@@ -43,9 +43,12 @@ class Log {
             $handler->setFormatter(new JsonFormatter());
             $logger->pushHandler($handler);
             $handler->pushProcessor(function($record) {
-                /* @var $processor LogProcessor */
-                $processor = Ioc::get(LogProcessor::class);
-                return $processor->process($record);
+                $record[ 'extra' ][ 'user_id' ] = Context::userId();
+                $request = request();
+                if ($request) {
+                    $record[ 'extra' ][ 'session_id' ] = $request->session()->sessionId();
+                }
+                return $record;
             });
             Ioc::instance($name, $logger);
             return $logger;

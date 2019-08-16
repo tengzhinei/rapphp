@@ -17,7 +17,6 @@ use rap\session\HttpSession;
 use rap\session\Session;
 
 class Response {
-
     // 当前的contentType
     protected $contentType = 'text/html';
 
@@ -45,6 +44,7 @@ class Response {
         if ($this->hasSend) {
             return;
         }
+
         $this->hasSend = true;
         $this->header[ 'Content-Type' ] = $this->contentType . '; charset=' . $this->charset;
         if (!headers_sent() && !empty($this->header)) {
@@ -95,7 +95,6 @@ class Response {
      * @return $this
      */
     public function contentType($contentType, $charset = 'utf-8') {
-
         $this->contentType = $contentType;
         $this->charset = $charset;
         return $this;
@@ -162,12 +161,11 @@ class Response {
     public function session() {
 
         if (!$this->session) {
-            if (Config::get('session', 'type') == 'redis') {
+            if (Config::getFileConfig()['session']['type'] == 'redis') {
                 $this->session = new RedisSession($this->request, $this);
             } else {
                 $this->session = new HttpSession();
             }
-
         }
         return $this->session;
     }
@@ -199,9 +197,8 @@ class Response {
             $count += $data;//计数
             echo $data;//传数据给浏览器端
         }
-        if(!IS_SWOOLE){
-            Event::trigger(ServerEvent::onRequestDefer);
-        }
+
+        Event::trigger(ServerEvent::onRequestDefer);
         die;
     }
 

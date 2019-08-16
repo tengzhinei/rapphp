@@ -55,13 +55,8 @@ class Cache {
     public static function set($key, $value, $expire = 0) {
         try {
             self::getCache()->set($key, $value, $expire);
+        } finally {
             self::release();
-        } catch (\RuntimeException $e) {
-            self::release();
-            throw $e;
-        } catch (\Error $e) {
-            self::release();
-            throw $e;
         }
     }
 
@@ -77,15 +72,9 @@ class Cache {
      */
     public static function get($key, $default = "") {
         try {
-            $val = self::getCache()->get($key, $default);
+            return self::getCache()->get($key, $default);
+        } finally {
             self::release();
-            return $val;
-        } catch (\RuntimeException $e) {
-            self::release();
-            throw $e;
-        } catch (\Error $e) {
-            self::release();
-            throw $e;
         }
     }
 
@@ -99,15 +88,9 @@ class Cache {
      */
     public static function has($key) {
         try {
-            $b = self::getCache()->has($key);
+            return self::getCache()->has($key);
+        } finally {
             self::release();
-            return $b;
-        } catch (\RuntimeException $e) {
-            self::release();
-            throw $e;
-        } catch (\Error $e) {
-            self::release();
-            throw $e;
         }
     }
 
@@ -117,18 +100,14 @@ class Cache {
      *
      * @param string $key
      * @param int    $step
+     *
      * @throws \Error
      */
     public static function inc($key, $step = 1) {
         try {
-            self::getCache()->inc($key, $step);
+            return self::getCache()->inc($key, $step);
+        } finally {
             self::release();
-        } catch (\RuntimeException $e) {
-            self::release();
-            throw $e;
-        } catch (\Error $e) {
-            self::release();
-            throw $e;
         }
     }
 
@@ -137,18 +116,14 @@ class Cache {
      *
      * @param string $key
      * @param int    $step
+     *
      * @throws \Error
      */
     public static function dec($key, $step = 1) {
         try {
-            self::getCache()->dec($key, $step);
+            return self::getCache()->dec($key, $step);
+        } finally {
             self::release();
-        } catch (\RuntimeException $e) {
-            self::release();
-            throw $e;
-        } catch (\Error $e) {
-            self::release();
-            throw $e;
         }
     }
 
@@ -162,13 +137,8 @@ class Cache {
     public static function remove($key) {
         try {
             self::getCache()->remove($key);
+        } finally {
             self::release();
-        } catch (\RuntimeException $e) {
-            self::release();
-            throw $e;
-        } catch (\Error $e) {
-            self::release();
-            throw $e;
         }
     }
 
@@ -179,13 +149,8 @@ class Cache {
     public static function clear() {
         try {
             self::getCache()->clear();
+        } finally {
             self::release();
-        } catch (\RuntimeException $e) {
-            self::release();
-            throw $e;
-        } catch (\Error $e) {
-            self::release();
-            throw $e;
         }
     }
 
@@ -195,18 +160,14 @@ class Cache {
      * @param string $name
      * @param string $key
      * @param mixed  $value
+     *
      * @throws \Error
      */
     public static function hashSet($name, $key, $value) {
         try {
             self::getCache()->hashSet($name, $key, $value);
+        } finally {
             self::release();
-        } catch (\RuntimeException $e) {
-            self::release();
-            throw $e;
-        } catch (\Error $e) {
-            self::release();
-            throw $e;
         }
     }
 
@@ -216,19 +177,14 @@ class Cache {
      * @param  string $name
      * @param  string $key
      * @param  mixed  $default
+     *
      * @throws \Error
      */
     public static function hashGet($name, $key, $default = "") {
         try {
-            $val = self::getCache()->hashGet($name, $key, $default);
+            return self::getCache()->hashGet($name, $key, $default);
+        } finally {
             self::release();
-            return $val;
-        } catch (\RuntimeException $e) {
-            self::release();
-            throw $e;
-        } catch (\Error $e) {
-            self::release();
-            throw $e;
         }
     }
 
@@ -237,18 +193,14 @@ class Cache {
      *
      * @param string $name
      * @param string $key
+     *
      * @throws \Error
      */
     public static function hashRemove($name, $key) {
         try {
             self::getCache()->hashRemove($name, $key);
+        } finally {
             self::release();
-        } catch (\RuntimeException $e) {
-            self::release();
-            throw $e;
-        } catch (\Error $e) {
-            self::release();
-            throw $e;
         }
     }
 

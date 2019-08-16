@@ -37,23 +37,37 @@ abstract class WebSocketService{
      * @return bool
      */
     public function sendToUser($user_id,array $msg){
-       return $this->server->sendToUser($user_id,$msg);
+        return $this->server->sendToUser($user_id,$msg);
     }
 
     /**
      * 直接推送
-     * @param $fid
-     * @param $msg
+     * @param string $fid
+     * @param string $msg
      */
     public function push($fid,$msg){
         if( $this->server->server->exist($fid)){
-            $this->server->server->push($fid,$msg);
+            $this->server->server->task([
+                'fid'=>$fid,
+                'msg'=>$msg
+            ]);
+        }else{
+            //断开
+            $this->server->server->close($fid);
+            $redis = Cache::redis();
+            $user_id=$redis->hGet('fid_#_user_id',$fid);
+            $redis->hDel('user_id_#_fid', $user_id);
+            $redis->hDel('fid_#_user_id', $fid);
+            Cache::release();
         }
     }
 
     public function close($fid){
         if( $this->server->server->exist($fid)){
-            $this->server->server->push($fid,json_encode(['msg_type'=>'error','code'=>'10011','msg'=>'用户已在其他地方登录']));
+            $this->server->server->task([
+                'fid'=>$fid,
+                'msg'=>json_encode(['msg_type'=>'error','code'=>'10011','msg'=>'用户已在其他地方登录'])
+            ]);
             $this->server->server->close($fid);
         }
     }

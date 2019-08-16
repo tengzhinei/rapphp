@@ -54,17 +54,7 @@ class SwooleHttpServer extends Command {
         $config = array_merge($this->config, ['open_http2_protocol' => $this->config[ 'http2' ],
                                               'document_root' => ROOT_PATH . $document_root,
                                               'buffer_output_size' => 32 * 1024 * 1024]);
-
-
         $http = new \swoole_http_server($this->config[ 'ip' ], $this->config[ 'port' ]);
-        //        $http->set(['buffer_output_size' => 32 * 1024 * 1024, //必须为数字
-        //                    'document_root' => ROOT_PATH . $document_root,
-        //                    'enable_static_handler' => $this->config[ 'enable_static_handler' ],
-        //                    'worker_num' => $this->config[ 'worker_num' ],
-        //                    'max_request' => $this->config[ 'max_request' ],
-        //                    'task_worker_num' => $this->config[ 'task_worker_num' ],
-        //                    'task_max_request' => $this->config[ 'task_max_request' ],
-        //                    'open_http2_protocol' => $this->config[ 'http2' ]]);
         $http->set($config);
         $http->on('workerstart', [$this, 'onWorkStart']);
         $http->on('workerstop', [$this, 'onWorkerStop']);
@@ -80,7 +70,7 @@ class SwooleHttpServer extends Command {
     }
 
     public function onStart($server) {
-        Log::notice('swoole http start 服务启动');
+        Log::notice('swoole http start : http服务启动');
         $application = Ioc::get(Application::class);
         $application->server = $server;
         Event::trigger(ServerEvent::onServerStart, $server);
@@ -89,7 +79,6 @@ class SwooleHttpServer extends Command {
             $reload = new ServerWatch();
             $reload->init($server);
         }
-
     }
 
     public function onShutdown($server) {

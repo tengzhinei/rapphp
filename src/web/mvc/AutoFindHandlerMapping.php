@@ -55,10 +55,26 @@ class AutoFindHandlerMapping implements HandlerMapping{
         }
         $array=$items;
         $request->search($search);
+        $classPath=$this->findController($dir,$array);
+        if(!class_exists($classPath)){
+            $classPath=$this->findControllerByGroup($find,$dir,$array);
+            if(!class_exists($classPath)){
+                return null;
+            }
+        }
+        $method= array_pop($array);
+        $handlerAdapter=new ControllerHandlerAdapter($classPath,$method);
+        $handlerAdapter->pattern($path);
+        return $handlerAdapter;
+    }
+
+
+
+    public function findControllerByGroup($find,$dir,$array){
         if(count($array)!=2){
             array_splice($array,count($array)-2,0,[$this->controllerDir]);
         }
-        $method=array_pop($array);
+        array_pop($array);
         if(count($array)!=1) {
             $array[count($array)-1]=ucfirst($array[count($array)-1]);
             $classPath = $dir . implode('\\', $array) . $this->controllerPostfix;
@@ -68,12 +84,16 @@ class AutoFindHandlerMapping implements HandlerMapping{
             $array[count($array)-1]=ucfirst($array[count($array)-1]);
             $classPath = $dir.'controller\\' . implode('\\', $array). $this->controllerPostfix;
         }
-        if(!class_exists($classPath)){
-            return null;
-        }
-        $handlerAdapter=new ControllerHandlerAdapter($classPath,$method);
-        $handlerAdapter->pattern($path);
-        return $handlerAdapter;
+        return $classPath;
     }
+
+
+    public function findController($dir,$array){
+        array_pop($array);
+        $array[count($array)-1]=ucfirst($array[count($array)-1]);
+        $classPath = $dir.'controller\\' . implode('\\', $array). $this->controllerPostfix;
+        return $classPath;
+    }
+
 
 }

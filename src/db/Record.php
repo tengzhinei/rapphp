@@ -38,6 +38,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
     /**
      * 获取数据库所有字段名
      * @return array
+     * @throws \Error
      */
     public static function fields() {
         $model = get_called_class();
@@ -84,8 +85,10 @@ class Record implements \ArrayAccess, \JsonSerializable {
 
     /**
      * 数据库字段组装对象
-     *
      * @param $items
+     *
+     * @throws \Error
+     * @throws \rap\exception\SystemException
      */
     public function fromDbData($items) {
         $this->to_update = true;
@@ -186,6 +189,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
     /**
      * 获取保存的对象
      * @return array
+     * @throws
      */
     public function getDBData() {
         $data = [];
@@ -281,13 +285,18 @@ class Record implements \ArrayAccess, \JsonSerializable {
         if (property_exists(get_called_class(), $create_time) && !$data[ $create_time ]) {
             $data[ $create_time ] = time() - 10;
         }
-
+        $version_field = $this->getVersionField();
+        if ($version_field) {
+            $data[ $version_field ] = 1;
+        }
         $pk_value = DB::insert($this->getTable(), $data, $this->connectionName());
         if (!$this->$pk) {
             $this->$pk = $pk_value;
         }
         //数据放入缓存防止立马拿,由于主从库延迟拿不到
         $data[ $pk ] = $pk_value;
+
+
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
         $db_cache->recordCacheSave($this->getTable(), $pk_value, $data);
@@ -298,8 +307,13 @@ class Record implements \ArrayAccess, \JsonSerializable {
 
     /**
      * 更新
+     *
+     * @param bool   $check_version 是否使用乐观锁检查数据
+     * @param string $error_msg     使用乐观锁检查数据错误时的错误
+     *
+     * @throws UpdateVersionException
      */
-    public function update() {
+    public function update($check_version = true, $error_msg = "数据更新失败,请重试") {
         Event::trigger(RecordEvent::record_before_update, $this);
         $pk = $this->getPkField();
         $where[ $pk ] = $this->$pk;
@@ -311,7 +325,17 @@ class Record implements \ArrayAccess, \JsonSerializable {
         if (property_exists(get_called_class(), $update_time)) {
             $data[ $update_time ] = time();
         }
-        DB::update($this->getTable(), $data, $where, $this->connectionName());
+        //当前数据存在版本号
+        $version_field = $this->getVersionField();
+        if ($check_version && $version_field && $this->$version_field) {
+            $data[ $version_field ] = $this->$version_field + 1;
+            $where[ $version_field ] = $this->$version_field;
+        }
+        $row_count = DB::update($this->getTable(), $data, $where, $this->connectionName());
+        if (!$row_count) {
+            //数据被变更,更新失败
+            throw new UpdateVersionException($error_msg);
+        }
         //删除缓存
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
@@ -328,6 +352,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
      * 如果有 delete_time字段 默认是设置为当前时间
      *
      * @param bool $force 是否强制
+     * @throws
      */
     public function delete($force = false) {
         Event::trigger(RecordEvent::record_before_delete, $this);
@@ -401,6 +426,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
      * 静态删除  destroy方法不管delete_time字段
      *
      * @param string|int $id
+     * @throws
      */
     public static function destroy($id) {
         $model = get_called_class();
@@ -472,6 +498,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
      * @param bool   $contain
      *
      * @return Select
+     * @throws
      */
     public static function select($fields = '', $contain = true) {
         $model = get_called_class();
@@ -530,6 +557,14 @@ class Record implements \ArrayAccess, \JsonSerializable {
      */
     public function getPkField() {
         return "id";
+    }
+
+    /**
+     * 获取数据版本号字段
+     * @return string
+     */
+    public function getVersionField() {
+        return "";
     }
 
     /**
@@ -734,7 +769,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
     function parseRequest(Request $request) {
         $fb = $this->requestField();
         if (!is_array($fb)) {
-            $fb = [$fb, trim($fb)!=''];
+            $fb = [$fb, trim($fb) != ''];
         }
         if (!$fb[ 1 ]) {
             $fields = explode(',', $fb[ 0 ]);
@@ -752,12 +787,12 @@ class Record implements \ArrayAccess, \JsonSerializable {
             $this->$key = $request->param($key);
         }
     }
+
     /**
      * 获取通过 request 创建时摘取的字段
      * 默认返回同toJsonField相同
      * return '字段1,字段2' 或return ['字段1,字段2',false]//反向字段
      * @return string|array
-     *
      */
     function requestField() {
         return $this->toJsonField();
@@ -769,7 +804,6 @@ class Record implements \ArrayAccess, \JsonSerializable {
      * 默认返回所有 public的字段
      * return '字段1,字段2' 或return ['字段1,字段2',false]//反向字段
      * @return string|array
-     *
      */
     function toJsonField() {
         return "";

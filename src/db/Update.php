@@ -19,19 +19,21 @@ class Update extends Where {
 
     protected $updateSql = '%COMMENT% UPDATE %TABLE% SET %FIELD% %WHERE% %ORDER%%LIMIT% %LOCK%';
 
-    private $connection_name=Connection::class;
+    private $connection_name = Connection::class;
+
     /**
      * 设置表
      *
      * @param                 $table
      * @param                 $connection_name
+     *
      * @return Update
      */
-    public static function table($table,$connection_name='') {
+    public static function table($table, $connection_name = '') {
         $update = new Update();
         $update->table = $table;
-        if($connection_name){
-            $update->connection_name=$connection_name;
+        if ($connection_name) {
+            $update->connection_name = $connection_name;
         }
         return $update;
     }
@@ -85,7 +87,7 @@ class Update extends Where {
             $connection->execute($sql, array_merge($values, $this->whereParams()));
             $count = $connection->rowCount();
             return $count;
-        } finally{
+        } finally {
             Pool::release($connection);
         }
     }
@@ -93,13 +95,16 @@ class Update extends Where {
     /**
      * 静态更新
      *
-     * @param       string   $table
-     * @param     array      $data
-     * @param          array $where
-     * @param       string   $connection_name
+     * @param     string $table
+     * @param     array  $data
+     * @param     array  $where
+     * @param     string $connection_name
+     *
+     * @throws \Error
+     * @return int 更新条数
      */
-    public static function update($table, $data, $where,$connection_name) {
-        $update = Update::table($table,$connection_name);
+    public static function update($table, $data, $where, $connection_name) {
+        $update = Update::table($table, $connection_name);
         foreach ($data as $field => $value) {
             $update->set($field, $value);
         }
@@ -110,7 +115,7 @@ class Update extends Where {
         } else {
             $update->where("id", $where);
         }
-        $update->excuse();
+        return $update->excuse();
     }
 
 }

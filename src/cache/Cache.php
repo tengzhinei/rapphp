@@ -207,6 +207,7 @@ class Cache {
     /**
      * 如果缓存类型是 redis可以获取redis 使用完成后请记得释放
      * @return null|\Redis
+     * @throws
      */
     public static function redis() {
         $redisCache = self::getCache();

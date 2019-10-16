@@ -35,6 +35,7 @@ class DbConfig {
      * @param string $module 模块
      *
      * @return mixed|null|string
+     * @throws
      */
     public function get($module) {
         $data = $this->getModuleFromDB($module);
@@ -47,6 +48,7 @@ class DbConfig {
      * @param string       $module
      * @param string|array $key
      * @param string|array $value
+     * @throws
      */
     public function set($module, $key, $value = null) {
         $data = $this->getModuleFromDB($module);
@@ -72,6 +74,7 @@ class DbConfig {
      *
      * @param string $module
      * @param array  $data
+     * @throws
      */
     public function setAll($module, $data) {
         $data = json_encode($data);
@@ -90,6 +93,7 @@ class DbConfig {
      * @param $module
      *
      * @return mixed|null|string
+     * @throws
      */
     private function getModuleFromDB($module) {
         $data = Cache::get(md5("config_" . $module));

@@ -62,8 +62,7 @@ class DB {
      */
     public static function update($table, $data = null, $where = null, $connection_name = '') {
         if ($data) {
-            Update::update($table, $data, $where, $connection_name);
-            return null;
+            return   Update::update($table, $data, $where, $connection_name);
         } else {
             return Update::table($table, $connection_name);
         }

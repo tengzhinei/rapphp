@@ -96,7 +96,20 @@ class $name extends Record {
     public function getPkField() {
         return "$pk_field";
     }
-    
+EOF;
+        if($fields['version']){
+            $txt .= <<<EOF
+     /**
+     * 获取数据版本号字段
+     * @return string
+     */
+    public function getVersionField() {
+        return "version";
+    }
+EOF;
+        }
+
+        $txt .= <<<EOF
     /**
      * 获取数据库字段
      * @return array
@@ -130,6 +143,7 @@ EOF;
     }
 
 EOF;
+
         $txt .= "    /**** 对应数据库字段 start *****/\r\n\r\n";
         foreach ($fields as $key => $value) {
             $comment = $comments[ $key ];

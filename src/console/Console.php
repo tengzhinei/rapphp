@@ -25,7 +25,7 @@ class Console {
     private $defaultCommand = [];
 
 
-    public function _initialize() {
+    public function __construct() {
         $this->addConsole(Ioc::get(SwooleHttpServer::class));
         $this->addConsole(Ioc::get(WebSocketServer::class));
         $this->addConsole(Ioc::get(RecordBuild::class));

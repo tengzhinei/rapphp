@@ -15,7 +15,7 @@ class Search {
     private $value;
 
     /**
-     * Search _initialize.
+     * Search __construct.
      *
      * @param $value
      */

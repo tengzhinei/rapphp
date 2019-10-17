@@ -12,7 +12,7 @@ class Container implements ContainerInterface {
     }
 
     public function has($id) {
-
+        return Ioc::has($id);
     }
 
 }

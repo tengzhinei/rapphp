@@ -31,11 +31,11 @@ class RpcWave {
     private $rpc;
 
     /**
-     * RpcWave _initialize.
+     * RpcWave __construct.
      *
      * @param Rpc $rpc
      */
-    public function _initialize(Rpc $rpc) {
+    public function __construct(Rpc $rpc) {
         $this->rpc = $rpc;
     }
 

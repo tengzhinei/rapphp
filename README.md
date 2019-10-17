@@ -57,7 +57,7 @@ class ToolController{
      */
     private $tenantService;
 
-    public function _initialize(Connection $connection,TenantService $tenantService){
+    public function __construct(Connection $connection,TenantService $tenantService){
         $this->connection=$connection;
         $this->tenantService=$tenantService;
     }

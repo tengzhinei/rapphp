@@ -23,9 +23,9 @@ class RpcHandlerAdapter extends HandlerAdapter {
                        ];
 
     /**
-     * RpcInterceptor _initialize.
+     * RpcInterceptor __construct.
      */
-    public function _initialize() {
+    public function __construct() {
         $config = Config::getFileConfig()[ 'rpc_service' ];
         $this->config = array_merge($this->config, $config);
     }

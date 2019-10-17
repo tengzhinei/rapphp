@@ -18,7 +18,7 @@ class HttpResponse {
 
 
     /**
-     * Response _initialize.
+     * Response __construct.
      *
      * @param $status_code
      * @param $headers

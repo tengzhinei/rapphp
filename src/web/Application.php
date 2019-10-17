@@ -40,7 +40,7 @@ abstract class Application {
     private $interceptors        = [];
     private $interceptors_except = [];
 
-    public function _initialize(Dispatcher $dispatcher) {
+    public function __construct(Dispatcher $dispatcher) {
         $this->dispatcher = $dispatcher;
         include_once __DIR__ . "/../" . 'common.php';
         $interceptors = Config::getFileConfig()[ 'interceptors' ];

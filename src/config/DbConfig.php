@@ -22,7 +22,7 @@ class DbConfig {
     /**
      * @param FileConfig $fileConfig
      */
-    public function _initialize(FileConfig $fileConfig) {
+    public function __construct(FileConfig $fileConfig) {
         $config = $fileConfig->get('config');
         if ($config) {
             $this->config = array_merge($this->config, $config);

@@ -21,7 +21,8 @@
         "php": ">=7.1.0",
         "monolog/monolog": "^1.24",
         "mashape/unirest-php": "3.*",
-        "twig/twig": "~2.0"
+        "twig/twig": "~2.0",
+        "psr/container":"*"
     },
     "require-dev": {
         "eaglewu/swoole-ide-helper": "dev-master"

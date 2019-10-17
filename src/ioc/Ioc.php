@@ -78,19 +78,25 @@ class Ioc {
      */
     private static function prepareBean($bean) {
         $class = new \ReflectionClass(get_class($bean));
-        if ($class->hasMethod('_initialize')) {
-            self::invokeWithIocParams($bean, "_initialize");
-            static::$injectBeans[] = $bean;
-            if (static::$injectBeans[ 0 ] === $bean) {
-                for ($i = count(static::$injectBeans) - 1; $i > -1; $i--) {
-                    $class = new \ReflectionClass(get_class(static::$injectBeans[ $i ]));
-                    if ($class->hasMethod('_prepared')) {
-                        static::$injectBeans[ $i ]->_prepared();
-                    }
-                }
-                static::$injectBeans = array();
-            }
+        $constructor = $class->getConstructor();
+        if($constructor){
+            $constructor->setAccessible(true);
+            $args = self::methodsParams($constructor);
+            $constructor->invokeArgs($bean, $args);
         }
+//        if ($class->hasMethod('_initialize')) {
+//            self::invokeWithIocParams($bean, "_initialize");
+//            static::$injectBeans[] = $bean;
+//            if (static::$injectBeans[ 0 ] === $bean) {
+//                for ($i = count(static::$injectBeans) - 1; $i > -1; $i--) {
+//                    $class = new \ReflectionClass(get_class(static::$injectBeans[ $i ]));
+//                    if ($class->hasMethod('_prepared')) {
+//                        static::$injectBeans[ $i ]->_prepared();
+//                    }
+//                }
+//                static::$injectBeans = array();
+//            }
+//        }
     }
 
 
@@ -115,7 +121,15 @@ class Ioc {
      * @return mixed
      */
     public static function invokeWithIocParams($obj, $method) {
-        $method = new \ReflectionMethod(get_class($obj), $method);
+        if (!($method instanceof \ReflectionMethod)) {
+            $method = new \ReflectionMethod(get_class($obj), $method);
+        }
+        $args = self::methodsParams($method);
+        $val = $method->invokeArgs($obj, $args);
+        return $val;
+    }
+
+    public static function methodsParams(\ReflectionMethod $method) {
         $args = [];
         if ($method->getNumberOfParameters() > 0) {
             $params = $method->getParameters();
@@ -134,8 +148,7 @@ class Ioc {
                 }
             }
         }
-        $val = $method->invokeArgs($obj, $args);
-        return $val;
+        return $args;
     }
 
     /**
@@ -150,10 +163,31 @@ class Ioc {
 
     /**
      * 获取实例 如果实例不存在不会去构建
+     *
      * @param $name
      */
-    public static function getInstance($name){
+    public static function getInstance($name) {
         return static::$instances[ $name ];
     }
 
+
+    public static function has($nameClass) {
+        if(static::$instances[ $nameClass ]){
+            return true;
+        }
+        if(static::$beansConfig[ $nameClass ]){
+            return true;
+        }
+        try{
+            $class = new \ReflectionClass($nameClass);
+            if($class->isInterface()||$class->isAbstract()||$class->isTrait()){
+                return false;
+            }
+            return true;
+        }catch (\Throwable $throwable){
+            return false;
+        }catch (\Error $throwable){
+            return false;
+        }
+    }
 }

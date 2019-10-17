@@ -257,16 +257,15 @@ class Aop {
     }
 
     public static function warpBean($clazz, $name) {
+        $who = $clazz;
         if (self::needWarp($name)) {
-            $name = "rap\\aop\\build\\" . $clazz . "_PROXY";
-            $who = new $name;
+            $who = "rap\\aop\\build\\" . $clazz . "_PROXY";
         } else if ($name != $clazz && self::needWarp($clazz)) {
-            $name = "rap\\aop\\build\\" . $clazz . "_PROXY";
-            $who = new $name;
-        } else {
-            $who = new $clazz;
+            $who = "rap\\aop\\build\\" . $clazz . "_PROXY";
         }
-        return $who;
+        $class = new \ReflectionClass($who);
+        $obj = $class->newInstanceWithoutConstructor();
+        return $obj;
     }
 
     private static function deleteAll($path) {

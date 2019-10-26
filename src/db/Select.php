@@ -21,6 +21,8 @@ class Select extends Where {
      */
     public $table = '';
 
+    public $as_table='';
+
     const REMOVED = "REMOVED";
 
     /**
@@ -48,6 +50,10 @@ class Select extends Where {
     public static function table($table, $connection_name = '') {
         $select = new Select();
         $select->table = $table;
+        $ts =  explode(' ',$table);
+        if(count($ts)==2){
+            $select->as_table=$ts[1];
+        }
         if ($connection_name) {
             $select->connection_name = $connection_name;
         }
@@ -538,5 +544,21 @@ class Select extends Where {
         $this->to_array = $key;
         $this->to_array_contain = $contain;
         return $this;
+    }
+
+    /***
+     *
+     */
+    public function noDeleted(){
+        if($this->clazz){
+            //没有软删除
+            if(!property_exists($this->clazz, 'delete_time')){
+                return $this;
+            }
+        }
+        if($this->as_table){
+            return $this->where($this->as_table.'.delete_time','null') ;
+        }
+        return $this->where('delete_time','null') ;
     }
 }

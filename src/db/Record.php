@@ -95,9 +95,11 @@ class Record implements \ArrayAccess, \JsonSerializable {
         $_fields = $this->getFields();
         $this->_db_data = $items;
         foreach ($items as $item => $value) {
-            $type = $_fields[ $item ];
-            if (is_array($type)) {
-                $type = $type[ 'type' ];
+            $type_p = $_fields[ $item ];
+            if (is_array($type_p)) {
+                $type = $type_p[ 'type' ];
+            }else{
+                $type=$type_p;
             }
             if ($type == 'json') {
                 $value = json_decode($value, true);
@@ -116,9 +118,16 @@ class Record implements \ArrayAccess, \JsonSerializable {
                     $value = date("Y-m-d H:i:s", $this->_db_data[ $item ]);
                 }
             } else if ($type == 'date') {
+                $format='';
+                if(is_array($type_p)){
+                    $format = $type_p[ 'format' ];
+                }
+                if(!$format){
+                    $format='Y-m-d';
+                }
                 $time = (int)$value;
                 if ($time . "" == $value) {
-                    $value = date("Y-m-d", $this->_db_data[ $item ]);
+                    $value = date($format, $this->_db_data[ $item ]);
                 }
             } else if ($type == 'attach' || $type == 'attach_i') {
                 $attach = json_decode($value, true);
@@ -274,6 +283,8 @@ class Record implements \ArrayAccess, \JsonSerializable {
         return $data;
     }
 
+    private $is_insert=false;
+
     /**
      * 插入
      */
@@ -303,6 +314,15 @@ class Record implements \ArrayAccess, \JsonSerializable {
         foreach ($data as $field => $value) {
             $this->_db_data[ $field ] = $value;
         }
+        $this->is_insert=true;
+    }
+
+    /**
+     * 检查是否是插入
+     * @return bool
+     */
+    public function isInsert(){
+        return $this->is_insert;
     }
 
     /**
@@ -317,6 +337,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
         Event::trigger(RecordEvent::record_before_update, $this);
         $pk = $this->getPkField();
         $where[ $pk ] = $this->$pk;
+        $data[$pk]=$this->$pk;
         $data = $this->getDBData();
         if (!$data) {
             return;
@@ -331,8 +352,10 @@ class Record implements \ArrayAccess, \JsonSerializable {
             $data[ $version_field ] = $this->$version_field + 1;
             $where[ $version_field ] = $this->$version_field;
         }
+
         $row_count = DB::update($this->getTable(), $data, $where, $this->connectionName());
-        if (!$row_count) {
+        //需要检查版本号
+        if ($check_version&&$version_field&& $this->$version_field&&!$row_count) {
             //数据被变更,更新失败
             throw new UpdateVersionException($error_msg);
         }
@@ -513,9 +536,30 @@ class Record implements \ArrayAccess, \JsonSerializable {
         if ($as == 'and') {
             $as = 'a_n_d';
         }
+        return self::selectAs($fields,$as,$contain);
+    }
+
+    /**
+     * 检索
+     * @param string $fields
+     * @param string $as
+     * @param bool   $contain
+     *
+     * @return Select
+     */
+    public static function selectAs($fields = '',$as='', $contain = true){
+        $model = get_called_class();
+
         /* @var $model Record */
         $model = new $model;
         $select = DB::select($model->getTable() . " " . $as, $model->connectionName())->setRecord(get_called_class());
+        $pkField=$model->getPkField();
+        //默认按 id或是创建时间倒序
+        if($pkField=='id'){
+            $select->order($as.'.id desc');
+        }else if(property_exists(get_called_class(),'create_time')){
+            $select->order($as.'.create_time desc');
+        }
         Event::trigger(RecordEvent::record_before_select, $model, $select);
         if ($fields) {
             if (!$contain) {
@@ -531,6 +575,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
             }
             $select->fields($fields);
         }
+
         return $select;
     }
 

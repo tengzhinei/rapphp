@@ -89,7 +89,18 @@ class Ioc {
             $constructor->setAccessible(true);
             $args = self::methodsParams($constructor);
             $constructor->invokeArgs($bean, $args);
+            self::beanPrepared($bean);
         }
+        //兼容老版本
+        if ($class->hasMethod('_initialize')) {
+            self::invokeWithIocParams($bean, "_initialize");
+            self::beanPrepared($bean);
+        }
+
+    }
+
+
+    private static function beanPrepared($bean){
         static::$injectBeans[] = $bean;
         if (static::$injectBeans[ 0 ] === $bean) {
             for ($i = count(static::$injectBeans) - 1; $i > -1; $i--) {
@@ -100,9 +111,7 @@ class Ioc {
             }
             static::$injectBeans = array();
         }
-
     }
-
 
     /**
      * 绑定对象

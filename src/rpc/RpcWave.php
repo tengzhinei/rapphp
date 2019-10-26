@@ -43,14 +43,7 @@ class RpcWave {
         $method = $point->getMethod();//对应的反射方法
         /* @var $obj RpcSTATUS */
         $obj = $point->getObj();//对应包装对象
-
-        $request = request();
-        $header = [];
-        if ($request) {
-            $header = $request->header();
-            $header[ 'x-session-id' ] = $request->session()->sessionId();
-        }
-
+        $header=$this->header();
         $context = ['clazz' => $point->getOriginalClass(),
                     'name' => $method->getName(),
                     'args' => $point->getArgs(),
@@ -75,11 +68,6 @@ class RpcWave {
                 $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
                 try {
                     $args = $point->getArgs();
-                    $request = request();
-                    $header = [];
-                    if ($request) {
-                        $header = request()->header();
-                    }
                     $value = $client->query($point->getOriginalClass(), $method->getName(), $args, $header);
                     $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_CLOSE;
                     Log::alert('RPC FUSE_STATUS_CLOSE :关闭熔断', $context);
@@ -122,5 +110,26 @@ class RpcWave {
         return null;
     }
 
+    private function header(){
+        $header = [];
+        $request = request();
+        if ($request) {
+            $header = $request->header();
+            unset($header['content-type']);
+            unset($header['content-length']);
+            unset($header['connection']);
+            unset($header['pragma']);
+            unset($header['cache-control']);
+            unset($header['upgrade-insecure-requests']);
+            unset($header['sec-fetch-mode']);
+            unset($header['sec-fetch-user']);
+            unset($header['accept']);
+            unset($header['sec-fetch-site']);
+            unset($header['accept-encoding']);
+            unset($header['accept-language']);
+            $header[ 'x-session-id' ] = $request->session()->sessionId();
+        }
+        return $header;
+    }
 
 }

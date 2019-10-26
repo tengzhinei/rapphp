@@ -26,13 +26,16 @@ class HttpResponse {
      */
     public function __construct($status_code, $headers, $body) {
         $this->status_code = $status_code;
-        $this->headers = $headers;
+        $this->headers=[];
+        foreach ( $headers as $k=>$v) {
+            $this->headers[strtolower($k)]=$v;
+        }
         $this->body = $body;
     }
 
 
     public function json() {
-       return json_decode($this->body, true);
+        return json_decode($this->body, true);
     }
 
 

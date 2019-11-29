@@ -321,8 +321,30 @@ class Record implements \ArrayAccess, \JsonSerializable {
      * 检查是否是插入
      * @return bool
      */
+
+    /**
+     * 检查是否是插入
+     * @return bool
+     */
     public function isInsert(){
-        return $this->is_insert;
+        if($this->is_insert){
+            return true;
+        }
+        $pk = $this->getPkField();
+        //主键是id
+        if (($pk == 'id' && $this->$pk) || $this->to_update) {
+            return false;
+        } else {
+            if ($this->$pk) {
+                $this->checkHas();
+            }
+            if ($this->to_update) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
     }
 
     /**

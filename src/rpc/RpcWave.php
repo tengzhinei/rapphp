@@ -115,6 +115,7 @@ class RpcWave {
         $request = request();
         if ($request) {
             $header = $request->header();
+            unset($header['host']);
             unset($header['content-type']);
             unset($header['content-length']);
             unset($header['connection']);

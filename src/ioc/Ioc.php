@@ -4,8 +4,10 @@ namespace rap\ioc;
 
 use Psr\Container\ContainerInterface;
 use rap\aop\Aop;
+use rap\swoole\Context;
 
-class Ioc {
+class Ioc
+{
 
     //所有对象
     static private $instances;
@@ -15,11 +17,32 @@ class Ioc {
     //初始化对象时用于存储
     static private $injectBeans = [];
 
+    public static $preparers = [];
 
-    public static function clear() {
+    public static function clear()
+    {
         self::$instances = [];
         self::$beansConfig = [];
         self::$injectBeans = [];
+    }
+
+    /**
+     * 根据类名,别名获取对象
+     *
+     * 对象的生命周期为context
+     *
+     * @param null $nameClass
+     * @return mixed|object
+     */
+    private static function contextGet($nameClass)
+    {
+        $bean = Context::get('Ioc_' . $nameClass);
+        if ($bean) {
+            return $bean;
+        }
+        $bean = self::beanCreate($nameClass);
+        Context::set('Ioc_' . $nameClass, $bean);
+        return $bean;
     }
 
     /**
@@ -29,49 +52,59 @@ class Ioc {
      *
      * @return mixed
      */
-    public static function get($nameClass = null) {
+    public static function get($nameClass = null)
+    {
+        if(is_subclass_of($nameClass,RequestScope::class)){
+            return self::contextGet($nameClass);
+        }
         //判断是否有实例
-        if (isset(static::$instances[ $nameClass ]) && static::$instances[ $nameClass ]) {
-            return static::$instances[ $nameClass ];
+        if (isset(static::$instances[$nameClass]) && static::$instances[$nameClass]) {
+            return static::$instances[$nameClass];
         }
         return self::beanCreate($nameClass);
     }
 
-    public static function getRealClass($nameClass = null) {
-        if (isset(static::$beansConfig[ $nameClass ]) && static::$beansConfig[ $nameClass ]) {
+    public static function getRealClass($nameClass = null)
+    {
+        if (isset(static::$beansConfig[$nameClass]) && static::$beansConfig[$nameClass]) {
             //构造对象
             /* @var $beanDefine BeanDefine */
-            $beanDefine = static::$beansConfig[ $nameClass ];
+            $beanDefine = static::$beansConfig[$nameClass];
             return $beanDefine->ClassName;
         }
         return $nameClass;
     }
 
 
-    public static function beanCreate($nameClass, $instance = true) {
-        if ($nameClass == ContainerInterface::class && !static::$beansConfig[ $nameClass ]) {
+    public static function beanCreate($nameClass, $instance = true)
+    {
+        if ($nameClass == ContainerInterface::class && !static::$beansConfig[$nameClass]) {
             $container = new Container();
-            static::$instances[ $nameClass ] = new Container();
+            static::$instances[$nameClass] = new Container();
             return $container;
         }
         $closure = null;
         $beanClassName = $nameClass;
         //判断是否有配置
-        if (isset(static::$beansConfig[ $nameClass ]) && static::$beansConfig[ $nameClass ]) {
+        if (isset(static::$beansConfig[$nameClass]) && static::$beansConfig[$nameClass]) {
             //构造对象
             /* @var $beanDefine BeanDefine */
-            $beanDefine = static::$beansConfig[ $nameClass ];
+            $beanDefine = static::$beansConfig[$nameClass];
             $closure = $beanDefine->closure;
             $beanClassName = $beanDefine->ClassName;
         }
         $bean = Aop::warpBean($beanClassName, $nameClass);
         //连接池类型的不需要在容器托管
         if ($instance) {
-            static::$instances[ $nameClass ] = $bean;
+            static::$instances[$nameClass] = $bean;
         }
         static::prepareBean($bean);
         if ($closure) {
             $closure($bean);
+        }
+        $preparer= static::getPreparer(get_class($bean));
+        if($preparer){
+            $preparer->prepare($bean);
         }
         return $bean;
 
@@ -82,7 +115,8 @@ class Ioc {
      *
      * @param $bean
      */
-    private static function prepareBean($bean) {
+    private static function prepareBean($bean)
+    {
         $class = new \ReflectionClass(get_class($bean));
         $constructor = $class->getConstructor();
         if ($constructor) {
@@ -100,14 +134,16 @@ class Ioc {
     }
 
 
-    private static function beanPrepared($bean){
+    private static function beanPrepared($bean)
+    {
         static::$injectBeans[] = $bean;
-        if (static::$injectBeans[ 0 ] === $bean) {
+        if (static::$injectBeans[0] === $bean) {
             for ($i = count(static::$injectBeans) - 1; $i > -1; $i--) {
-                $class = new \ReflectionClass(get_class(static::$injectBeans[ $i ]));
+                $class = new \ReflectionClass(get_class(static::$injectBeans[$i]));
                 if ($class->hasMethod('_prepared')) {
-                    static::$injectBeans[ $i ]->_prepared();
+                    static::$injectBeans[$i]->_prepared();
                 }
+
             }
             static::$injectBeans = array();
         }
@@ -120,9 +156,10 @@ class Ioc {
      * @param $toClazz
      * @param $closure
      */
-    public static function bind($nameOrClazz, $toClazz, \Closure $closure = null) {
-        unset(static::$instances[ $nameOrClazz ]);
-        static::$beansConfig[ $nameOrClazz ] = new BeanDefine($toClazz, $closure);
+    public static function bind($nameOrClazz, $toClazz, \Closure $closure = null)
+    {
+        unset(static::$instances[$nameOrClazz]);
+        static::$beansConfig[$nameOrClazz] = new BeanDefine($toClazz, $closure);
     }
 
     /**
@@ -133,7 +170,8 @@ class Ioc {
      *
      * @return mixed
      */
-    public static function invokeWithIocParams($obj, $method) {
+    public static function invokeWithIocParams($obj, $method)
+    {
         if (!($method instanceof \ReflectionMethod)) {
             $method = new \ReflectionMethod(get_class($obj), $method);
         }
@@ -142,7 +180,8 @@ class Ioc {
         return $val;
     }
 
-    public static function methodsParams(\ReflectionMethod $method) {
+    public static function methodsParams(\ReflectionMethod $method)
+    {
         $args = [];
         if ($method->getNumberOfParameters() > 0) {
             $params = $method->getParameters();
@@ -170,8 +209,9 @@ class Ioc {
      * @param $name
      * @param $bean
      */
-    public static function instance($name, $bean) {
-        static::$instances[ $name ] = $bean;
+    public static function instance($name, $bean)
+    {
+        static::$instances[$name] = $bean;
     }
 
     /**
@@ -179,16 +219,18 @@ class Ioc {
      *
      * @param $name
      */
-    public static function getInstance($name) {
-        return static::$instances[ $name ];
+    public static function getInstance($name)
+    {
+        return static::$instances[$name];
     }
 
 
-    public static function has($nameClass) {
-        if (static::$instances[ $nameClass ]) {
+    public static function has($nameClass)
+    {
+        if (static::$instances[$nameClass]) {
             return true;
         }
-        if (static::$beansConfig[ $nameClass ]) {
+        if (static::$beansConfig[$nameClass]) {
             return true;
         }
         try {
@@ -202,5 +244,42 @@ class Ioc {
         } catch (\Error $throwable) {
             return false;
         }
+    }
+
+
+
+
+    public static function register($providerClazz)
+    {
+        if (is_array($providerClazz)) {
+            foreach ($providerClazz as $item) {
+                static::register($item);
+            }
+        } else {
+            $providerPrepare = Ioc::get($providerClazz);
+            if($providerPrepare instanceof BeanPrepare){
+                $clazz = $providerPrepare->register();
+                if (is_array($clazz)) {
+                    foreach ($clazz as $key) {
+                        static::$preparers[$key] = $providerPrepare;
+                    }
+                } else if (is_string($clazz)) {
+                    static::$preparers[$clazz] = $providerPrepare;
+                }
+            }
+
+        }
+
+
+    }
+
+    /**
+     * @param $clazz
+     * @return BeanPrepare
+     */
+    public static function getPreparer($clazz)
+    {
+
+        return static::$preparers[$clazz];
     }
 }

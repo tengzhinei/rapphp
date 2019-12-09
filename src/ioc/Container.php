@@ -7,6 +7,7 @@ use Psr\Container\ContainerInterface;
 
 
 class Container implements ContainerInterface {
+
     public function get($id) {
         return Ioc::get($id);
     }

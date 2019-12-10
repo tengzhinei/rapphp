@@ -10,7 +10,7 @@ use rap\swoole\Context;
  *
  * @author: 藤之内
  */
-trait RequestScopeProperty
+trait ScopeProperty
 {
 
     private $_scope_request;
@@ -29,10 +29,10 @@ trait RequestScopeProperty
 
     protected function _contextProperty()
     {
-        $configProvide = Context::get(RequestScopeProperty::class);
+        $configProvide = Context::get(ScopeProperty::class);
         if (!$configProvide) {
             $configProvide = new \stdClass();
-            Context::set(RequestScopeProperty::class, $configProvide);
+            Context::set(ScopeProperty::class, $configProvide);
         }
         $clazz = __CLASS__;
         if (!$configProvide->$clazz) {

@@ -188,3 +188,13 @@ function response() {
     return \rap\swoole\CoContext::getContext()->getResponse();
 }
 
+function worker_scope_change()
+{
+    $application = \rap\ioc\Ioc::get(\rap\web\Application::class);
+    /* @var $workerAtomic \Swoole\Atomic  */
+    $workerAtomic = $application->workerAtomic;
+    if($workerAtomic){
+        $workerAtomic->add(1);
+    }
+    \rap\ioc\Ioc::workerScopeClear();
+}

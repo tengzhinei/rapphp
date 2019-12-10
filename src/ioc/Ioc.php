@@ -10,7 +10,11 @@ class Ioc
 {
 
     //所有对象
-    static private $instances;
+    static private $instances = [];
+
+    //所有对象
+    static private $workScopeInstances = [];
+
     //类衍射定义
     static private $beansConfig = [];
 
@@ -54,14 +58,29 @@ class Ioc
      */
     public static function get($nameClass = null)
     {
-        if(is_subclass_of($nameClass,RequestScope::class)){
+        if (is_subclass_of($nameClass, RequestScope::class)) {
             return self::contextGet($nameClass);
+        }
+
+        if (is_subclass_of($nameClass, WorkerScope::class)) {
+            if (isset(static::$workScopeInstances[$nameClass]) && static::$workScopeInstances[$nameClass]) {
+                return static::$workScopeInstances[$nameClass];
+            }
         }
         //判断是否有实例
         if (isset(static::$instances[$nameClass]) && static::$instances[$nameClass]) {
             return static::$instances[$nameClass];
         }
         return self::beanCreate($nameClass);
+    }
+
+
+    /**
+     * workerScope作用域的释放
+     */
+    public static function workerScopeClear()
+    {
+        static::$workScopeInstances = [];
     }
 
     public static function getRealClass($nameClass = null)
@@ -96,14 +115,21 @@ class Ioc
         $bean = Aop::warpBean($beanClassName, $nameClass);
         //连接池类型的不需要在容器托管
         if ($instance) {
-            static::$instances[$nameClass] = $bean;
+            if ($bean instanceof RequestScope) {
+                //备份一份用于注入
+                static::$instances[$nameClass] = $bean;
+            } else if ($bean instanceof WorkerScope) {
+                static::$workScopeInstances[$nameClass] = $bean;
+            } else {
+                static::$instances[$nameClass] = $bean;
+            }
         }
         static::prepareBean($bean);
         if ($closure) {
             $closure($bean);
         }
-        $preparer= static::getPreparer(get_class($bean));
-        if($preparer){
+        $preparer = static::getPreparer(get_class($bean));
+        if ($preparer) {
             $preparer->prepare($bean);
         }
         return $bean;
@@ -247,8 +273,6 @@ class Ioc
     }
 
 
-
-
     public static function register($providerClazz)
     {
         if (is_array($providerClazz)) {
@@ -257,7 +281,7 @@ class Ioc
             }
         } else {
             $providerPrepare = Ioc::get($providerClazz);
-            if($providerPrepare instanceof BeanPrepare){
+            if ($providerPrepare instanceof BeanPrepare) {
                 $clazz = $providerPrepare->register();
                 if (is_array($clazz)) {
                     foreach ($clazz as $key) {

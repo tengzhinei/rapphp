@@ -1,34 +1,30 @@
 <?php
 
 namespace rap\ioc;
+
 use rap\swoole\Context;
 
 
 /**
- *
- * 可以将类备注中'@property'标明的属性的作用域保存到request context 里
- *
+ * 可以将类备注中'@property'标明的属性从IOC拿
  * @author: 藤之内
  */
-trait ScopeProperty
-{
+trait ScopeProperty {
 
-    private $_scope_request;
+    private $_scope_property;
 
 
-    public function __get($name)
-    {
-        $contextProperty=$this->_contextProperty();
-        if ($this->_scope_request && $this->_scope_request->$name) {
-            $value = $this->_scope_request->$name;
+    public function __get($name) {
+        if ($this->_scope_property && $this->_scope_property->$name) {
+            $value = $this->_scope_property->$name;
             $value = Ioc::get($value);
             return $value;
         }
+        $contextProperty = $this->_contextProperty();
         return $contextProperty->$name;
     }
 
-    protected function _contextProperty()
-    {
+    protected function _contextProperty() {
         $configProvide = Context::get(ScopeProperty::class);
         if (!$configProvide) {
             $configProvide = new \stdClass();
@@ -41,16 +37,16 @@ trait ScopeProperty
         }
         return $configProvide->$clazz;
     }
-    public function __set($name, $value)
-    {
 
-        if ($value instanceof RequestScope) {
-            if (!$this->_scope_request) {
-                $this->_scope_request = new \stdClass();
+    public function __set($name, $value) {
+
+        if ($value instanceof RequestScope || $value instanceof WorkerScope) {
+            if (!$this->_scope_property) {
+                $this->_scope_property = new \stdClass();
             }
-            $this->_scope_request->$name = get_class($value);
+            $this->_scope_property->$name = get_class($value);
         } else {
-            $contextProperty=$this->_contextProperty();
+            $contextProperty = $this->_contextProperty();
             $contextProperty->$name = $value;
         }
 

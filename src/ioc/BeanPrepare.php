@@ -15,7 +15,7 @@ interface BeanPrepare
      * 返回需要处理的类
      * @return array|string
      */
-    public function register();
+    public static function register();
 
     /**
      * 处理方法

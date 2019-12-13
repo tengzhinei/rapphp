@@ -79,6 +79,7 @@ abstract class Application {
         $routerMapping = new RouterHandlerMapping($router);
         $this->dispatcher->addHandlerMapping($routerMapping);
         $this->init($autoMapping, $router);
+
         asort($this->interceptors);
     }
 

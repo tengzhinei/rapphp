@@ -240,4 +240,15 @@ class RedisCache implements CacheInterface, PoolAble {
         }
         $this->select = $select;
     }
+
+    public function expire($key, $ttl) {
+        $this->open();
+        try {
+            $this->redis->expire($key, $ttl);
+        } catch (\RuntimeException $e) {
+            $this->redis = null;
+            $this->open();
+            $this->redis->expire($key, $ttl);
+        }
+    }
 }

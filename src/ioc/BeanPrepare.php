@@ -3,7 +3,11 @@
 
 namespace rap\ioc;
 
-
+/**
+ * 可以对 bean 进行配置
+ *\ce BeanPrepare
+ * @package rap\ioc
+ */
 interface BeanPrepare
 {
 

@@ -4,6 +4,12 @@ namespace rap\ioc;
 
 use Psr\Container\ContainerInterface;
 use rap\aop\Aop;
+use rap\cache\Cache;
+use rap\ioc\scope\PrototypeScope;
+use rap\ioc\scope\RequestScope;
+use rap\ioc\scope\SessionScope;
+use rap\ioc\scope\WorkerScope;
+use rap\session\RedisSession;
 use rap\swoole\Context;
 
 class Ioc
@@ -49,6 +55,31 @@ class Ioc
         return $bean;
     }
 
+
+    private static   function getBySession($clazzOrName) {
+        $request = request();
+        $bean = Context::get('Ioc_' . $clazzOrName);
+        if ($bean) {
+            return $bean;
+        }
+        if (!$request) {
+            $bean = Ioc::beanCreate($clazzOrName);
+        } else {
+            $session_id = $request->session()->sessionId();
+            $cache_key = 'scope_session_' . $clazzOrName . $session_id;
+            $cache = Cache::getCache(RedisSession::REDIS_CACHE_NAME);
+            $bean = $cache->get($cache_key,null);
+            if ($bean) {
+                $cache->expire($cache_key, 60 * 30);
+            } else {
+                $bean = Ioc::beanCreate($clazzOrName);
+                $cache->set($cache_key, $bean, 60 * 30);
+            }
+        }
+        Context::set('Ioc_' . $clazzOrName, $bean);
+        return $bean;
+    }
+
     /**
      * 根据类名,别名获取对象
      *
@@ -58,6 +89,12 @@ class Ioc
      */
     public static function get($nameClass = null)
     {
+        if (is_subclass_of($nameClass, SessionScope::class)) {
+            return self::getBySession($nameClass);
+        }
+        if (is_subclass_of($nameClass, PrototypeScope::class)) {
+            return self::beanCreate($nameClass);
+        }
         if (is_subclass_of($nameClass, RequestScope::class)) {
             return self::contextGet($nameClass);
         }
@@ -73,7 +110,6 @@ class Ioc
         }
         return self::beanCreate($nameClass);
     }
-
 
     /**
      * workerScope作用域的释放
@@ -241,9 +277,9 @@ class Ioc
     }
 
     /**
-     * 获取实例 如果实例不存在不会去构建
-     *
      * @param $name
+     *
+     * @return mixed
      */
     public static function getInstance($name)
     {

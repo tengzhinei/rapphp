@@ -58,7 +58,7 @@ class DB {
      * @param array  $where
      * @param string $connection_name
      *
-     * @return null|Update
+     * @return null|Update|int
      */
     public static function update($table, $data = null, $where = null, $connection_name = '') {
         if ($data) {

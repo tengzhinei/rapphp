@@ -209,5 +209,19 @@ class FileCache implements CacheInterface , PoolAble  {
         // TODO: Implement connect() method.
     }
 
+    public function expire($key, $ttl){
+        $filename = $this->getCacheFile($key);
+        if (!is_file($filename)) {
+            return;
+        }
+        $content = file_get_contents($filename);
+        if (false !== $content) {
+            $pre = "<?php\n//" . sprintf('%012d', $ttl);
+            $content=$pre.substr($content,strlen($pre));
+            file_put_contents($filename,$content);
+            clearstatcache();
+        }
+    }
+
 
 }

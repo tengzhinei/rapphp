@@ -2,6 +2,9 @@
 
 namespace rap\ioc;
 
+use rap\ioc\scope\RequestScope;
+use rap\ioc\scope\SessionScope;
+use rap\ioc\scope\WorkerScope;
 use rap\swoole\Context;
 
 
@@ -39,8 +42,7 @@ trait ScopeProperty {
     }
 
     public function __set($name, $value) {
-
-        if ($value instanceof RequestScope || $value instanceof WorkerScope) {
+        if ($value instanceof RequestScope || $value instanceof WorkerScope||$value instanceof SessionScope) {
             if (!$this->_scope_property) {
                 $this->_scope_property = new \stdClass();
             }

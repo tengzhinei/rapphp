@@ -53,7 +53,7 @@ class RecordBuild extends Command {
 
     public function create($table_name, $prefix, $namespace) {
         if (!$namespace) {
-            $namespace = 'app\model';
+            $namespace = APP_DIR.'\model';
         }
         $connection = Pool::get(Connection::class);
         /* @var Connection $connection */

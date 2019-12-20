@@ -38,7 +38,7 @@ class AutoFindHandlerMapping implements HandlerMapping{
         //没有找到为默认
         if(!$find){
             $prefix="/";
-            $dir="app\\";
+            $dir=APP_DIR."\\";
         }
         $path = substr($path,strlen($prefix));
         $path = str_replace($this->separator, '|', $path);

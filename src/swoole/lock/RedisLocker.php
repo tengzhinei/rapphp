@@ -23,7 +23,7 @@ class RedisLocker {
 
     /**
      * 上锁 锁定时间最大为10s,防止出现未解锁出现死锁
-     *
+     * 注意如果 redis 满了,会永远拿不到锁
      * @param     $key
      * @param int $timeout 单位毫秒
      *

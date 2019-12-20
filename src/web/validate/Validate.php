@@ -611,7 +611,7 @@ class Validate {
         if (!is_array($rule)) {
             $rule = explode(',', $rule);
         }
-        $this->rule = '[' . explode(',', $rule) . ']';
+        $this->rule = '[' . implode(',', $rule) . ']';
         $result = !in_array($this->value, $rule);
         $this->checkResult($result);
         return $this;

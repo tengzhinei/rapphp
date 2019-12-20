@@ -5,8 +5,10 @@ use rap\util\http\HttpClient;
 use rap\util\http\HttpResponse;
 use Swoole\Coroutine\Http\Client;
 
-class CoroutineHttpClient implements HttpClient  {
-    private static function parseUrl($url) {
+class CoroutineHttpClient implements HttpClient
+{
+    private static function parseUrl($url)
+    {
         $port = 80;
         if (strpos($url, 'http://') === 0) {
             $url = str_replace('http://', '', $url);
@@ -24,70 +26,95 @@ class CoroutineHttpClient implements HttpClient  {
         }
         if (strpos($host, ':') > 0) {
             $hp = explode(':', $host);
-            $host = $hp[ 0 ];
-            $port = $hp[ 1 ];
+            $host = $hp[0];
+            $port = $hp[1];
         }
         return [$host, $path, $port];
     }
 
-    public function get($url, $header = [], $timeout = 0.5) {
+    public function get($url, $header = [], $timeout = 0.5)
+    {
         $hostPath = self::parseUrl($url);
-        if (!$hostPath[ 0 ]) {
+        if (!$hostPath[0]) {
             return new HttpResponse(-1, [], '');
         }
-        $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ], $hostPath[ 2 ] == 443);
+        $cli = new Client($hostPath[0], $hostPath[2], $hostPath[2] == 443);
         $cli->set(['timeout' => $timeout]);
         if ($header) {
             $cli->setHeaders($header);
         }
-        $cli->get($hostPath[ 1 ]);
-        $response = new HttpResponse($cli->statusCode, $cli->headers, $cli->body);
+        $cli->get($hostPath[1]);
+        $code = $cli->statusCode;
+        $body = $cli->body;
+        if ($cli->statusCode <0) {
+            $code = $code = $cli->errCode;
+            $body = socket_strerror($code);
+
+        }
+        $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
         return $response;
     }
 
-    public function post($url, $header = [], $data = [], $timeout = 0.5) {
+    public function post($url, $header = [], $data = [], $timeout = 0.5)
+    {
         $hostPath = self::parseUrl($url);
-        if (!$hostPath[ 0 ]) {
+        if (!$hostPath[0]) {
             return new HttpResponse(-1, [], '');
         }
-        $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ], $hostPath[ 2 ] == 443);
+        $cli = new Client($hostPath[0], $hostPath[2], $hostPath[2] == 443);
         $cli->set(['timeout' => $timeout]);
         if ($header) {
             $cli->setHeaders($header);
         }
-        $cli->post($hostPath[ 1 ], $data);
-        $response = new HttpResponse($cli->statusCode, $cli->headers, $cli->body);
+        $cli->post($hostPath[1], $data);
+        $code = $cli->statusCode;
+        $body = $cli->body;
+        if ($cli->statusCode <0) {
+            $code = $code = $cli->errCode;
+            $body = socket_strerror($code);
+
+        }
+        $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
         return $response;
     }
 
-    public function put($url, $header = [], $data = [], $timeout = 0.5) {
+    public function put($url, $header = [], $data = [], $timeout = 0.5)
+    {
         $hostPath = self::parseUrl($url);
-        if (!$hostPath[ 0 ]) {
+        if (!$hostPath[0]) {
             return new HttpResponse(-1, [], '');
         }
-        $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ], $hostPath[ 2 ] == 443);
+        $cli = new Client($hostPath[0], $hostPath[2], $hostPath[2] == 443);
         $cli->set(['timeout' => $timeout]);
         if ($header) {
             $cli->setHeaders($header);
         }
         if ($data && is_string($data)) {
-            $cli->post($hostPath[ 1 ], $data);
+            $cli->post($hostPath[1], $data);
         } else {
-            $cli->post($hostPath[ 1 ], json_encode($data));
+            $cli->post($hostPath[1], json_encode($data));
         };
-        $response = new HttpResponse($cli->statusCode, $cli->headers, $cli->body);
+        $code = $cli->statusCode;
+        $body = $cli->body;
+        if ($cli->statusCode <0) {
+            $code = $code = $cli->errCode;
+            $body = socket_strerror($code);
+
+        }
+        $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
         return $response;
     }
 
-    public function upload($url, $header = [], $data = [], $files = [], $timeout = 5) {
+    public function upload($url, $header = [], $data = [], $files = [], $timeout = 5)
+    {
         $hostPath = self::parseUrl($url);
-        if (!$hostPath[ 0 ]) {
-            return new HttpResponse(-1, [], '', $hostPath[ 2 ] == 443);
+        if (!$hostPath[0]) {
+            return new HttpResponse(-1, [], '', $hostPath[2] == 443);
         }
-        $cli = new Client($hostPath[ 0 ], $hostPath[ 2 ]);
+        $cli = new Client($hostPath[0], $hostPath[2]);
         $cli->set(['timeout' => $timeout]);
         if ($header) {
             $cli->setHeaders($header);
@@ -95,8 +122,15 @@ class CoroutineHttpClient implements HttpClient  {
         foreach ($files as $file => $name) {
             $cli->addFile($file, $name);
         }
-        $cli->post($hostPath[ 1 ], $data);
-        $response = new HttpResponse($cli->statusCode, $cli->headers, $cli->body);
+        $cli->post($hostPath[1], $data);
+        $code = $cli->statusCode;
+        $body = $cli->body;
+        if ($cli->statusCode <0) {
+            $code = $code = $cli->errCode;
+            $body = socket_strerror($code);
+
+        }
+        $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
         return $response;
     }

@@ -14,19 +14,23 @@ use rap\ioc\Ioc;
 use rap\swoole\CoContext;
 use Swoole\Coroutine\Channel;
 
-class ResourcePool {
+class ResourcePool
+{
 
 
-    public $queues   = [];
+    public $queues = [];
     public $channels = [];
-    public $buffers  = [];
+    public $buffers = [];
 
+    public $pool_config = [];
     private static $instance;
 
-    private function __construct() {
+    private function __construct()
+    {
     }
 
-    public static function instance() {
+    public static function instance()
+    {
         if (!self::$instance) {
             self::$instance = new self();
         }
@@ -38,10 +42,11 @@ class ResourcePool {
      * 获取对象
      *
      * @param          $classOrName
-     *
+     * @throws
      * @return mixed
      */
-    public function get($classOrName) {
+    public function get($classOrName)
+    {
         $bean = null;
         $bean = CoContext::getContext()->get($classOrName);
         if ($bean) {
@@ -51,15 +56,19 @@ class ResourcePool {
             /* @var $holder CoContext */
             //判定是否有没有使用的对象
             $queue = $this->getQueue($classOrName);
-            if(!$queue)return null;
+            if (!$queue) return null;
             if (!$queue->isEmpty()) {
                 $bean = $queue->pop();
             }
             if (!$bean) {
                 /* @var $channel Channel */
-                $channel = $this->channels[ $classOrName ];
+                $channel = $this->channels[$classOrName];
+                $timeout = $this->pool_config[$classOrName]['timeout'];
                 /* @var $buffer PoolBuffer */
-                $buffer = $channel->pop();
+                $buffer = $channel->pop($timeout);
+                if (!$buffer) {
+                    throw new PoolTimeoutException("pool is empty and get item timeout");
+                }
                 $bean = $buffer->get();
             }
         } else {
@@ -74,11 +83,13 @@ class ResourcePool {
      *
      * @return \SplQueue
      */
-    private function getQueue($class) {
-        return $this->queues[ $class ];
+    private function getQueue($class)
+    {
+        return $this->queues[$class];
     }
 
-    public function release(PoolAble $bean) {
+    public function release(PoolAble $bean)
+    {
         if (!IS_SWOOLE) {
             return;
         }
@@ -90,7 +101,7 @@ class ResourcePool {
         CoContext::getContext()->remove($bean->_poolName_);
         $queue = $this->getQueue($bean->_poolName_);
         /* @var $channel Channel */
-        $channel = $this->channels[ $bean->_poolName_ ];
+        $channel = $this->channels[$bean->_poolName_];
         if ($bean->_poolBuffer_) {
             $bean->_poolBuffer_->active();
             $channel->push($bean->_poolBuffer_);
@@ -105,7 +116,8 @@ class ResourcePool {
      *
      * @param PoolAble $bean
      */
-    public function lock(PoolAble $bean) {
+    public function lock(PoolAble $bean)
+    {
         /* @var $bean PoolTrait */
         $bean->_poolLock_ = true;
     }
@@ -115,7 +127,8 @@ class ResourcePool {
      *
      * @param PoolAble $bean
      */
-    public function unLock(PoolAble $bean) {
+    public function unLock(PoolAble $bean)
+    {
         /* @var $bean PoolTrait */
         $bean->_poolLock_ = false;
     }
@@ -126,17 +139,22 @@ class ResourcePool {
      *
      * @param string $classOrName 类名或在 Ioc中注册过的别名
      */
-    public function preparePool($classOrName) {
+    public function preparePool($classOrName)
+    {
         $queue = new \SplQueue();
 
-        $this->queues[ $classOrName ] = $queue;
+        $this->queues[$classOrName] = $queue;
         /* @var $bean PoolAble|PoolTrait */
         $bean = Ioc::beanCreate($classOrName, false);
         $config = $bean->poolConfig();
-        $bean->_poolName_ = $classOrName;
-        $min = $config[ 'min' ];
-        $max = $config[ 'max' ];
 
+        $bean->_poolName_ = $classOrName;
+        $min = $config['min'];
+        $max = $config['max'];
+        if (!$config['timeout']) {
+            $config['timeout'] = 0.5;
+        }
+        $this->pool_config[$classOrName] = $config;
         $queue->push($bean);
         for ($i = 1; $i < $min; $i++) {
             $bean = Ioc::beanCreate($classOrName, false);
@@ -148,25 +166,25 @@ class ResourcePool {
         }
 
         $chanel = new Channel($max - $min + 1);
-        $this->channels[ $classOrName ] = $chanel;
+        $this->channels[$classOrName] = $chanel;
         $buffers = [];
         for ($i = 0; $i < $max - $min; $i++) {
             $buffer = new PoolBuffer($classOrName);
             $chanel->push($buffer);
             $buffers[] = $buffer;
         }
-        $this->buffers[ $classOrName ] = $buffers;
+        $this->buffers[$classOrName] = $buffers;
         //定时删除
-        $idle = $config[ 'idle' ];
+        $idle = $config['idle'];
         if (!$idle) {
             $idle = 60;
         }
-        $check = $config[ 'check' ];
+        $check = $config['check'];
         if (!$check) {
             $check = 30;
         }
 
-        swoole_timer_tick(1000 * $check, function()use($idle) {
+        swoole_timer_tick(1000 * $check, function () use ($idle) {
             foreach ($this->buffers as $class => $buffer_array) {
                 foreach ($buffer_array as $buffer) {
                     /* @var $buffer PoolBuffer */

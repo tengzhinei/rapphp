@@ -5,59 +5,50 @@ namespace rap\ioc;
 use Psr\Container\ContainerInterface;
 use rap\aop\Aop;
 use rap\cache\Cache;
+use rap\ioc\construstor\BeanConstructor;
+use rap\ioc\construstor\BeanConstrustorMapper;
 use rap\ioc\scope\PrototypeScope;
 use rap\ioc\scope\RequestScope;
 use rap\ioc\scope\SessionScope;
 use rap\ioc\scope\WorkerScope;
+use rap\log\Log;
 use rap\session\RedisSession;
 use rap\swoole\Context;
 
-/**
- * Ioc 容器管理
- * @author: 藤之内
- */
-class Ioc {
+class Ioc
+{
 
-    /**
-     * 所有静态对象
-     * @var array
-     */
+    //所有对象
     static private $instances = [];
 
-    /**
-     * 所有存在 worker的对象
-     * @var array
-     */
+    //所有对象
     static private $workScopeInstances = [];
 
-    /**
-     * 类衍射定义
-     * @var array
-     */
+    //类衍射定义
     static private $beansConfig = [];
 
-    /**
-     * 初始化对象时用于存储
-     * @var array
-     */
+    //初始化对象时用于存储
     static private $injectBeans = [];
 
-    /**
-     * 所有对象构造器
-     * @var array
-     */
-    public static $preparers = [];
+    public static $beanConstructors = [];
 
+    public static function clear()
+    {
+        self::$instances = [];
+        self::$beansConfig = [];
+        self::$injectBeans = [];
+    }
 
     /**
      * 根据类名,别名获取对象
-     * 对象的作用域为context
+     *
+     * 对象的生命周期为context
      *
      * @param null $nameClass
-     *
      * @return mixed|object
      */
-    private static function getByContext($nameClass) {
+    private static function contextGet($nameClass)
+    {
         $bean = Context::get('Ioc_' . $nameClass);
         if ($bean) {
             return $bean;
@@ -68,15 +59,8 @@ class Ioc {
     }
 
 
-    /**
-     * 根据类名,别名获取对象
-     * 对象的作用域为 session
-     *
-     * @param $clazzOrName
-     *
-     * @return mixed|object
-     */
-    private static function getBySession($clazzOrName) {
+    private static function getBySession($clazzOrName)
+    {
         $request = request();
         $bean = Context::get('Ioc_' . $clazzOrName);
         if ($bean) {
@@ -102,13 +86,13 @@ class Ioc {
 
     /**
      * 根据类名,别名获取对象
-     * 自动判定对象的作用域
      *
      * @param  string $nameClass 自名称
      *
      * @return mixed
      */
-    public static function get($nameClass = null) {
+    public static function get($nameClass = null)
+    {
         if (is_subclass_of($nameClass, SessionScope::class)) {
             return self::getBySession($nameClass);
         }
@@ -116,17 +100,17 @@ class Ioc {
             return self::beanCreate($nameClass);
         }
         if (is_subclass_of($nameClass, RequestScope::class)) {
-            return self::getByContext($nameClass);
+            return self::contextGet($nameClass);
         }
 
         if (is_subclass_of($nameClass, WorkerScope::class)) {
-            if (isset(static::$workScopeInstances[ $nameClass ]) && static::$workScopeInstances[ $nameClass ]) {
-                return static::$workScopeInstances[ $nameClass ];
+            if (isset(static::$workScopeInstances[$nameClass]) && static::$workScopeInstances[$nameClass]) {
+                return static::$workScopeInstances[$nameClass];
             }
         }
         //判断是否有实例
-        if (isset(static::$instances[ $nameClass ]) && static::$instances[ $nameClass ]) {
-            return static::$instances[ $nameClass ];
+        if (isset(static::$instances[$nameClass]) && static::$instances[$nameClass]) {
+            return static::$instances[$nameClass];
         }
         return self::beanCreate($nameClass);
     }
@@ -134,50 +118,37 @@ class Ioc {
     /**
      * workerScope作用域的释放
      */
-    public static function workerScopeClear() {
+    public static function workerScopeClear()
+    {
         static::$workScopeInstances = [];
     }
 
-
-    /**
-     * 方便获取累的原始类
-     * 主要给 aop 使用的
-     *
-     * @param null $nameClass
-     *
-     * @return null|string
-     */
-    public static function getRealClass($nameClass = null) {
-        if (isset(static::$beansConfig[ $nameClass ]) && static::$beansConfig[ $nameClass ]) {
+    public static function getRealClass($nameClass = null)
+    {
+        if (isset(static::$beansConfig[$nameClass]) && static::$beansConfig[$nameClass]) {
             //构造对象
             /* @var $beanDefine BeanDefine */
-            $beanDefine = static::$beansConfig[ $nameClass ];
+            $beanDefine = static::$beansConfig[$nameClass];
             return $beanDefine->ClassName;
         }
         return $nameClass;
     }
 
-    /**
-     * 构建对象
-     *
-     * @param string $nameClass 类名或名称
-     * @param bool   $instance 是否保存到 instances
-     *
-     * @return object|Container
-     */
-    public static function beanCreate($nameClass, $instance = true) {
-        if ($nameClass == ContainerInterface::class && !static::$beansConfig[ $nameClass ]) {
+
+    public static function beanCreate($nameClass, $instance = true)
+    {
+        if ($nameClass == ContainerInterface::class && !static::$beansConfig[$nameClass]) {
             $container = new Container();
-            static::$instances[ $nameClass ] = new Container();
+            static::$instances[$nameClass] = new Container();
             return $container;
         }
         $closure = null;
         $beanClassName = $nameClass;
         //判断是否有配置
-        if (isset(static::$beansConfig[ $nameClass ]) && static::$beansConfig[ $nameClass ]) {
+        if (isset(static::$beansConfig[$nameClass]) && static::$beansConfig[$nameClass]) {
             //构造对象
             /* @var $beanDefine BeanDefine */
-            $beanDefine = static::$beansConfig[ $nameClass ];
+            $beanDefine = static::$beansConfig[$nameClass];
             $closure = $beanDefine->closure;
             $beanClassName = $beanDefine->ClassName;
         }
@@ -186,24 +157,55 @@ class Ioc {
         if ($instance) {
             if ($bean instanceof RequestScope) {
                 //备份一份用于注入
-                static::$instances[ $nameClass ] = $bean;
+                static::$instances[$nameClass] = $bean;
             } else if ($bean instanceof WorkerScope) {
-                static::$workScopeInstances[ $nameClass ] = $bean;
+                static::$workScopeInstances[$nameClass] = $bean;
             } else {
-                static::$instances[ $nameClass ] = $bean;
+                static::$instances[$nameClass] = $bean;
             }
         }
-        static::prepareBean($bean);
+        static::constructorBean($bean);
         if ($closure) {
             $closure($bean);
         }
-        /* @var $preparer BeanPrepare  */
-        $preparer =  static::$preparers[get_class($bean)];
-        if ($preparer) {
-            $preparer->prepare($bean);
-        }
+
         return $bean;
 
+    }
+
+    public static function constructorParams($bean, \ReflectionMethod $method)
+    {
+        $preparer = static::getConstructor(get_class($bean));
+        $constructorParams = [];
+        if ($preparer) {
+            $constructorParams = $preparer->constructorParams();
+        }
+        $args = [];
+        if ($method->getNumberOfParameters() > 0) {
+            $params = $method->getParameters();
+            foreach ($params as $param) {
+                /* @var $param /ReflectionParameter */
+                $name = $param->getName();
+                $class = $param->getClass();
+                if (key_exists($name, $constructorParams)) {
+                    $args[] = $constructorParams[$name];
+                } else if ($class) {
+                    $className = $class->getName();
+                    $bean = Ioc::get($className);
+                    if (!$bean) {
+                        $args[] = method_exists($className, 'instance') ? $className::instance() : new $className();
+                    } else {
+                        $args[] = $bean;
+                    }
+                } else if ($param->isDefaultValueAvailable()) {
+                    $args[] = $param->getDefaultValue();
+                } else {
+                    $args[] = null;
+                }
+
+            }
+        }
+        return $args;
     }
 
     /**
@@ -211,37 +213,41 @@ class Ioc {
      *
      * @param $bean
      */
-    private static function prepareBean($bean) {
+    private static function constructorBean($bean)
+    {
         $class = new \ReflectionClass(get_class($bean));
         $constructor = $class->getConstructor();
         if ($constructor) {
             $constructor->setAccessible(true);
-            $args = self::methodsParams($constructor);
+            $args = self::constructorParams($bean, $constructor);
             $constructor->invokeArgs($bean, $args);
-            self::beanPrepared($bean);
+
         }
         //兼容老版本
         if ($class->hasMethod('_initialize')) {
             self::invokeWithIocParams($bean, "_initialize");
-            self::beanPrepared($bean);
         }
-
+        self::afterConstructor($bean);
     }
 
 
     /**
-     * 对象被完整初始化
+     * 构造完成
      * @param $bean
      */
-    private static function beanPrepared($bean) {
+    private static function afterConstructor($bean)
+    {
         static::$injectBeans[] = $bean;
-        if (static::$injectBeans[ 0 ] === $bean) {
+        if (static::$injectBeans[0] === $bean) {
             for ($i = count(static::$injectBeans) - 1; $i > -1; $i--) {
-                $class = new \ReflectionClass(get_class(static::$injectBeans[ $i ]));
-                if ($class->hasMethod('_prepared')) {
-                    static::$injectBeans[ $i ]->_prepared();
+                $class = new \ReflectionClass(get_class(static::$injectBeans[$i]));
+                $preparer = static::getConstructor(get_class($bean));
+                if ($preparer) {
+                    $preparer->afterConstructor($bean);
                 }
-
+                if ($class->hasMethod('_prepared')) {
+                    static::$injectBeans[$i]->_prepared();
+                }
             }
             static::$injectBeans = array();
         }
@@ -254,9 +260,10 @@ class Ioc {
      * @param $toClazz
      * @param $closure
      */
-    public static function bind($nameOrClazz, $toClazz, \Closure $closure = null) {
-        unset(static::$instances[ $nameOrClazz ]);
-        static::$beansConfig[ $nameOrClazz ] = new BeanDefine($toClazz, $closure);
+    public static function bind($nameOrClazz, $toClazz, \Closure $closure = null)
+    {
+        unset(static::$instances[$nameOrClazz]);
+        static::$beansConfig[$nameOrClazz] = new BeanDefine($toClazz, $closure);
     }
 
     /**
@@ -267,7 +274,8 @@ class Ioc {
      *
      * @return mixed
      */
-    public static function invokeWithIocParams($obj, $method) {
+    public static function invokeWithIocParams($obj, $method)
+    {
         if (!($method instanceof \ReflectionMethod)) {
             $method = new \ReflectionMethod(get_class($obj), $method);
         }
@@ -276,14 +284,8 @@ class Ioc {
         return $val;
     }
 
-
-    /**
-     * 从 ios 容器中获取方法的参数
-     * @param \ReflectionMethod $method
-     *
-     * @return array
-     */
-    public static function methodsParams(\ReflectionMethod $method) {
+    public static function methodsParams(\ReflectionMethod $method)
+    {
         $args = [];
         if ($method->getNumberOfParameters() > 0) {
             $params = $method->getParameters();
@@ -311,8 +313,9 @@ class Ioc {
      * @param $name
      * @param $bean
      */
-    public static function instance($name, $bean) {
-        static::$instances[ $name ] = $bean;
+    public static function instance($name, $bean)
+    {
+        static::$instances[$name] = $bean;
     }
 
     /**
@@ -320,25 +323,18 @@ class Ioc {
      *
      * @return mixed
      */
-    public static function getInstance($name) {
-        return static::$instances[ $name ];
+    public static function getInstance($name)
+    {
+        return static::$instances[$name];
     }
 
 
-    /**
-     * 检查对象是否存在
-     * @param $nameClass
-     *
-     * @return bool
-     */
-    public static function has($nameClass) {
-        if (static::$instances[ $nameClass ]) {
+    public static function has($nameClass)
+    {
+        if (static::$instances[$nameClass]) {
             return true;
         }
-        if (static::$workScopeInstances[ $nameClass ]) {
-            return true;
-        }
-        if (static::$beansConfig[ $nameClass ]) {
+        if (static::$beansConfig[$nameClass]) {
             return true;
         }
         try {
@@ -355,38 +351,47 @@ class Ioc {
     }
 
 
-    /**
-     * 注册类初始化
-     * @param $providerClazz
-     */
-    public static function register($providerClazz) {
+    public static function register($providerClazz)
+    {
         if (is_array($providerClazz)) {
             foreach ($providerClazz as $item) {
                 static::register($item);
             }
         } else {
-            $providerPrepare = Ioc::get($providerClazz);
-            if (is_subclass_of($providerClazz, BeanPrepare::class)) {
-                /* @var $providerClazz BeanPrepare  */
-                $clazz=$providerClazz::register();
-                if (is_array($clazz)) {
-                    foreach ($clazz as $key) {
-                        static::$preparers[ $key ] = $providerPrepare;
+            if(is_string($providerClazz)){
+                $providerPrepare = Ioc::get($providerClazz);
+            }else{
+                $providerPrepare=$providerClazz;
+            }
+            if ($providerPrepare instanceof BeanConstrustorMapper) {
+                $providerPrepare->register();
+            } else
+                if ($providerPrepare instanceof BeanConstructor) {
+                    Log::error(json_encode($providerPrepare));
+                    $clazz = $providerPrepare->constructorClass();
+                    if (is_array($clazz)) {
+                        foreach ($clazz as $key) {
+                            static::$beanConstructors[$key] = $providerPrepare;
+                        }
+                    } else if (is_string($clazz)) {
+
+                        static::$beanConstructors[$clazz] = $providerPrepare;
                     }
-                } else if (is_string($clazz)) {
-                    static::$preparers[ $clazz ] = $providerPrepare;
                 }
-            }
-
-            if ($providerPrepare instanceof BeanPrepare) {
-                $clazz = $providerPrepare->register();
-
-            }
 
         }
 
 
     }
 
+    /**
+     * 获取类构造类
+     * @param $clazz
+     * @return BeanConstructor
+     */
+    public static function getConstructor($clazz)
+    {
 
+        return static::$beanConstructors[$clazz];
+    }
 }

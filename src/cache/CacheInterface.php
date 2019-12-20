@@ -94,7 +94,7 @@ interface CacheInterface {
      * 设置过期时间
      *
      * @param $key
-     *
+     * @param int $ttl 过期时间单位 s
      * @return mixed
      */
     public function expire($key,$ttl);

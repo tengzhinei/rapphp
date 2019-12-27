@@ -10,6 +10,7 @@ namespace rap\cache;
 
 use rap\swoole\pool\Pool;
 use rap\swoole\CoContext;
+use rap\swoole\pool\PoolAble;
 
 
 class Cache {
@@ -222,11 +223,9 @@ class Cache {
      * 连接池回收
      */
     public static function release() {
-        $context = CoContext::getContext();
-        $cache = $context->get(CacheInterface::class);
-        if ($cache) {
+        $cache = self::getCache();
+        if ($cache&&$cache instanceof PoolAble){
             Pool::release($cache);
-            $context->set(CacheInterface::class, null);
         }
     }
 }

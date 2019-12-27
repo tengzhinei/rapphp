@@ -46,6 +46,7 @@ class Pool {
             }
             return $bean;
         }
+        //只有通过CacheInterface::获取才会自动切库
         if ($name == CacheInterface::class) {
             $connection = $context->get(CoContext::REDIS_NAME);
             if ($connection) {
@@ -61,7 +62,6 @@ class Pool {
             return $bean;
         }
         $item = ResourcePool::instance()->get($name);
-        //只动态切换主库的 其他库不切换
         return $item;
     }
 

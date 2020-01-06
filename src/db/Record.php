@@ -285,6 +285,8 @@ class Record implements \ArrayAccess, \JsonSerializable {
 
     private $is_insert=false;
 
+
+
     /**
      * 插入
      */
@@ -306,15 +308,15 @@ class Record implements \ArrayAccess, \JsonSerializable {
         }
         //数据放入缓存防止立马拿,由于主从库延迟拿不到
         $data[ $pk ] = $pk_value;
-
-
-        /* @var $db_cache DBCache */
-        $db_cache = Ioc::get(DBCache::class);
-        $db_cache->recordCacheSave($this->getTable(), $pk_value, $data);
-        foreach ($data as $field => $value) {
-            $this->_db_data[ $field ] = $value;
+        if(!($this instanceof NoAuthCache)){
+            /* @var $db_cache DBCache */
+            $db_cache = Ioc::get(DBCache::class);
+            $db_cache->recordCacheSave($this->getTable(), $pk_value, $data);
+            foreach ($data as $field => $value) {
+                $this->_db_data[ $field ] = $value;
+            }
+            $this->is_insert=true;
         }
-        $this->is_insert=true;
     }
 
     /**
@@ -381,11 +383,14 @@ class Record implements \ArrayAccess, \JsonSerializable {
             //数据被变更,更新失败
             throw new UpdateVersionException($error_msg);
         }
+
         //删除缓存
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
         $db_cache->recordWhereCacheDel($this);
-        $db_cache->recordCacheDel($this->getTable(), $this->$pk);
+        if(!($this instanceof NoAuthCache)){
+            $db_cache->recordCacheDel($this->getTable(), $this->$pk);
+        }
         foreach ($data as $field => $value) {
             $this->_db_data[ $field ] = $value;
         }
@@ -420,7 +425,11 @@ class Record implements \ArrayAccess, \JsonSerializable {
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
         $db_cache->recordWhereCacheDel($this);
-        $db_cache->recordCacheDel($this->getTable(), $id);
+        if(!($this instanceof NoAuthCache)){
+            $db_cache->recordCacheDel($this->getTable(), $id);
+        }
+
+
     }
 
     /**
@@ -496,7 +505,9 @@ class Record implements \ArrayAccess, \JsonSerializable {
         }
         $model = get_called_class();
         $db_cache = null;
-        if ($cache) {
+        /* @var $bean Record */
+        $bean = new $model;
+        if ($cache&&!($bean instanceof NoAuthCache)) {
             /* @var $db_cache DBCache */
             $db_cache = Ioc::get(DBCache::class);
             $data = $db_cache->recordCache($model, $id);
@@ -504,13 +515,11 @@ class Record implements \ArrayAccess, \JsonSerializable {
                 return $data;
             }
         }
-        /* @var $model Record */
-        $model = new $model;
-        $pk = $model->getPkField();
+        $pk = $bean->getPkField();
         $where[ $pk ] = $id;
-        $data = $model::find($where);
+        $data = $bean::find($where);
         if ($cache && $data) {
-            $db_cache->recordCacheSave($model->getTable(), $id, $data->_db_data);
+            $db_cache->recordCacheSave($bean->getTable(), $id, $data->_db_data);
         }
         return $data;
     }

@@ -43,6 +43,9 @@ class DBCache {
         $record = new $model;
         $cache_key = "record_" . $record->getTable() . $id;
         $data = Cache::get($cache_key);
+        if($data=='null'){
+            return 'null';
+        }
         if ($data) {
             Log::info("命中缓存" . $model . " " . $id);
             $record->fromDbData($data);

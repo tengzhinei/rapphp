@@ -17,7 +17,13 @@ class Update extends Where {
 
     private $data;
 
-    protected $updateSql = '%COMMENT% UPDATE %TABLE% SET %FIELD% %WHERE% %ORDER%%LIMIT% %LOCK%';
+    protected $updateSql = '%COMMENT% UPDATE %HINT% %TABLE% SET %FIELD% %WHERE% %ORDER%%LIMIT% %LOCK%';
+
+    /**
+     * update 附加指令
+     * @var string
+     */
+    private $hint = '';
 
     private $connection_name = Connection::class;
 
@@ -70,12 +76,14 @@ class Update extends Where {
         }
         $fields = implode(' , ', $fields);
         $sql = str_replace(['%TABLE%',
+                            '%HINT%',
                             '%FIELD%',
                             '%WHERE%',
                             '%ORDER%',
                             '%LIMIT%',
                             '%LOCK%',
                             '%COMMENT%'], [$this->table,
+                                           $this->hint,
                                            $fields,
                                            $this->whereSql(),
                                            $this->order,
@@ -93,17 +101,38 @@ class Update extends Where {
     }
 
     /**
+     * 延迟队列更新
+     * 这个需要配合阿里云的rds使用才有效果
+     *
+     * @param string|int       $pk
+     * @param string           $table
+     * @param array            $data
+     * @param array|string|int $where
+     * @param string           $connection_name
+     */
+    public static function delayUpdate($pk, $table, $data, $where, $connection_name = null) {
+        $update = self::buildUpdate($table, $data, $where, $connection_name);
+        $update->hint = "COMMIT_ON_SUCCESS ROLLBACK_ON_FAIL QUEUE_ON_PK $pk";
+        $update->excuse();
+    }
+
+    /**
      * 静态更新
      *
-     * @param     string $table
-     * @param     array  $data
-     * @param     array  $where
-     * @param     string $connection_name
+     * @param     string           $table
+     * @param     array            $data
+     * @param     array|string|int $where
+     * @param     string           $connection_name
      *
      * @throws \Error
      * @return int 更新条数
      */
     public static function update($table, $data, $where, $connection_name) {
+        return self::buildUpdate($table, $data, $where, $connection_name)->excuse();
+    }
+
+
+    private static function buildUpdate($table, $data, $where, $connection_name) {
         $update = Update::table($table, $connection_name);
         foreach ($data as $field => $value) {
             $update->set($field, $value);
@@ -115,7 +144,7 @@ class Update extends Where {
         } else {
             $update->where("id", $where);
         }
-        return $update->excuse();
+        return $update;
     }
 
 }

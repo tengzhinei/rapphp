@@ -96,14 +96,24 @@ class DbConfig {
      * @throws
      */
     private function getModuleFromDB($module) {
+
         $data = Cache::get(md5("config_" . $module));
+
         if (!$data) {
+
             $data = Select::table($this->config[ 'db_table' ])
                           ->where($this->config[ 'module_field' ], $module)
                           ->value($this->config[ 'content_field' ]);
+            if(!$data){
+                $data='null';
+            }
+
             Cache::set(md5("config_" . $module), $data);
         }
         if ($data) {
+            if($data=='null'){
+                return null;
+            }
             $data = json_decode($data, true);
         }
         return $data;

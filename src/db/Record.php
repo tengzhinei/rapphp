@@ -47,6 +47,15 @@ class Record implements \ArrayAccess, \JsonSerializable {
         return array_keys($model->getFields());
     }
 
+
+    /**
+     * 是否延迟更新
+     * @return bool
+     */
+    public function delayUpdate() {
+        return false;
+    }
+
     /**
      * 存在数据库里的数据
      * @var array
@@ -85,6 +94,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
 
     /**
      * 数据库字段组装对象
+     *
      * @param $items
      *
      * @throws \Error
@@ -98,8 +108,8 @@ class Record implements \ArrayAccess, \JsonSerializable {
             $type_p = $_fields[ $item ];
             if (is_array($type_p)) {
                 $type = $type_p[ 'type' ];
-            }else{
-                $type=$type_p;
+            } else {
+                $type = $type_p;
             }
             if ($type == 'json') {
                 $value = json_decode($value, true);
@@ -118,12 +128,12 @@ class Record implements \ArrayAccess, \JsonSerializable {
                     $value = date("Y-m-d H:i:s", $this->_db_data[ $item ]);
                 }
             } else if ($type == 'date') {
-                $format='';
-                if(is_array($type_p)){
+                $format = '';
+                if (is_array($type_p)) {
                     $format = $type_p[ 'format' ];
                 }
-                if(!$format){
-                    $format='Y-m-d';
+                if (!$format) {
+                    $format = 'Y-m-d';
                 }
                 $time = (int)$value;
                 if ($time . "" == $value) {
@@ -216,7 +226,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
                 $value = json_encode($value);
             }
             //值没有变不保存
-            if ($value == $oldValue && $oldValue != null) {
+            if ($value == $oldValue && $oldValue !== null) {
                 continue;
             }
 
@@ -283,8 +293,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
         return $data;
     }
 
-    private $is_insert=false;
-
+    private $is_insert = false;
 
 
     /**
@@ -308,14 +317,14 @@ class Record implements \ArrayAccess, \JsonSerializable {
         }
         //数据放入缓存防止立马拿,由于主从库延迟拿不到
         $data[ $pk ] = $pk_value;
-        if(!($this instanceof NoAuthCache)){
+        if (!($this instanceof NoAuthCache)) {
             /* @var $db_cache DBCache */
             $db_cache = Ioc::get(DBCache::class);
-            $db_cache->recordCacheSave($this->getTable(), $pk_value, $data);
+            $db_cache->recordCacheSave($this->getTable(), $this->$pk, $data);
             foreach ($data as $field => $value) {
                 $this->_db_data[ $field ] = $value;
             }
-            $this->is_insert=true;
+            $this->is_insert = true;
         }
     }
 
@@ -328,8 +337,8 @@ class Record implements \ArrayAccess, \JsonSerializable {
      * 检查是否是插入
      * @return bool
      */
-    public function isInsert(){
-        if($this->is_insert){
+    public function isInsert() {
+        if ($this->is_insert) {
             return true;
         }
         $pk = $this->getPkField();
@@ -361,7 +370,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
         Event::trigger(RecordEvent::record_before_update, $this);
         $pk = $this->getPkField();
         $where[ $pk ] = $this->$pk;
-        $data[$pk]=$this->$pk;
+        $data[ $pk ] = $this->$pk;
         $data = $this->getDBData();
         if (!$data) {
             return;
@@ -376,10 +385,14 @@ class Record implements \ArrayAccess, \JsonSerializable {
             $data[ $version_field ] = $this->$version_field + 1;
             $where[ $version_field ] = $this->$version_field;
         }
+        if ($this->delayUpdate()) {
+            $row_count = Update::delayUpdate($this->$pk, $this->getTable(), $data, $where, $this->connectionName());
+        } else {
+            $row_count = Update::update($this->getTable(), $data, $where, $this->connectionName());
+        }
 
-        $row_count = DB::update($this->getTable(), $data, $where, $this->connectionName());
         //需要检查版本号
-        if ($check_version&&$version_field&& $this->$version_field&&!$row_count) {
+        if ($check_version && $version_field && $this->$version_field && !$row_count) {
             //数据被变更,更新失败
             throw new UpdateVersionException($error_msg);
         }
@@ -388,7 +401,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
         $db_cache->recordWhereCacheDel($this);
-        if(!($this instanceof NoAuthCache)){
+        if (!($this instanceof NoAuthCache)) {
             $db_cache->recordCacheDel($this->getTable(), $this->$pk);
         }
         foreach ($data as $field => $value) {
@@ -402,6 +415,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
      * 如果有 delete_time字段 默认是设置为当前时间
      *
      * @param bool $force 是否强制
+     *
      * @throws
      */
     public function delete($force = false) {
@@ -425,7 +439,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
         $db_cache->recordWhereCacheDel($this);
-        if(!($this instanceof NoAuthCache)){
+        if (!($this instanceof NoAuthCache)) {
             $db_cache->recordCacheDel($this->getTable(), $id);
         }
 
@@ -480,6 +494,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
      * 静态删除  destroy方法不管delete_time字段
      *
      * @param string|int $id
+     *
      * @throws
      */
     public static function destroy($id) {
@@ -507,19 +522,27 @@ class Record implements \ArrayAccess, \JsonSerializable {
         $db_cache = null;
         /* @var $bean Record */
         $bean = new $model;
-        if ($cache&&!($bean instanceof NoAuthCache)) {
+        if ($cache && !($bean instanceof NoAuthCache)) {
             /* @var $db_cache DBCache */
             $db_cache = Ioc::get(DBCache::class);
             $data = $db_cache->recordCache($model, $id);
             if ($data) {
+                if($data=='null'){
+                    return null;
+                }
                 return $data;
             }
         }
         $pk = $bean->getPkField();
         $where[ $pk ] = $id;
         $data = $bean::find($where);
-        if ($cache && $data) {
-            $db_cache->recordCacheSave($bean->getTable(), $id, $data->_db_data);
+        if ($cache ) {
+            if($data){
+                $db_cache->recordCacheSave($bean->getTable(), $id, $data->_db_data);
+            }else{
+                $db_cache->recordCacheSave(get_called_class(),$id,'null');
+            }
+
         }
         return $data;
     }
@@ -567,29 +590,30 @@ class Record implements \ArrayAccess, \JsonSerializable {
         if ($as == 'and') {
             $as = 'a_n_d';
         }
-        return self::selectAs($fields,$as,$contain);
+        return self::selectAs($fields, $as, $contain);
     }
 
     /**
      * 检索
+     *
      * @param string $fields
      * @param string $as
      * @param bool   $contain
      *
      * @return Select
      */
-    public static function selectAs($fields = '',$as='', $contain = true){
+    public static function selectAs($fields = '', $as = '', $contain = true) {
         $model = get_called_class();
 
         /* @var $model Record */
         $model = new $model;
         $select = DB::select($model->getTable() . " " . $as, $model->connectionName())->setRecord(get_called_class());
-        $pkField=$model->getPkField();
+        $pkField = $model->getPkField();
         //默认按 id或是创建时间倒序
-        if($pkField=='id'){
-            $select->order($as.'.id desc');
-        }else if(property_exists(get_called_class(),'create_time')){
-            $select->order($as.'.create_time desc');
+        if ($pkField == 'id') {
+            $select->order($as . '.id desc');
+        } else if (property_exists(get_called_class(), 'create_time')) {
+            $select->order($as . '.create_time desc');
         }
         Event::trigger(RecordEvent::record_before_select, $model, $select);
         if ($fields) {

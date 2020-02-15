@@ -45,6 +45,32 @@ class Where {
         return $this;
     }
 
+    /**
+     * 拼 sql
+     * 注意 sql 需要 ? 做编译,防止被sql注入
+     * @param string $sql
+     * @param array  $condition
+     *
+     * @return $this
+     */
+    public function sql($sql, array $condition) {
+        $this->addWhere("AND", $sql, 'sql', $condition);
+        return $this;
+    }
+
+    /**
+     * 拼 sql
+     * 注意 sql 需要 ? 做编译,防止被sql注入
+     * @param string $sql
+     * @param array  $condition
+     *
+     * @return $this
+     */
+    public function orSql($sql, array $condition) {
+        $this->addWhere("OR", $sql, 'sql', $condition);
+        return $this;
+    }
+
 
     /**
      * Or 连接条件
@@ -110,8 +136,8 @@ class Where {
         if (!$field) {
             return;
         }
-        if($op==null){
-            $op='null';
+        if ($op == null) {
+            $op = 'null';
         }
         if ($field instanceof \Closure) {
             $select = new Where();
@@ -207,7 +233,15 @@ class Where {
                     $sql .= " " . $where[ 'logic' ];
                 }
                 $op = $where[ 'op' ];
-                if ($op == 'null') {
+                if ($op == 'sql') {
+                    $sql .= " " . $where[ 'field' ];
+                    $condition = $where[ 'condition' ];
+                    if ($condition && is_array($condition)) {
+                        foreach ($condition as $item) {
+                            $data[] = $item;
+                        }
+                    }
+                } else if ($op == 'null') {
                     $op = "is null";
                     $sql .= " " . $where[ 'field' ] . ' ' . $op;
                 } else if ($op == 'not null') {

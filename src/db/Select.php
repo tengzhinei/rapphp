@@ -211,12 +211,14 @@ class Select extends Where {
     public function findAll() {
         $sql = $this->getSql();
         $params = array_merge($this->whereParams(), $this->having_params);
+        /* @var $connection Connection  */
         $connection = Pool::get($this->connection_name);
         try {
             $data = $connection->query($sql, $params, $this->cache);
         }  finally {
             Pool::release($connection);
         }
+
         if ($this->clazz) {
             $results = [];
             l:
@@ -407,10 +409,13 @@ class Select extends Where {
         $this->order("");
         $this->fields($field);
         $this->limit(0, 1);
+
         $connection = Pool::get($this->connection_name);
         try {
+
             /* @var $connection Connection  */
             $value = $connection->value($this->getSql(), $this->whereParams(), $this->cache);
+
             return $value;
         }finally {
             Pool::release($connection);

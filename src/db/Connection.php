@@ -178,6 +178,7 @@ abstract class Connection implements PoolAble {
     public function value($sql, $bind = [], $cache = false) {
         $value = null;
         $dbCache = null;
+
         if ($cache) {
             /* @var $dbCache DBCache */
             $dbCache = Ioc::get(DBCache::class);
@@ -186,8 +187,11 @@ abstract class Connection implements PoolAble {
                 return $value['value'];
             }
         }
+
         if ($value == null) {
+
             $this->execute($sql, $bind);
+
             $value = $this->PDOStatement->fetchColumn();
             if ($cache) {
                 $dbCache->saveCache($sql, $bind, ['value'=>$value]);

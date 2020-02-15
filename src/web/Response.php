@@ -15,6 +15,7 @@ use rap\ServerEvent;
 use rap\session\RedisSession;
 use rap\session\HttpSession;
 use rap\session\Session;
+use rap\swoole\Context;
 
 class Response {
     // 当前的contentType
@@ -61,6 +62,7 @@ class Response {
         }
         if(!IS_SWOOLE){
             Event::trigger(ServerEvent::onRequestDefer);
+            Context::release();
         }
     }
 

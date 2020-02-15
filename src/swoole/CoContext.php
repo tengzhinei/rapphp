@@ -10,6 +10,8 @@
 namespace rap\swoole;
 
 
+use rap\ioc\scope\SessionScope;
+use rap\ioc\SessionScopeHelp;
 use rap\swoole\pool\PoolAble;
 use rap\swoole\pool\ResourcePool;
 use rap\web\Request;
@@ -50,7 +52,7 @@ class CoContext {
     }
 
     public static function getContext() {
-        if (IS_SWOOLE&&version_compare(swoole_version(), '4.3.0') >= 0) {
+        if (IS_SWOOLE && version_compare(swoole_version(), '4.3.0') >= 0) {
             if (!self::$holder) {
                 self::$holder = new CoContext();
             }
@@ -87,9 +89,9 @@ class CoContext {
     }
 
     public function set($name, $bean = null) {
-        if (IS_SWOOLE&&version_compare(swoole_version(), '4.3.0') >= 0) {
-            \Co::getContext()[$name]=$bean;
-        }else{
+        if (IS_SWOOLE && version_compare(swoole_version(), '4.3.0') >= 0) {
+            \Co::getContext()[ $name ] = $bean;
+        } else {
             if (!$bean) {
                 unset($bean);
                 $this->instances[ $name ] = null;
@@ -100,17 +102,17 @@ class CoContext {
     }
 
     public function get($name) {
-        if (IS_SWOOLE&&version_compare(swoole_version(), '4.3.0') >= 0) {
-            return \Co::getContext()[$name];
-        }else{
+        if (IS_SWOOLE && version_compare(swoole_version(), '4.3.0') >= 0) {
+            return \Co::getContext()[ $name ];
+        } else {
             return $this->instances[ $name ];
         }
     }
 
     public function remove($name) {
-        if (IS_SWOOLE&&version_compare(swoole_version(), '4.3.0') >= 0) {
-            unset(\Co::getContext()[$name]);
-        }else{
+        if (IS_SWOOLE && version_compare(swoole_version(), '4.3.0') >= 0) {
+            unset(\Co::getContext()[ $name ]);
+        } else {
             unset($this->instances[ $name ]);
         }
     }
@@ -120,7 +122,7 @@ class CoContext {
      * 释放协程内资源,系统调用
      */
     public function release() {
-        if (IS_SWOOLE&&version_compare(swoole_version(), '4.3.0')< 0) {
+        if (IS_SWOOLE && version_compare(swoole_version(), '4.3.0') < 0) {
             /* @var $pool ResourcePool */
             $pool = ResourcePool::instance();
             $id = CoContext::id();
@@ -134,17 +136,25 @@ class CoContext {
             }
             unset($this->instances);
             $this->instances = [];
-        }else if(IS_SWOOLE){
+        } else if (IS_SWOOLE) {
             $pool = ResourcePool::instance();
-            $instances= \Co::getContext();
+            $instances = \Co::getContext();
             foreach ($instances as $name => $bean) {
                 if ($bean instanceof PoolAble) {
                     $pool->release($bean);
+                }
+                if ($bean instanceof SessionScope) {
+                    SessionScopeHelp::save($bean);
                 } else {
                     unset($bean);
                 }
             }
-
+        } else {
+            foreach ($this->instances as $name => $bean) {
+                if ($bean instanceof SessionScope) {
+                    SessionScopeHelp::save($bean);
+                }
+            }
         }
 
     }

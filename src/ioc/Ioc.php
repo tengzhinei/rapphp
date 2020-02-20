@@ -196,7 +196,7 @@ class Ioc
                     $className = $class->getName();
                     $bean = Ioc::get($className);
                     if (!$bean) {
-                        $args[] = method_exists($className, 'instance') ? $className::instance() : new $className();
+                        $args[] = method_exists($className, 'instance') ? $className::instance() : null;
                     } else {
                         $args[] = $bean;
                     }

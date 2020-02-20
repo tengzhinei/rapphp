@@ -264,6 +264,10 @@ class Aop {
             $who = "rap\\aop\\build\\" . $clazz . "_PROXY";
         }
         $class = new \ReflectionClass($who);
+        if($class->isInterface()||$class->isAbstract()){
+            //接口和抽象类无法创建对象
+            return null;
+        }
         $obj = $class->newInstanceWithoutConstructor();
         return $obj;
     }

@@ -153,6 +153,9 @@ class Ioc
             $beanClassName = $beanDefine->ClassName;
         }
         $bean = Aop::warpBean($beanClassName, $nameClass);
+        if(!$bean){
+            return null;
+        }
         //连接池类型的不需要在容器托管
         if ($instance) {
             if ($bean instanceof RequestScope) {

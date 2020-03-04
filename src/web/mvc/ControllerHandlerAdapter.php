@@ -38,8 +38,7 @@ class ControllerHandlerAdapter extends HandlerAdapter{
             throw new MsgException($exception->getMessage()."对应的路径不存在控制器");
         }
         if(method_exists($clazzInstance, '_before')){
-            $method = new \ReflectionMethod(get_class($clazzInstance), '_before');
-            $method->invokeArgs($clazzInstance, [$this->method]);
+            $this->invokeRequest($clazzInstance, '_before',$request,$response);
         }
         if(method_exists($clazzInstance, '_before_'.$this->method)){
             $this->invokeRequest($clazzInstance, '_before_'.$this->method,$request,$response);

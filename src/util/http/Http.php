@@ -49,7 +49,7 @@ class Http {
      * @param array  $data    数据
      * @param float  $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public static function post($url, $header = [], $data = [], $timeout = 0.5) {
         return self::client()->post($url, $header, $data, $timeout);
@@ -64,7 +64,7 @@ class Http {
      * @param array  $data    数据
      * @param float  $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public static function put($url, $header = [], $data = [], $timeout = 0.5) {
         return self::client()->put($url, $header, $data, $timeout);
@@ -79,7 +79,7 @@ class Http {
      * @param array  $files   文件
      * @param int    $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public static function upload($url, $header = [], $data = [], $files = [], $timeout = 5) {
         return self::client()->upload($url, $header, $data, $files, $timeout);

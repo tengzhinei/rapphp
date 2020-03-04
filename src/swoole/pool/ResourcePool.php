@@ -9,7 +9,7 @@
 
 namespace rap\swoole\pool;
 
-
+use rap\cache\RedisCache;
 use rap\ioc\Ioc;
 use rap\swoole\CoContext;
 use Swoole\Coroutine\Channel;
@@ -18,7 +18,6 @@ class ResourcePool
 {
 
 
-    public $queues = [];
     public $channels = [];
     public $buffers = [];
 
@@ -53,24 +52,15 @@ class ResourcePool
             return $bean;
         }
         if (IS_SWOOLE) {
-            /* @var $holder CoContext */
-            //判定是否有没有使用的对象
-            $queue = $this->getQueue($classOrName);
-            if (!$queue) return null;
-            if (!$queue->isEmpty()) {
-                $bean = $queue->pop();
+            /* @var $channel Channel */
+            $channel = $this->channels[$classOrName];
+            $timeout = $this->pool_config[$classOrName]['timeout'];
+            /* @var $buffer PoolBuffer */
+            $buffer = $channel->pop($timeout);
+            if (!$buffer) {
+                throw new PoolTimeoutException("pool is empty and get item timeout");
             }
-            if (!$bean) {
-                /* @var $channel Channel */
-                $channel = $this->channels[$classOrName];
-                $timeout = $this->pool_config[$classOrName]['timeout'];
-                /* @var $buffer PoolBuffer */
-                $buffer = $channel->pop($timeout);
-                if (!$buffer) {
-                    throw new PoolTimeoutException("pool is empty and get item timeout");
-                }
-                $bean = $buffer->get();
-            }
+            $bean = $buffer->get();
         } else {
             $bean = Ioc::get($classOrName);
         }
@@ -78,15 +68,7 @@ class ResourcePool
         return $bean;
     }
 
-    /**
-     * @param $class
-     *
-     * @return \SplQueue
-     */
-    private function getQueue($class)
-    {
-        return $this->queues[$class];
-    }
+
 
     public function release(PoolAble $bean)
     {
@@ -99,16 +81,12 @@ class ResourcePool
             return;
         }
         CoContext::getContext()->remove($bean->_poolName_);
-        $queue = $this->getQueue($bean->_poolName_);
         /* @var $channel Channel */
         $channel = $this->channels[$bean->_poolName_];
         if ($bean->_poolBuffer_) {
             $bean->_poolBuffer_->active();
             $channel->push($bean->_poolBuffer_);
-        } else {
-            $queue->push($bean);
         }
-
     }
 
     /**
@@ -141,34 +119,22 @@ class ResourcePool
      */
     public function preparePool($classOrName)
     {
-        $queue = new \SplQueue();
 
-        $this->queues[$classOrName] = $queue;
         /* @var $bean PoolAble|PoolTrait */
         $bean = Ioc::beanCreate($classOrName, false);
         $config = $bean->poolConfig();
 
         $bean->_poolName_ = $classOrName;
-        $min = $config['min'];
         $max = $config['max'];
+        $min = $config['min'];
         if (!$config['timeout']) {
             $config['timeout'] = 0.5;
         }
         $this->pool_config[$classOrName] = $config;
-        $queue->push($bean);
-        for ($i = 1; $i < $min; $i++) {
-            $bean = Ioc::beanCreate($classOrName, false);
-            $bean->_poolName_ = $classOrName;
-            $queue->push($bean);
-        }
-        if (!$max || $max <= $min) {
-            $max = $min + 1;
-        }
-
-        $chanel = new Channel($max - $min + 1);
+        $chanel = new Channel($max + 1);
         $this->channels[$classOrName] = $chanel;
         $buffers = [];
-        for ($i = 0; $i < $max - $min; $i++) {
+        for ($i = 0; $i < $max; $i++) {
             $buffer = new PoolBuffer($classOrName);
             $chanel->push($buffer);
             $buffers[] = $buffer;
@@ -184,8 +150,15 @@ class ResourcePool
             $check = 30;
         }
 
-        swoole_timer_tick(1000 * $check, function () use ($idle) {
+        if($max==$min){
+            return;
+        }
+        swoole_timer_tick(1000 * $check, function () use ($idle,$max,$min) {
+            $removed=0;
             foreach ($this->buffers as $class => $buffer_array) {
+                if($removed>$max-$min-1){
+                    return;
+                }
                 foreach ($buffer_array as $buffer) {
                     /* @var $buffer PoolBuffer */
                     if ($buffer->is_use) {
@@ -193,7 +166,11 @@ class ResourcePool
                     }
                     $time = time() - $buffer->lastActiveTime;
                     if ($time > $idle) {
+                        $bean=$buffer->bean;
                         $buffer->bean = null;
+                        unset($bean);
+                        $removed++;
+
                     }
                 }
             }

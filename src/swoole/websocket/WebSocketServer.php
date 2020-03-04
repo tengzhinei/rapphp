@@ -45,12 +45,13 @@ class WebSocketServer extends Command {
     public $host_name;
     public $secret;
 
-    /**
-     * websocket启动入口
-     *
-     * @param $host_name
-     */
-    public function run($host_name) {
+
+    public function run() {
+        $host_name='0.0.0.0';
+        $ips = swoole_get_local_ip();
+        if ($ips[ "eth0" ]) {
+            $host_name = $ips[ "eth0" ];
+        }
         $this->config = array_merge($this->config, Config::getFileConfig()[ 'websocket' ]);
         $this->host_name = $host_name;
         $this->server = new \swoole_websocket_server($this->config[ 'ip' ], $this->config[ 'port' ]);
@@ -70,7 +71,7 @@ class WebSocketServer extends Command {
         $this->server->on('request', [$this, 'onRequest']);
         $this->server->on('task', [$this, 'onTask']);
         $this->server->on('finish', [$this, 'onFinish']);
-        $this->writeln("websocket服务启动成功");
+        $this->writeln("websocket服务启动成功". $this->host_name);
         if ($this->config[ 'coroutine' ]) {
             //mysql redis 协程化
             Runtime::enableCoroutine();
@@ -123,9 +124,10 @@ class WebSocketServer extends Command {
      * @param $request
      * @param $response
      */
-    public function onRequest(\swoole_http_request $request, \swoole_http_response $response) {
+    public function onRequest(\swoole_http_request $request, \swoole_http_response $response)
+    {
         try {
-            if ($request->server[ 'request_uri' ] == '/favicon.ico') {
+            if ($request->server['request_uri'] == '/favicon.ico') {
                 $response->end();
                 return;
             }
@@ -140,7 +142,7 @@ class WebSocketServer extends Command {
             CoContext::getContext()->setRequest($req);
             Log::info('http request start', ['url' => $req->url(), 'session_id' => $req->session()->sessionId()]);
             //swoole  4.2.9
-            defer(function() use ($req) {
+            defer(function () use ($req) {
                 try {
                     Event::trigger(ServerEvent::onRequestDefer);
                 } catch (\Throwable $throwable) {
@@ -199,26 +201,22 @@ class WebSocketServer extends Command {
         $service = Ioc::get($this->config[ 'service' ]);
         $user_id = $service->tokenToUserId($request->get);
         if (!$user_id) {
-            $this->server->task(['fid' => $request->fd,
-                                 'msg' => json_encode(['msg_type' => 'error', 'code' => '10010', 'msg' => '用户信息错误'])]);
+            $this->server->push($request->fd, json_encode(['msg_type' => 'error', 'code' => '10010', 'msg' => '用户信息错误']));
             $server->close($request->fd);
             return;
         } else {
-            $this->server->task(['fid' => $request->fd,
-                                 'msg' => json_encode(['msg_type' => 'login_success',
-                                                       'code' => '10000',
-                                                       'msg' => '登录成功'])]);
-
+            $this->server->push($request->fd,json_encode(['msg_type' => 'login_success',
+                                                          'code' => '10000',
+                                                          'msg' => '登录成功']));
         }
         //将当前用户在其他连接断掉
         $old_fid = $this->userIdToFid($user_id);
         if ($old_fid) {
             $old = explode("@", $old_fid);
             if ($old[ 0 ] == $this->host_name) {
-                $this->server->task(['fid' => $old[ 1 ],
-                                     'msg' => json_encode(['msg_type' => 'error',
+                $this->server->push($old[ 1 ],json_encode(['msg_type' => 'error',
                                                            'code' => '10011',
-                                                           'msg' => '用户已在其他地方登录'])]);
+                                                           'msg' => '用户已在其他地方登录']));
                 $server->close($old[ 1 ]);
             } else {
                 try {
@@ -257,6 +255,7 @@ class WebSocketServer extends Command {
     public function onMessage($server, $frame) {
         $data = json_decode($frame->data, true);
         $method = $data[ 'method' ];
+        if(!$method)return;
         unset($data[ 'method' ]);
         $user_id = $this->fidToUserId($frame->fd);
         /* @var $service WebSocketService */
@@ -326,6 +325,7 @@ class WebSocketServer extends Command {
         $fid_server = explode('@', $fid);
         $host_name = $fid_server[ 0 ];
         $fid = $fid_server[ 1 ];
+        $m=substr($this->host_name,0,6);
         if ($host_name == $this->host_name) {
             if (!$this->server->exist($fid)) {
                 //断开
@@ -336,10 +336,8 @@ class WebSocketServer extends Command {
                 Cache::release();
                 return false;
             }
-
-            $this->server->task(['fid' => $fid,
-                                 'msg' => json_encode($msg)]);
-        } else {
+            $this->server->push($fid,json_encode($msg));
+        } else if(strpos($host_name,$m)===0) {
             try {
                 //通过集群中的其他服务器推送
                 Http::put('http://' . $host_name . ':' . $this->config[ 'port' ] . '/open/push', [], ['fid' => $fid,

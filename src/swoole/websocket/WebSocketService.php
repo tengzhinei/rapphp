@@ -10,7 +10,6 @@ namespace rap\swoole\websocket;
 
 
 use rap\cache\Cache;
-use rap\ioc\Ioc;
 
 abstract class WebSocketService{
 
@@ -47,10 +46,7 @@ abstract class WebSocketService{
      */
     public function push($fid,$msg){
         if( $this->server->server->exist($fid)){
-            $this->server->server->task([
-                'fid'=>$fid,
-                'msg'=>$msg
-            ]);
+            $this->server->server->push($fid,$msg);
         }else{
             //断开
             $this->server->server->close($fid);
@@ -64,10 +60,7 @@ abstract class WebSocketService{
 
     public function close($fid){
         if( $this->server->server->exist($fid)){
-            $this->server->server->task([
-                'fid'=>$fid,
-                'msg'=>json_encode(['msg_type'=>'error','code'=>'10011','msg'=>'用户已在其他地方登录'])
-            ]);
+            $this->server->server->push($fid,json_encode(['msg_type'=>'error','code'=>'10011','msg'=>'用户已在其他地方登录']));
             $this->server->server->close($fid);
         }
     }

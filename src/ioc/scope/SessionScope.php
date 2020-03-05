@@ -8,7 +8,8 @@ namespace rap\ioc\scope;
  * 实现SessionScope的类必须可以serialize,必须使用redis做缓存
  * @author: 藤之内
  */
-interface SessionScope {
+interface SessionScope
+{
 
 
 }

@@ -8,11 +8,11 @@
 
 namespace rap\storage;
 
-
 use rap\exception\FileUploadException;
 use rap\util\FileUtil;
 
-class LocalFileStorage implements StorageInterface{
+class LocalFileStorage implements StorageInterface
+{
 
     private $config=[
         'base_path'=>'/public/upload/file',
@@ -20,8 +20,9 @@ class LocalFileStorage implements StorageInterface{
         'cdn'=>""
     ];
 
-    public function config($config){
-        $this->config=array_merge($this->config,$config);
+    public function config($config)
+    {
+        $this->config=array_merge($this->config, $config);
     }
 
     /**
@@ -33,7 +34,8 @@ class LocalFileStorage implements StorageInterface{
      * @return bool
      * @throws FileUploadException
      */
-    public function upload(File $file, $category, $name = "",$replace= false){
+    public function upload(File $file, $category, $name = "", $replace = false)
+    {
         $path=$this->config['base_path'].DIRECTORY_SEPARATOR;
         // 文件上传失败，捕获错误代码
         if (!empty($file->error)) {
@@ -43,9 +45,9 @@ class LocalFileStorage implements StorageInterface{
         if (!$file->isValid()) {
             throw new FileUploadException('非法上传文件');
         }
-        if(!$name){
+        if (!$name) {
             $size='';
-            if(in_array($file->ext,['jpg','png','jpeg'])){
+            if (in_array($file->ext, ['jpg','png','jpeg'])) {
                 $img_info = getimagesize($file->path_tmp);
                 $size="_".$img_info[0]."_".$img_info[1];
             }
@@ -63,7 +65,7 @@ class LocalFileStorage implements StorageInterface{
             return $file_id;
         }
         if (!move_uploaded_file($file->path_tmp, $filename)) {
-            FileUtil::move($file->path_tmp,$filename);
+            FileUtil::move($file->path_tmp, $filename);
         }
         return $file_id;
     }
@@ -73,7 +75,8 @@ class LocalFileStorage implements StorageInterface{
      * @param string $file_id
      * @return string
      */
-    public function getUrl($file_id){
+    public function getUrl($file_id)
+    {
         $path=$this->config['base_path'].DIRECTORY_SEPARATOR;
         return $this->config['cdn'].$path.$file_id;
     }
@@ -88,7 +91,14 @@ class LocalFileStorage implements StorageInterface{
      * @param int $blur
      * @return string
      */
-    public function getPicUrl($file_id, $width = 0, $height = 0,$water=false, $crop = self::resize_rect_in,$blur=-1){
+    public function getPicUrl(
+        $file_id,
+        $width = 0,
+        $height = 0,
+        $water = false,
+        $crop = self::resize_rect_in,
+        $blur = -1
+    ) {
         $path=$this->config['base_path'].DIRECTORY_SEPARATOR.$file_id;
         return $this->config['cdn'].$path;
     }
@@ -98,14 +108,18 @@ class LocalFileStorage implements StorageInterface{
      * 删除文件
      * @param $file_id
      */
-    public function delete($file_id){
+    public function delete($file_id)
+    {
         $filename=$this->config['base_path'].DIRECTORY_SEPARATOR.$file_id;
         unlink(ROOT_PATH.$filename);
-        $p=explode(DIRECTORY_SEPARATOR,$file_id);
+        $p=explode(DIRECTORY_SEPARATOR, $file_id);
         $name=array_pop($p);
-        $name_ext=explode(".",$name);
-        $save_name=ROOT_PATH.$this->config['base_path'].DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR,$p).DIRECTORY_SEPARATOR
-            .$name_ext[0].DIRECTORY_SEPARATOR;
+        $name_ext=explode(".", $name);
+        $save_name=ROOT_PATH.$this->config['base_path'].
+                        DIRECTORY_SEPARATOR.
+                        implode(DIRECTORY_SEPARATOR, $p)
+                        .DIRECTORY_SEPARATOR
+                        .$name_ext[0].DIRECTORY_SEPARATOR;
         $files = (array) glob($save_name . '*');
         var_dump($save_name);
         foreach ($files as $path) {
@@ -135,8 +149,8 @@ class LocalFileStorage implements StorageInterface{
         }
     }
 
-    public function getDomain(){
+    public function getDomain()
+    {
         return $this->config['cdn'];
     }
-
 }

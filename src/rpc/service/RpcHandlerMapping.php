@@ -9,24 +9,26 @@
 
 namespace rap\rpc\service;
 
-
 use rap\config\Config;
 use rap\ioc\Ioc;
 use rap\web\mvc\HandlerMapping;
 use rap\web\Request;
 use rap\web\Response;
 
-class RpcHandlerMapping implements HandlerMapping {
+class RpcHandlerMapping implements HandlerMapping
+{
 
     private $config = ['path' => '/rpc_____call',
                        ];
 
-    public function __construct() {
+    public function __construct()
+    {
         $config = Config::getFileConfig()[ 'rpc_service' ];
         $this->config = array_merge($this->config, $config);
     }
 
-    public function map(Request $request, Response $response) {
+    public function map(Request $request, Response $response)
+    {
         $path = $request->routerPath();
 
         if ($path !== $this->config[ 'path' ]) {
@@ -35,6 +37,4 @@ class RpcHandlerMapping implements HandlerMapping {
 
         return Ioc::get(RpcHandlerAdapter::class);
     }
-
-
 }

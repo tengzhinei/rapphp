@@ -9,11 +9,9 @@
 
 namespace rap\rpc;
 
-
-interface RpcRegister {
+interface RpcRegister
+{
 
 
     public function register();
-
-
 }

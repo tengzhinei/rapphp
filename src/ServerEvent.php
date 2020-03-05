@@ -6,8 +6,8 @@
 
 namespace rap;
 
-
-class ServerEvent {
+class ServerEvent
+{
     
      const onAppInit           = 'onAppInit';
      const onBeforeServerStart = 'onBeforeServerStart';
@@ -16,6 +16,4 @@ class ServerEvent {
      const onRequestDefer      = 'onRequestDefer';
      const onServerWorkerStop  = 'onServerWorkerStop';
      const onServerShutdown    = 'onServerShutdown';
-
-
 }

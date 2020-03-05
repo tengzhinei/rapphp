@@ -10,11 +10,14 @@ use rap\swoole\pool\Pool;
  * User: jinghao@duohuo.net
  * Date: 18/1/24
  * Time: 下午3:47
+ * @SuppressWarnings(PHPMD)
  */
-class RecordBuild extends Command {
+class RecordBuild extends Command
+{
 
 
-    public function configure() {
+    public function configure()
+    {
         $this->name('record')
              ->asName("生成record")
              ->param("s", true, '需要生成的表的前缀', "")
@@ -27,13 +30,16 @@ class RecordBuild extends Command {
     }
 
 
-    private function convertUnderline($str, $ucfirst = true) {
-        while (($pos = strpos($str, '_')) !== false)
+    private function convertUnderline($str, $ucfirst = true)
+    {
+        while (($pos = strpos($str, '_')) !== false) {
             $str = substr($str, 0, $pos) . ucfirst(substr($str, $pos + 1));
+        }
         return $ucfirst ? ucfirst($str) : $str;
     }
 
-    public function run($s = '', $p = '', $n = '') {
+    public function run($s = '', $p = '', $n = '')
+    {
         $this->initWork();
         set_time_limit(0);
         /*  @var Connection $connection */
@@ -47,11 +53,17 @@ class RecordBuild extends Command {
             } else {
                 $this->create($table, $p, $n);
             }
-
         }
     }
 
-    public function create($table_name, $prefix, $namespace) {
+    /**
+     * @param $table_name
+     * @param $prefix
+     * @param $namespace
+     * @SuppressWarnings(PHPMD)
+     */
+    public function create($table_name, $prefix, $namespace)
+    {
         if (!$namespace) {
             $namespace = APP_DIR.'\model';
         }
@@ -97,7 +109,7 @@ class $name extends Record {
         return "$pk_field";
     }
 EOF;
-        if($fields['version']){
+        if ($fields['version']) {
             $txt .= <<<EOF
      /**
      * 获取数据版本号字段
@@ -119,15 +131,15 @@ EOF;
 
 EOF;
         $i = 0;
-        foreach ($fields as $key => $value){
+        foreach ($fields as $key => $value) {
             $comment = $comments[ $key ];
-            if(strpos($comment,'json')>0||strpos($comment,'object')>0||strpos($comment,'array')>0){
+            if (strpos($comment, 'json')>0||strpos($comment, 'object')>0||strpos($comment, 'array')>0) {
                 $value='json';
             }
-            if(strpos($comment,'时间')>0&&strpos($comment,'时间戳')===false){
+            if (strpos($comment, '时间')>0&&strpos($comment, '时间戳')===false) {
                 $value='time';
             }
-            if(strpos($comment,'日期')>0){
+            if (strpos($comment, '日期')>0) {
                 $value='date';
             }
             $txt .= "            '$key'=>'$value'";
@@ -147,7 +159,7 @@ EOF;
         $txt .= "    /**** 对应数据库字段 start *****/\r\n\r\n";
         foreach ($fields as $key => $value) {
             $comment = $comments[ $key ];
-            if(strpos($comment,'json')>0||strpos($comment,'object')>0||strpos($comment,'array')>0){
+            if (strpos($comment, 'json')>0||strpos($comment, 'object')>0||strpos($comment, 'array')>0) {
                 $value='array';
             }
             $txt .="   /**\r\n";
@@ -162,5 +174,4 @@ EOF;
         mkdir(RUNTIME . "model" . DS);
         file_put_contents(RUNTIME . 'model' . DS . $name . '.php', $txt);
     }
-
 }

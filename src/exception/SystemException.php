@@ -1,5 +1,6 @@
 <?php
 namespace rap\exception;
+
 /**
  * 南京灵衍信息科技有限公司
  * User: jinghao@duohuo.net
@@ -12,7 +13,8 @@ namespace rap\exception;
  * Class SystemException
  * @package rap\exception
  */
-class SystemException extends \Exception{
+class SystemException extends \Exception
+{
 
 
 }

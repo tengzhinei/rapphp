@@ -11,7 +11,8 @@ namespace rap\swoole\task;
 use rap\ioc\Ioc;
 use rap\web\Application;
 
-class Task {
+class Task
+{
 
     /**
      * 异步任务
@@ -21,7 +22,8 @@ class Task {
      * @param array  $params
      * @param int    $task_id
      */
-    public static function deliver($clazz, $method = "run", $params = null, $task_id = -1) {
+    public static function deliver($clazz, $method = "run", $params = null, $task_id = -1)
+    {
         $app = Ioc::get(Application::class);
         /* @var $deliver TaskConfig */
         $deliver = Ioc::get(TaskConfig::class);
@@ -33,6 +35,4 @@ class Task {
             $app->server->task($bean, $task_id);
         }
     }
-
-
 }

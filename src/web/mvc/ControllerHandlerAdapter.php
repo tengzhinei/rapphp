@@ -8,13 +8,13 @@
 
 namespace rap\web\mvc;
 
-
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\web\Request;
 use rap\web\Response;
 
-class ControllerHandlerAdapter extends HandlerAdapter{
+class ControllerHandlerAdapter extends HandlerAdapter
+{
 
     private $controllerClass;
 
@@ -26,34 +26,39 @@ class ControllerHandlerAdapter extends HandlerAdapter{
      * @param $controllerClass
      * @param $method
      */
-    public function __construct($controllerClass,$method){
+    public function __construct($controllerClass, $method)
+    {
         $this->controllerClass=$controllerClass;
         $this->method=$method;
     }
 
-    public function handle(Request $request, Response $response){
-        try{
+    public function handle(Request $request, Response $response)
+    {
+        try {
             $clazzInstance=Ioc::get($this->controllerClass);
-        }catch (\Error $exception){
+        } catch (\Error $exception) {
             throw new MsgException($exception->getMessage()."对应的路径不存在控制器");
         }
-        if(method_exists($clazzInstance, '_before')){
-            $this->invokeRequest($clazzInstance, '_before',$request,$response);
+        if (method_exists($clazzInstance, '_before')) {
+            $this->invokeRequest($clazzInstance, '_before', $request, $response);
         }
-        if(method_exists($clazzInstance, '_before_'.$this->method)){
-            $this->invokeRequest($clazzInstance, '_before_'.$this->method,$request,$response);
+        if (method_exists($clazzInstance, '_before_'.$this->method)) {
+            $this->invokeRequest($clazzInstance, '_before_'.$this->method, $request, $response);
         }
-        $value=$this->invokeRequest($clazzInstance,$this->method,$request,$response);
+        $value=$this->invokeRequest($clazzInstance, $this->method, $request, $response);
         return $value;
     }
 
-    public function viewBase(){
-        if(!$this->viewBase){
+    public function viewBase()
+    {
+        if (!$this->viewBase) {
             $func = new \ReflectionClass($this->controllerClass);
-            $this->viewBase=substr(substr($func->getFileName(),0,stripos( $func->getFileName(),DIRECTORY_SEPARATOR
-                    ."controller".DIRECTORY_SEPARATOR)).DIRECTORY_SEPARATOR.'view'.DIRECTORY_SEPARATOR,strlen(ROOT_PATH));
+            $this->viewBase=substr(substr($func->getFileName(), 0, stripos($func->getFileName(), DIRECTORY_SEPARATOR
+                    ."controller".DIRECTORY_SEPARATOR))
+                .DIRECTORY_SEPARATOR.
+                'view'.
+                DIRECTORY_SEPARATOR, strlen(ROOT_PATH));
         }
         return $this->viewBase;
     }
-
 }

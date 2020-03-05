@@ -8,7 +8,6 @@
 
 namespace rap\console;
 
-
 use rap\config\Config;
 use rap\console\command\AopFileBuild;
 use rap\console\command\RecordBuild;
@@ -16,7 +15,8 @@ use rap\ioc\Ioc;
 use rap\swoole\web\SwooleHttpServer;
 use rap\swoole\websocket\WebSocketServer;
 
-class Console {
+class Console
+{
 
     /**
      * 默认命令行
@@ -25,7 +25,8 @@ class Console {
     private $defaultCommand = [];
 
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->addConsole(Ioc::get(SwooleHttpServer::class));
         $this->addConsole(Ioc::get(WebSocketServer::class));
         $this->addConsole(Ioc::get(RecordBuild::class));
@@ -47,7 +48,8 @@ class Console {
      *
      * @param object $command
      */
-    public function addConsole($command) {
+    public function addConsole($command)
+    {
         /* @var $command Command */
         $command->configure();
         $name = $command->name();
@@ -59,7 +61,8 @@ class Console {
      *
      * @param $argv
      */
-    public function run($argv) {
+    public function run($argv)
+    {
 
         if (count($argv) == 1) {
             $this->help();
@@ -98,7 +101,8 @@ class Console {
     }
 
 
-    public function invoke($command, $command_params) {
+    public function invoke($command, $command_params)
+    {
         $method = new \ReflectionMethod(get_class($command), 'run');
         $args = [];
         if ($method->getNumberOfParameters() > 0) {
@@ -123,7 +127,8 @@ class Console {
     /**
      * 打印帮助
      */
-    public function help() {
+    public function help()
+    {
         $this->writeln("");
         $this->writeln("           欢迎使用 rap 命令行工具");
         $this->writeln("");
@@ -134,7 +139,7 @@ class Console {
         $this->writeln("所有命令:");
         /* @var $command Command */
         foreach ($this->defaultCommand as $command) {
-            $this->writeln("        " . $command->name() . '  ' . $command->asName);
+            $this->writeln("        " . $command->name . '  ' . $command->asName);
         }
         $this->writeln("");
     }
@@ -144,7 +149,8 @@ class Console {
      *
      * @param string $msg
      */
-    protected function writeln($msg) {
+    protected function writeln($msg)
+    {
         echo "  " . $msg;
         echo "\n";
     }

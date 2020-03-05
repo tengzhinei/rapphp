@@ -8,8 +8,8 @@
 
 namespace rap\web\mvc;
 
-
-class RouterGroup extends Router{
+class RouterGroup extends Router
+{
 
     private $group;
 
@@ -17,13 +17,13 @@ class RouterGroup extends Router{
      * RouterGroup constructor.
      * @param $group
      */
-    public function __construct($group){
+    public function __construct($group)
+    {
         $this->group = $group;
     }
 
-    public function then(\Closure $closure){
+    public function then(\Closure $closure)
+    {
         $closure($this);
     }
-
-
 }

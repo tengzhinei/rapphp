@@ -15,18 +15,21 @@ use rap\web\mvc\view\View;
  * Date: 17/8/31
  * Time: 下午9:44
  */
-class Dispatcher {
+class Dispatcher
+{
 
     /**
      * @var array
      */
     private $handlerMappings = [];
 
-    public function addHandlerMapping(HandlerMapping $handlerMapping) {
+    public function addHandlerMapping(HandlerMapping $handlerMapping)
+    {
         $this->handlerMappings[] = $handlerMapping;
     }
 
-    public function doDispatch(Request $request, Response $response) {
+    public function doDispatch(Request $request, Response $response)
+    {
         $adapters = [];
         /* @var $handlerMapping HandlerMapping */
         foreach ($this->handlerMappings as $handlerMapping) {
@@ -79,7 +82,7 @@ class Dispatcher {
                 $value = $view->fetch($value);
                 $response->setContent($value);
             }
-        } else if ($value !== null) {
+        } elseif ($value !== null) {
             $response->contentType("application/json");
             $value = json_encode($value);
             $response->setContent($value);
@@ -88,5 +91,4 @@ class Dispatcher {
         $response->header('rap-time', getMillisecond() - (int)($start_time * 1000));
         $response->send();
     }
-
 }

@@ -8,11 +8,11 @@
 
 namespace rap\swoole\web;
 
-
 use rap\cache\Cache;
 use rap\session\Session;
 
-class SwooleSession implements Session{
+class SwooleSession implements Session
+{
 
     /**
      * @var SwooleRequest
@@ -29,53 +29,57 @@ class SwooleSession implements Session{
      * @param SwooleRequest $request
      * @param SwooleResponse $response
      */
-    public function __construct(SwooleRequest $request, SwooleResponse $response){
+    public function __construct(SwooleRequest $request, SwooleResponse $response)
+    {
         $this->request = $request;
         $this->response = $response;
     }
 
 
-    public function sessionId(){
+    public function sessionId()
+    {
         $sessionId=$this->request->cookie('PHPSESSID');
-        if(!$sessionId){
+        if (!$sessionId) {
             $sessionId=md5(uniqid());
-            $this->response->cookie('PHPSESSID',$sessionId);
+            $this->response->cookie('PHPSESSID', $sessionId);
         }
         return $sessionId;
     }
 
-    public function start(){
-
+    public function start()
+    {
     }
 
-    public function pause(){
-
+    public function pause()
+    {
     }
 
-    public function set($key, $value){
+    public function set($key, $value)
+    {
         $session_key='php_session'.self::sessionId();
-        $session = Cache::get($session_key,[]);
+        $session = Cache::get($session_key, []);
         $session[$key]=$value;
-        Cache::set($session_key,$session,-1);
-
+        Cache::set($session_key, $session, -1);
     }
 
-    public function get($key){
+    public function get($key)
+    {
         $session_key='php_session'.self::sessionId();
-        $session = Cache::get($session_key,[]);
+        $session = Cache::get($session_key, []);
         return  $session[$key];
     }
 
-    public function del($key){
+    public function del($key)
+    {
         $session_key = 'php_session' . self::sessionId();
         $session = Cache::get($session_key, []);
         unset($session[$key]);
-        Cache::set($session_key,$session,-1);
+        Cache::set($session_key, $session, -1);
     }
 
-    public function clear(){
+    public function clear()
+    {
         $session_key = 'php_session' . self::sessionId();
         Cache::remove($session_key);
     }
-
 }

@@ -150,13 +150,13 @@ class ResourcePool
             $check = 30;
         }
 
-        if($max==$min){
+        if ($max==$min) {
             return;
         }
-        swoole_timer_tick(1000 * $check, function () use ($idle,$max,$min) {
+        swoole_timer_tick(1000 * $check, function () use ($idle, $max, $min) {
             $removed=0;
             foreach ($this->buffers as $class => $buffer_array) {
-                if($removed>$max-$min-1){
+                if ($removed>$max-$min-1) {
                     return;
                 }
                 foreach ($buffer_array as $buffer) {
@@ -170,7 +170,6 @@ class ResourcePool
                         $buffer->bean = null;
                         unset($bean);
                         $removed++;
-
                     }
                 }
             }

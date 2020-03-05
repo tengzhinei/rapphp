@@ -4,7 +4,8 @@ namespace rap\aop;
 /**
  * 拦截点
  */
-class JoinPoint {
+class JoinPoint
+{
 
     /**
      * 参数
@@ -38,12 +39,14 @@ class JoinPoint {
 
     private $has_throw;
 
-    public function __construct($obj, $method, $argNames, $args, $original_Class, $callback) {
+    public function __construct($obj, $method, $argNames, $args, $original_Class, $callback)
+    {
         $this->args = $args;
         $this->argNames = $argNames;
-        if(is_string($method)){
-            $this->method =  new \ReflectionMethod(get_class($obj), $method);;
-        }else{
+        if (is_string($method)) {
+            $this->method =  new \ReflectionMethod(get_class($obj), $method);
+            ;
+        } else {
             $this->method=$method;
         }
         $this->obj = $obj;
@@ -52,15 +55,17 @@ class JoinPoint {
     }
 
 
-    public function hasReturn($has_return=null){
-        if($has_return){
+    public function hasReturn($has_return = null)
+    {
+        if ($has_return) {
             $this->has_return=true;
         }
         return $this->has_return;
     }
 
-    public function hasThrow($has_throw=null){
-        if($has_throw){
+    public function hasThrow($has_throw = null)
+    {
+        if ($has_throw) {
             $this->has_throw=true;
         }
         return $this->has_throw;
@@ -70,27 +75,32 @@ class JoinPoint {
      * 获取方法参数
      * @return array
      */
-    public function getArgs() {
+    public function getArgs()
+    {
         return $this->args;
     }
 
 
-    public function getOriginalClass() {
+    public function getOriginalClass()
+    {
         return $this->original_Class;
     }
 
-    public function setArgs($args) {
+    public function setArgs($args)
+    {
         $this->args = $args;
     }
 
-    public function getArgMap(){
-        return array_combine($this->argNames,$this->args);
+    public function getArgMap()
+    {
+        return array_combine($this->argNames, $this->args);
     }
     /**
      * 获取方法签名
      * @return \ReflectionMethod
      */
-    public function getMethod() {
+    public function getMethod()
+    {
 
         return $this->method;
     }
@@ -99,7 +109,8 @@ class JoinPoint {
     /**
      * 获取织入后的对象
      */
-    public function getObj() {
+    public function getObj()
+    {
         return $this->obj;
     }
 
@@ -110,9 +121,9 @@ class JoinPoint {
      *
      * @return mixed
      */
-    public function process($args) {
+    public function process($args)
+    {
         $callback = $this->callback;
         return $callback($args);
     }
-
 }

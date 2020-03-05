@@ -40,7 +40,5 @@ abstract class UserProcess
         $server->addProcess($process);
     }
 
-    public abstract function onProcessStarted();
-
-
+    abstract public function onProcessStarted();
 }

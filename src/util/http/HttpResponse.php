@@ -9,8 +9,8 @@
 
 namespace rap\util\http;
 
-
-class HttpResponse {
+class HttpResponse
+{
 
     public $status_code;
     public $headers;
@@ -24,19 +24,19 @@ class HttpResponse {
      * @param $headers
      * @param $body
      */
-    public function __construct($status_code, $headers, $body) {
+    public function __construct($status_code, $headers, $body)
+    {
         $this->status_code = $status_code;
         $this->headers=[];
-        foreach ( $headers as $k=>$v) {
+        foreach ($headers as $k => $v) {
             $this->headers[strtolower($k)]=$v;
         }
         $this->body = $body;
     }
 
 
-    public function json() {
+    public function json()
+    {
         return json_decode($this->body, true);
     }
-
-
 }

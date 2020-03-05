@@ -12,7 +12,8 @@ namespace rap\util;
 /**
  * 文件操作类
  */
-class FileUtil {
+class FileUtil
+{
 
     /**
      * 删除文件或文件夹
@@ -21,7 +22,8 @@ class FileUtil {
      *
      * @return bool
      */
-    static function delete($dirOrFile) {
+    public static function delete($dirOrFile)
+    {
         if (is_file($dirOrFile)) {
             @unlink($dirOrFile);
             return true;
@@ -38,7 +40,6 @@ class FileUtil {
                     @unlink($file);
                 }
             }
-
         }
         @rmdir($dirOrFile);
         return true;
@@ -50,7 +51,8 @@ class FileUtil {
      * @param $source
      * @param $dest
      */
-    static function copy($source, $dest) {
+    public static function copy($source, $dest)
+    {
         if (is_file($source)) {
             mkdir(dirname($dest), 0777, true);
             copy($source, $dest);
@@ -85,7 +87,8 @@ class FileUtil {
      * @param $source
      * @param $dest
      */
-    static function move($source, $dest) {
+    public static function move($source, $dest)
+    {
         rename($source, $dest);
     }
 
@@ -95,10 +98,11 @@ class FileUtil {
      * @param string $path
      * @param string $zipPath
      */
-    static function zip($path, $zipPath) {
+    public static function zip($path, $zipPath)
+    {
         $zip = new \ZipArchive();
         unlink($zipPath);
-        if ($zip->open($zipPath, \ZipArchive::CREATE) === TRUE) {
+        if ($zip->open($zipPath, \ZipArchive::CREATE) === true) {
             self::addFileToZip($path, $zip); //调用方法，对要打包的根目录进行操作，并将ZipArchive的对象传递给方法
             $zip->close(); //关闭处理的zip文件
         }
@@ -109,7 +113,8 @@ class FileUtil {
      * @param \ZipArchive $zip
      * @param string      $dir_path
      */
-    private static function addFileToZip($path, \ZipArchive $zip, $dir_path = '') {
+    private static function addFileToZip($path, \ZipArchive $zip, $dir_path = '')
+    {
         if (!$dir_path) {
             $dir_path = $path;
         }
@@ -139,7 +144,8 @@ class FileUtil {
      * @param $path
      * @param $toPath
      */
-    static function unzip($path, $toPath) {
+    public static function unzip($path, $toPath)
+    {
         $zip = new \ZipArchive();
         $res = $zip->open($path);
         if ($res) {
@@ -155,7 +161,8 @@ class FileUtil {
      * @param          $dir
      * @param \Closure $closure
      */
-    static function each($dir, \Closure $closure) {
+    public static function each($dir, \Closure $closure)
+    {
         $handler = opendir($dir);
         while (($filename = readdir($handler)) !== false) {
             if ($filename != "." && $filename != ".." && $filename != ".DS_Store") {
@@ -165,7 +172,8 @@ class FileUtil {
         @closedir($dir);
     }
 
-    static function eachAll($dir, \Closure $closure) {
+    public static function eachAll($dir, \Closure $closure)
+    {
         $child_dirs = scandir($dir);
         foreach ($child_dirs as $child_dir) {
             if ($child_dir != '.' && $child_dir != '..' && $child_dir != '.DS_Store') {
@@ -182,7 +190,8 @@ class FileUtil {
      *
      * @return string
      */
-    static function readFile($filename) {
+    public static function readFile($filename)
+    {
         //swoole 4.2后 file_get_contents已被协程化
         return file_get_contents($filename);
     }
@@ -193,10 +202,9 @@ class FileUtil {
      * @param string $fileContent
      * @param int    $flags
      */
-    static function writeFile( $filename,  $fileContent,  $flags=null){
+    public static function writeFile($filename, $fileContent, $flags = null)
+    {
         mkdir(dirname($filename), 0777, true);
-        file_put_contents($filename,$fileContent,$flags);
+        file_put_contents($filename, $fileContent, $flags);
     }
-
-
 }

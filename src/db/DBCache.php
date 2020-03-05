@@ -8,11 +8,11 @@
 
 namespace rap\db;
 
-
 use rap\cache\Cache;
 use rap\log\Log;
 
-class DBCache {
+class DBCache
+{
 
     public static $second_prefix       = "db_second_cache_";
     public static $second_table_prefix = "db_second_table_cache_";
@@ -38,12 +38,13 @@ class DBCache {
      *
      * @return mixed
      */
-    public function recordCache($model, $id) {
+    public function recordCache($model, $id)
+    {
         /* @var $record Record */
         $record = new $model;
         $cache_key = "record_" . $record->getTable() . $id;
         $data = Cache::get($cache_key);
-        if($data=='null'){
+        if ($data=='null') {
             return 'null';
         }
         if ($data) {
@@ -61,7 +62,8 @@ class DBCache {
      * @param string|int $id    主键
      * @param array      $value
      */
-    public function recordCacheSave($table, $id, $value) {
+    public function recordCacheSave($table, $id, $value)
+    {
         $cache_key = "record_" . $table . $id;
         Cache::set($cache_key, $value);
     }
@@ -72,7 +74,8 @@ class DBCache {
      * @param string     $table 表名
      * @param string|int $id    主键
      */
-    public function recordCacheDel($table, $id) {
+    public function recordCacheDel($table, $id)
+    {
         $cache_key = "record_" . $table . $id;
         Cache::remove($cache_key);
     }
@@ -86,7 +89,8 @@ class DBCache {
      *
      * @return null|Record
      */
-    public function recordWhereCache($model, $where) {
+    public function recordWhereCache($model, $where)
+    {
         /* @var $t Record */
         $t = new $model;
         $cacheKeys = $t->cacheKeys();
@@ -122,7 +126,8 @@ class DBCache {
      *
      * @return null
      */
-    public function recordWhereCacheSave($model, $where, $value) {
+    public function recordWhereCacheSave($model, $where, $value)
+    {
         /* @var $t Record */
         $t = new $model;
         $cacheKeys = $t->cacheKeys();
@@ -152,7 +157,8 @@ class DBCache {
      *
      * @param string $model     类名
      */
-    public function recordWhereCacheDel($model) {
+    public function recordWhereCacheDel($model)
+    {
         /* @var $model Record */
         $cacheKeys = $model->cacheKeys();
         $_db_data = $model->getOldDbData();
@@ -180,7 +186,8 @@ class DBCache {
      *
      * @return null
      */
-    public function queryCache($sql, $bind = []) {
+    public function queryCache($sql, $bind = [])
+    {
 
         $key = $this->cacheKey($sql, $bind);
         $cache_name = $this->cacheName($sql);
@@ -198,7 +205,8 @@ class DBCache {
      *
      * @return string
      */
-    public function cacheName($sql) {
+    public function cacheName($sql)
+    {
         $ts = $this->getTableNames($sql);
         $t = static::$second_prefix . implode('|', $ts);
         return $t;
@@ -212,7 +220,8 @@ class DBCache {
      *
      * @return string
      */
-    public function cacheKey($sql, $params) {
+    public function cacheKey($sql, $params)
+    {
         $params[] = $sql;
         return md5(serialize($params));
     }
@@ -224,8 +233,11 @@ class DBCache {
      * @param array   $bind
      * @param   array $value
      */
-    public function saveCache($sql, $bind = [], $value) {
-
+    public function saveCache($sql, $bind, $value)
+    {
+        if (!$bind) {
+            $bind=[];
+        }
 
         $key = $this->cacheKey($sql, $bind);
         $cache_name = $this->cacheName($sql);
@@ -239,8 +251,6 @@ class DBCache {
         } finally {
             Cache::release();
         }
-
-
     }
 
     /**
@@ -248,7 +258,8 @@ class DBCache {
      *
      * @param string $sql
      */
-    public function deleteCache($sql) {
+    public function deleteCache($sql)
+    {
         if (strpos($sql, 'SELECT') == 0) {
             return;
         }
@@ -257,7 +268,7 @@ class DBCache {
             $caches=[];
             try {
                 $redis = Cache::redis();
-                if($redis){
+                if ($redis) {
                     $caches = $redis->sMembers(static::$second_table_prefix . $table);
                 }
             } finally {
@@ -276,16 +287,17 @@ class DBCache {
      *
      * @return array
      */
-    public function getTableNames($sql) {
+    public function getTableNames($sql)
+    {
         $sql = trim(strtoupper($sql));
 
         if (strpos($sql, 'SELECT') === 0) {
             return $this->express($sql, static::$selectExpression);
-        } else if (strpos($sql, 'UPDATE') === 0) {
+        } elseif (strpos($sql, 'UPDATE') === 0) {
             return $this->express($sql, static::$updateExpression);
-        } else if (strpos($sql, 'INSERT') === 0) {
+        } elseif (strpos($sql, 'INSERT') === 0) {
             return $this->express($sql, static::$insertExpression);
-        } else if (strpos($sql, 'DELETE') === 0) {
+        } elseif (strpos($sql, 'DELETE') === 0) {
             return $this->express($sql, static::$deleteExpression);
         }
         return [];
@@ -299,9 +311,9 @@ class DBCache {
      *
      * @return array
      */
-    private function express($sql, $expression) {
+    private function express($sql, $expression)
+    {
         preg_match_all($expression, $sql, $matches);
         return array_unique(array_pop($matches));
     }
-
 }

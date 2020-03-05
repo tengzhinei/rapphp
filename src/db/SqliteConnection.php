@@ -6,16 +6,17 @@
 
 namespace rap\db;
 
+class SqliteConnection extends Connection
+{
 
-class SqliteConnection extends Connection {
-
-    public function getFields($table) {
+    public function getFields($table)
+    {
         $sql = "PRAGMA  table_info(\"".$table."\")";
         $result = $this->query($sql);
         $fields = [];
         if ($result) {
             foreach ($result as $item) {
-                $type = strtolower( $item[ 'type' ]);
+                $type = strtolower($item[ 'type' ]);
                 $t = 'string';
                 if (strpos($type, 'integer') > -1) {
                     $t = "int";
@@ -30,12 +31,13 @@ class SqliteConnection extends Connection {
     }
 
 
-    public function getTables() {
+    public function getTables()
+    {
         $sql = 'select * from sqlite_master where type="table"; ';
         $items = $this->query($sql);
         $result=[];
         foreach ($items as $item) {
-            if($item['name']=='sqlite_sequence'){
+            if ($item['name']=='sqlite_sequence') {
                 continue;
             }
 
@@ -44,23 +46,26 @@ class SqliteConnection extends Connection {
         return $result;
     }
 
-    public function getPkField($table) {
+    public function getPkField($table)
+    {
         $sql = "PRAGMA  table_info(\"".$table."\")";
         $items = $this->query($sql);
         foreach ($items as $item) {
-            if($item['pk']==1){
+            if ($item['pk']==1) {
                 return $item['name'];
             }
         }
         return '';
     }
 
-    public function getFieldsComment($table) {
+    public function getFieldsComment($table)
+    {
 
         return [];
     }
 
-    public function getTableComments() {
+    public function getTableComments()
+    {
         return [];
     }
 }

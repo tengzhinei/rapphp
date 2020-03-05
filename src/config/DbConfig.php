@@ -6,13 +6,13 @@
 
 namespace rap\config;
 
-
 use rap\cache\Cache;
 use rap\db\Select;
 use rap\db\Update;
 use rap\log\Log;
 
-class DbConfig {
+class DbConfig
+{
 
     private $config = ['db_table' => 'config',
                        'module_field' => 'module',
@@ -22,7 +22,8 @@ class DbConfig {
     /**
      * @param FileConfig $fileConfig
      */
-    public function __construct(FileConfig $fileConfig) {
+    public function __construct(FileConfig $fileConfig)
+    {
         $config = $fileConfig->get('config');
         if ($config) {
             $this->config = array_merge($this->config, $config);
@@ -37,7 +38,8 @@ class DbConfig {
      * @return mixed|null|string
      * @throws
      */
-    public function get($module) {
+    public function get($module)
+    {
         $data = $this->getModuleFromDB($module);
         return $data;
     }
@@ -50,7 +52,8 @@ class DbConfig {
      * @param string|array $value
      * @throws
      */
-    public function set($module, $key, $value = null) {
+    public function set($module, $key, $value = null)
+    {
         $data = $this->getModuleFromDB($module);
         if (!$data) {
             $data = [];
@@ -76,7 +79,8 @@ class DbConfig {
      * @param array  $data
      * @throws
      */
-    public function setAll($module, $data) {
+    public function setAll($module, $data)
+    {
         $data = json_encode($data);
         Update::table($this->config[ 'db_table' ])
               ->set($this->config[ 'content_field' ], $data)
@@ -95,28 +99,27 @@ class DbConfig {
      * @return mixed|null|string
      * @throws
      */
-    private function getModuleFromDB($module) {
+    private function getModuleFromDB($module)
+    {
 
         $data = Cache::get(md5("config_" . $module));
 
         if (!$data) {
-
             $data = Select::table($this->config[ 'db_table' ])
                           ->where($this->config[ 'module_field' ], $module)
                           ->value($this->config[ 'content_field' ]);
-            if(!$data){
+            if (!$data) {
                 $data='null';
             }
 
             Cache::set(md5("config_" . $module), $data);
         }
         if ($data) {
-            if($data=='null'){
+            if ($data=='null') {
                 return null;
             }
             $data = json_decode($data, true);
         }
         return $data;
     }
-
 }

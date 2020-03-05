@@ -11,7 +11,8 @@ namespace rap\aop;
 /**
  * AOP构造器
  */
-class AopBuild {
+class AopBuild
+{
 
     /**
      * 方法名
@@ -53,7 +54,8 @@ class AopBuild {
      */
     private $call;
 
-    private function __construct($waveType, $clazz) {
+    private function __construct($waveType, $clazz)
+    {
         $this->waveType = $waveType;
         $this->clazz = $clazz;
     }
@@ -65,7 +67,8 @@ class AopBuild {
      *
      * @return $this
      */
-    public function methods($method) {
+    public function methods($method)
+    {
         if (is_string($method)) {
             $method = array($method);
         }
@@ -81,7 +84,8 @@ class AopBuild {
      *
      * @return $this
      */
-    public function methodsExcept($method) {
+    public function methodsExcept($method)
+    {
         if (is_string($method)) {
             $method = array($method);
         }
@@ -97,7 +101,8 @@ class AopBuild {
      *
      * @return $this
      */
-    public function methodsStart($method) {
+    public function methodsStart($method)
+    {
         if (is_string($method)) {
             $method = array($method);
         }
@@ -113,7 +118,8 @@ class AopBuild {
      *
      * @return $this
      */
-    public function methodsContains($method) {
+    public function methodsContains($method)
+    {
         if (is_string($method)) {
             $method = array($method);
         }
@@ -129,7 +135,8 @@ class AopBuild {
      *
      * @return $this
      */
-    public function methodsEnd($method) {
+    public function methodsEnd($method)
+    {
         if (is_string($method)) {
             $method = array($method);
         }
@@ -142,7 +149,8 @@ class AopBuild {
      * 所有方法
      * @return $this
      */
-    public function methodsAll() {
+    public function methodsAll()
+    {
         $this->rule = "except";
         $this->method = array("1___");
         return $this;
@@ -155,7 +163,8 @@ class AopBuild {
      *
      * @return $this
      */
-    public function wave($wave_class) {
+    public function wave($wave_class)
+    {
         $this->wave = $wave_class;
         return $this;
     }
@@ -167,7 +176,8 @@ class AopBuild {
      *
      * @return $this
      */
-    public function using($using_method) {
+    public function using($using_method)
+    {
         $this->using = $using_method;
         return $this;
     }
@@ -179,7 +189,8 @@ class AopBuild {
      *
      * @return $this
      */
-    public function call(\Closure $call) {
+    public function call(\Closure $call)
+    {
         $this->call = $call;
         return $this;
     }
@@ -192,7 +203,8 @@ class AopBuild {
      *
      * @return AopBuild
      */
-    public static function before($clazz) {
+    public static function before($clazz)
+    {
         return new AopBuild("before", $clazz);
     }
 
@@ -203,7 +215,8 @@ class AopBuild {
      *
      * @return AopBuild
      */
-    public static function after($clazz) {
+    public static function after($clazz)
+    {
         return new AopBuild("after", $clazz);
     }
 
@@ -214,17 +227,18 @@ class AopBuild {
      *
      * @return AopBuild
      */
-    public static function around($clazz) {
+    public static function around($clazz)
+    {
         return new AopBuild("around", $clazz);
     }
 
     /**
      * 添加拦截器
      */
-    public function addPoint() {
+    public function addPoint()
+    {
         $type = $this->waveType;
         $action = array("type" => $this->rule, "methods" => $this->method);
         Aop::$type($this->clazz, $action, $this->wave, $this->using, $this->call);
     }
-
 }

@@ -9,20 +9,20 @@ use rap\swoole\Context;
 use rap\web\Request;
 use rap\web\Response;
 
-
 /**
  * 南京灵衍信息科技有限公司
  * User: jinghao@duohuo.net
  * Date: 17/8/31
  * Time: 下午9:47
  */
-abstract class HandlerAdapter {
-    private   $pattern;
-    private   $header;
+abstract class HandlerAdapter
+{
+    private $pattern;
+    private $header;
     protected $method;
-    private   $params = [];
+    private $params = [];
 
-    public abstract function viewBase();
+    abstract public function viewBase();
 
     /**
      * 设置或获取匹配的路径规则
@@ -31,7 +31,8 @@ abstract class HandlerAdapter {
      *
      * @return string
      */
-    public function pattern($pattern) {
+    public function pattern($pattern)
+    {
         if ($pattern) {
             $this->pattern = $pattern;
         }
@@ -45,7 +46,8 @@ abstract class HandlerAdapter {
      *
      * @return array
      */
-    public function header($header) {
+    public function header($header)
+    {
         if ($header) {
             $this->header = $header;
         }
@@ -59,16 +61,18 @@ abstract class HandlerAdapter {
      *
      * @return array
      */
-    public function method($method) {
+    public function method($method)
+    {
         if ($method) {
             $this->method = $method;
         }
         return $this->method;
     }
 
-    public abstract function handle(Request $request, Response $response);
+    abstract public function handle(Request $request, Response $response);
 
-    public function addParam($key, $value) {
+    public function addParam($key, $value)
+    {
         $this->params[ $key ] = $value;
     }
 
@@ -83,7 +87,8 @@ abstract class HandlerAdapter {
      * @throws MsgException
      * @return mixed
      */
-    public function invokeRequest($obj, $method, Request $request, Response $response) {
+    public function invokeRequest($obj, $method, Request $request, Response $response)
+    {
         try {
             $method = new \ReflectionMethod(get_class($obj), $method);
         } catch (\Exception $e) {
@@ -148,7 +153,8 @@ abstract class HandlerAdapter {
     }
 
 
-    public function invokeClosure(\Closure $closure, Request $request, Response $response) {
+    public function invokeClosure(\Closure $closure, Request $request, Response $response)
+    {
         $method = new \ReflectionFunction($closure);
         $args = [];
         if ($method->getNumberOfParameters() > 0) {
@@ -205,5 +211,4 @@ abstract class HandlerAdapter {
         $result = call_user_func_array($closure, $args);
         return $result;
     }
-
 }

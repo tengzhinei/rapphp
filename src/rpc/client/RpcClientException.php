@@ -9,7 +9,7 @@
 
 namespace rap\rpc\client;
 
-
-class RpcClientException extends  \RuntimeException {
+class RpcClientException extends \RuntimeException
+{
 
 }

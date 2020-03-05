@@ -8,7 +8,6 @@
 
 namespace rap\web;
 
-
 use rap\aop\Event;
 use rap\config\Config;
 use rap\console\Console;
@@ -26,7 +25,8 @@ use rap\web\mvc\Dispatcher;
 use rap\web\mvc\Router;
 use rap\web\mvc\RouterHandlerMapping;
 
-abstract class Application {
+abstract class Application
+{
 
     /**
      * swoole_server_http
@@ -40,7 +40,8 @@ abstract class Application {
     private $interceptors        = [];
     private $interceptors_except = [];
 
-    public function __construct(Dispatcher $dispatcher) {
+    public function __construct(Dispatcher $dispatcher)
+    {
         $this->dispatcher = $dispatcher;
         include_once __DIR__ . "/../" . 'common.php';
         $interceptors = Config::getFileConfig()[ 'interceptors' ];
@@ -55,7 +56,8 @@ abstract class Application {
         }
     }
 
-    public function _prepared() {
+    public function _prepared()
+    {
         //注射rpc功能
         Rpc::register();
         $this->addHandlerMapping();
@@ -67,12 +69,14 @@ abstract class Application {
      * @param     $clazz
      * @param int $priority 优先
      */
-    public function addInterceptor($clazz, $priority = 99) {
+    public function addInterceptor($clazz, $priority = 99)
+    {
         $this->interceptors[ $clazz ] = $priority;
     }
 
 
-    public function addHandlerMapping() {
+    public function addHandlerMapping()
+    {
         $autoMapping = new AutoFindHandlerMapping();
         $this->dispatcher->addHandlerMapping($autoMapping);
         $router = new Router();
@@ -84,7 +88,8 @@ abstract class Application {
     }
 
 
-    public function start(Request $request, Response $response) {
+    public function start(Request $request, Response $response)
+    {
         try {
             if (!IS_SWOOLE) {
                 Event::trigger(ServerEvent::onServerWorkStart, null, 0);
@@ -119,9 +124,12 @@ abstract class Application {
         }
     }
 
-    public function handlerException(Request $request, Response $response, \Exception $exception) {
+    public function handlerException(Request $request, Response $response, \Exception $exception)
+    {
         $ext = $request->ext();
-        if (($ext == 'json' || strpos($request->header('accept'), 'html') ===false||$request->header('rpc-interface')) && $ext != 'html') {
+        if (($ext == 'json' ||
+                strpos($request->header('accept'), 'html') ===false||
+                $request->header('rpc-interface')) && $ext != 'html') {
             $handler = ApiExceptionHandler::class;
         } else {
             $handler = PageExceptionHandler::class;
@@ -131,13 +139,12 @@ abstract class Application {
         $handler->handler($request, $response, $exception);
     }
 
-    public abstract function init(AutoFindHandlerMapping $autoMapping, Router $router);
+    abstract public function init(AutoFindHandlerMapping $autoMapping, Router $router);
 
-    public function console($argv) {
+    public function console($argv)
+    {
         /* @var $console Console */
         $console = Ioc::get(Console::class);
         $console->run($argv);
     }
-
-
 }

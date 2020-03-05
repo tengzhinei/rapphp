@@ -13,7 +13,8 @@ use rap\swoole\Context;
  * Date: 17/8/31
  * Time: 下午9:33
  */
-class Request {
+class Request
+{
 
 
     /**
@@ -39,7 +40,8 @@ class Request {
      *
      * @param $response
      */
-    public function __construct($response) {
+    public function __construct($response)
+    {
         $this->response = $response;
         $this->response->setRequest($this);
     }
@@ -50,7 +52,8 @@ class Request {
      * @access public
      * @return string
      */
-    public function method() {
+    public function method()
+    {
         return $_SERVER[ 'REQUEST_METHOD' ];
     }
 
@@ -60,7 +63,8 @@ class Request {
      * @access public
      * @return bool
      */
-    public function isPut() {
+    public function isPut()
+    {
         return $this->method() == 'PUT';
     }
 
@@ -69,7 +73,8 @@ class Request {
      * @access public
      * @return bool
      */
-    public function isDelete() {
+    public function isDelete()
+    {
         return $this->method() == 'DELETE';
     }
 
@@ -78,7 +83,8 @@ class Request {
      * @access public
      * @return bool
      */
-    public function isHead() {
+    public function isHead()
+    {
         return $this->method() == 'HEAD';
     }
 
@@ -87,7 +93,8 @@ class Request {
      * @access public
      * @return bool
      */
-    public function isPatch() {
+    public function isPatch()
+    {
         return $this->method() == 'PATCH';
     }
 
@@ -96,7 +103,8 @@ class Request {
      * @access public
      * @return bool
      */
-    public function isOptions() {
+    public function isOptions()
+    {
         return $this->method() == 'OPTIONS';
     }
 
@@ -110,7 +118,8 @@ class Request {
      *
      * @return mixed
      */
-    public function get($name = '', $default = null, $filter = null) {
+    public function get($name = '', $default = null, $filter = null)
+    {
         $value = $_GET;
         if ($name) {
             $value = $value[ $name ];
@@ -127,7 +136,8 @@ class Request {
      *
      * @return mixed|null
      */
-    public function post($name = '', $default = null, $filter = null) {
+    public function post($name = '', $default = null, $filter = null)
+    {
         $value = $_POST;
         if ($name) {
             $value = $value[ $name ];
@@ -145,7 +155,8 @@ class Request {
      *
      * @return mixed|null
      */
-    public function put($name = '', $default = null, $filter = null) {
+    public function put($name = '', $default = null, $filter = null)
+    {
         if (is_null($this->put)) {
             $content = $this->body();
             if (strpos($content, '":')) {
@@ -166,7 +177,8 @@ class Request {
      * 获取请求body
      * @return string
      */
-    public function body() {
+    public function body()
+    {
         return file_get_contents('php://input');
     }
 
@@ -180,7 +192,8 @@ class Request {
      *
      * @return mixed
      */
-    public function delete($name = '', $default = null, $filter = null) {
+    public function delete($name = '', $default = null, $filter = null)
+    {
         return $this->put($name, $default, $filter);
     }
 
@@ -194,7 +207,8 @@ class Request {
      *
      * @return mixed
      */
-    public function patch($name = '', $default = null, $filter = null) {
+    public function patch($name = '', $default = null, $filter = null)
+    {
         return $this->put($name, $default, $filter);
     }
 
@@ -208,7 +222,8 @@ class Request {
      *
      * @return mixed|null
      */
-    public function server($name = "", $default = null, $filter = null) {
+    public function server($name = "", $default = null, $filter = null)
+    {
         if (empty($this->server)) {
             $this->server = array_change_key_case($_SERVER);
         }
@@ -230,7 +245,8 @@ class Request {
      *
      * @return string
      */
-    public function header($name = '', $default = null, $filter = null) {
+    public function header($name = '', $default = null, $filter = null)
+    {
         if (empty($this->header)) {
             $header = [];
             if (function_exists('apache_request_headers') && $result = apache_request_headers()) {
@@ -261,8 +277,9 @@ class Request {
         return $this->value($value, $default, $filter);
     }
 
-    public function setHeader($name,$value){
-        if(empty($this->header)){
+    public function setHeader($name, $value)
+    {
+        if (empty($this->header)) {
             $this->header();
         }
         $this->header[$name]=$value;
@@ -277,7 +294,8 @@ class Request {
      *
      * @return string
      */
-    public function domain($domain = null) {
+    public function domain($domain = null)
+    {
         if (!is_null($domain)) {
             $this->domain = $domain;
             return $this;
@@ -292,20 +310,19 @@ class Request {
      * @access public
      * @return string
      */
-    public function url() {
+    public function url()
+    {
         if (!$this->url) {
-
             if (isset($_SERVER[ 'HTTP_X_REWRITE_URL' ])) {
                 $this->url = $_SERVER[ 'HTTP_X_REWRITE_URL' ];
             } elseif (isset($_SERVER[ 'REQUEST_URI' ])) {
                 $this->url = $_SERVER[ 'REQUEST_URI' ];
             } elseif (isset($_SERVER[ 'ORIG_PATH_INFO' ])) {
-                $this->url = $_SERVER[ 'ORIG_PATH_INFO' ] . (!empty($_SERVER[ 'QUERY_STRING' ]) ? '?' . $_SERVER[ 'QUERY_STRING' ] : '');
+                $this->url = $_SERVER[ 'ORIG_PATH_INFO' ] .
+                    (!empty($_SERVER[ 'QUERY_STRING' ]) ? '?' . $_SERVER[ 'QUERY_STRING' ] : '');
             } else {
                 $this->url = '';
             }
-
-
         }
 
         return $this->url;
@@ -317,7 +334,8 @@ class Request {
      * @access public
      * @return string
      */
-    public function scheme() {
+    public function scheme()
+    {
         return $this->isSsl() ? 'https' : 'http';
     }
 
@@ -326,7 +344,8 @@ class Request {
      * @access public
      * @return bool
      */
-    public function isSsl() {
+    public function isSsl()
+    {
         if ($this->header('x-forwarded-proto') === 'https') {
             return true;
         }
@@ -349,7 +368,8 @@ class Request {
      *
      * @return mixed|null|string
      */
-    public function host($host = '') {
+    public function host($host = '')
+    {
         if ($host) {
             $this->host = $host;
             return null;
@@ -367,7 +387,8 @@ class Request {
      * @access public
      * @return string
      */
-    public function pathInfo() {
+    public function pathInfo()
+    {
         $url = $this->url();
         $index = strpos($url, "?");
         if ($index) {
@@ -377,7 +398,8 @@ class Request {
         return $url;
     }
 
-    public function routerPath() {
+    public function routerPath()
+    {
         $path = $this->path();
         $base = Config::get('app', 'url_base');
         if (strpos($path, $base) === 0) {
@@ -395,7 +417,8 @@ class Request {
      * @access public
      * @return string
      */
-    public function path() {
+    public function path()
+    {
         $path = $this->pathInfo();
         $index = strpos($path, ".");
         if ($index) {
@@ -404,7 +427,8 @@ class Request {
         return $path;
     }
 
-    public function param($name, $default = null, $filter = null) {
+    public function param($name, $default = null, $filter = null)
+    {
         $value = $this->get($name);
         if (!isset($value)) {
             $value = $this->post($name);
@@ -426,7 +450,8 @@ class Request {
      * @access public
      * @return string
      */
-    public function ext() {
+    public function ext()
+    {
         return pathinfo($this->pathInfo(), PATHINFO_EXTENSION);
     }
 
@@ -438,17 +463,20 @@ class Request {
      *
      * @return integer|float
      */
-    public function time($float = false) {
+    public function time($float = false)
+    {
         return $float ? $_SERVER[ 'REQUEST_TIME_FLOAT' ] : $_SERVER[ 'REQUEST_TIME' ];
     }
 
 
-    public function file($name) {
+    public function file($name)
+    {
         $upload_file = $_FILES[ "$name" ];
         return File::fromRequest($upload_file);
     }
 
-    public function files($name) {
+    public function files($name)
+    {
         $upload_file = $_FILES[ "$name" ];
         $files = [];
         foreach ($upload_file[ 'name' ] as $index => $name) {
@@ -479,7 +507,8 @@ class Request {
      *
      * @return mixed|null
      */
-    protected function value($value, $default = null, $filter = null) {
+    protected function value($value, $default = null, $filter = null)
+    {
         if ($this->valueFilter == null) {
             $this->valueFilter = Ioc::get(ValueFilter::class);
         }
@@ -497,7 +526,8 @@ class Request {
         return $value;
     }
 
-    public function cookie($name = "", $default = '') {
+    public function cookie($name = "", $default = '')
+    {
         if (!$name) {
             return $_COOKIE;
         }
@@ -509,7 +539,8 @@ class Request {
     }
 
 
-    public function response() {
+    public function response()
+    {
         return $this->response;
     }
 
@@ -519,14 +550,14 @@ class Request {
      *
      * @return mixed|Session
      */
-    public function session($key = null, $value = null) {
+    public function session($key = null, $value = null)
+    {
         if ($key) {
             if ($value) {
                 return $this->response->session()->set($key, $value);
             } else {
                 return $this->response->session()->get($key);
             }
-
         }
         return $this->response->session();
     }
@@ -539,7 +570,8 @@ class Request {
      *
      * @return mixed|null
      */
-    public function holder($name = null, $value = null) {
+    public function holder($name = null, $value = null)
+    {
         if ($name === null && $value === null) {
             return $this->holders[ 'default' ];
         }
@@ -551,7 +583,8 @@ class Request {
         return null;
     }
 
-    public function holderGet($name = 'default') {
+    public function holderGet($name = 'default')
+    {
         return $this->holders[ $name ];
     }
 
@@ -562,7 +595,8 @@ class Request {
      *
      * @return null|Session
      */
-    public function userId($user_id = null) {
+    public function userId($user_id = null)
+    {
         return Context::userId($user_id);
     }
 
@@ -576,7 +610,8 @@ class Request {
      *
      * @return array|null
      */
-    public function search($search = null) {
+    public function search($search = null)
+    {
         if ($search) {
             $this->search = $search;
         }
@@ -590,12 +625,12 @@ class Request {
      *
      * @return mixed
      */
-    public function ip($http_remote_ip = '') {
+    public function ip($http_remote_ip = '')
+    {
         $ip = $this->header('x-real-ip');
 
         if (!$ip && !$http_remote_ip) {
             $http_remote_ip = Config::get('app', 'http_remote_ip');
-
         }
         if ($http_remote_ip) {
             $ip = $this->header($http_remote_ip);
@@ -610,12 +645,9 @@ class Request {
         return $ip[ 0 ];
     }
 
-    public function isWeixin() {
+    public function isWeixin()
+    {
         $ua = request()->header('user-agent');
         return strpos($ua, 'MicroMessenger') !== false;
     }
-
-
-
-
 }

@@ -8,7 +8,7 @@
 
 namespace rap\exception;
 
-
-class FileUploadException extends MsgException{
+class FileUploadException extends MsgException
+{
 
 }

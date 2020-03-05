@@ -3,8 +3,8 @@ namespace rap\aop;
 
 use rap\ioc\Ioc;
 
-
-class Event {
+class Event
+{
 
 
 
@@ -22,7 +22,8 @@ class Event {
      * @param $class
      * @param $action
      */
-    public static function add($name, $class, $action=null) {
+    public static function add($name, $class, $action = null)
+    {
         if (!$action) {
             $action = "on" . ucfirst($name);
         }
@@ -38,7 +39,8 @@ class Event {
      *
      * @param $name
      */
-    public static function trigger($name) {
+    public static function trigger($name)
+    {
         $args=func_get_args();
         array_shift($args);
         if (array_key_exists($name, static::$events)) {
@@ -46,18 +48,15 @@ class Event {
             if ($infos) {
                 foreach ($infos as $info) {
                     $clazz=$info[ 'class' ];
-                    if($clazz instanceof \Closure){
+                    if ($clazz instanceof \Closure) {
                         call_user_func_array($clazz, $args);
-                    }else{
+                    } else {
                         $module = Ioc::get($info[ 'class' ]);
                         $method = new \ReflectionMethod(get_class($module), $info['action']);
                         $method->invokeArgs($module, $args);
                     }
-
                 }
             }
         }
     }
-
-
 }

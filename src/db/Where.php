@@ -13,9 +13,10 @@ namespace rap\db;
  * Class Where
  * @package rap\db
  */
-class Where {
+class Where
+{
 
-    static $exp = ["eq" => "=",
+    private static $exp = ["eq" => "=",
                    "neq" => "<>",
                    "gt" => ">",
                    "egt" => ">=",
@@ -40,7 +41,8 @@ class Where {
      *
      * @return $this
      */
-    public function where($field, $op = null, $condition = null) {
+    public function where($field, $op = null, $condition = null)
+    {
         $this->addWhere("AND", $field, $op, $condition);
         return $this;
     }
@@ -53,7 +55,8 @@ class Where {
      *
      * @return $this
      */
-    public function sql($sql, array $condition) {
+    public function sql($sql, array $condition)
+    {
         $this->addWhere("AND", $sql, 'sql', $condition);
         return $this;
     }
@@ -66,7 +69,8 @@ class Where {
      *
      * @return $this
      */
-    public function orSql($sql, array $condition) {
+    public function orSql($sql, array $condition)
+    {
         $this->addWhere("OR", $sql, 'sql', $condition);
         return $this;
     }
@@ -81,7 +85,8 @@ class Where {
      *
      * @return $this
      */
-    public function whereOr($field, $op = null, $condition = null) {
+    public function whereOr($field, $op = null, $condition = null)
+    {
         $this->addWhere("OR", $field, $op, $condition);
         return $this;
     }
@@ -95,7 +100,8 @@ class Where {
      *
      * @return $this
      */
-    public function whereXOr($field, $op = null, $condition = null) {
+    public function whereXOr($field, $op = null, $condition = null)
+    {
         $this->addWhere("XOR", $field, $op, $condition);
         return $this;
     }
@@ -104,7 +110,8 @@ class Where {
      * 获取where条件的sql语句
      * @return string
      */
-    protected function whereChildSql() {
+    protected function whereChildSql()
+    {
         $this->params = [];
         $sql = $this->parseWhere($this->wheres, $this->params);
         return $sql;
@@ -114,7 +121,8 @@ class Where {
      * 获取where条件的sql语句
      * @return string
      */
-    protected function whereSql() {
+    protected function whereSql()
+    {
         $this->params = [];
         $sql = $this->parseWhere($this->wheres, $this->params);
         if ($sql) {
@@ -132,7 +140,8 @@ class Where {
      * @param string                $op        操作符 is in = 等
      * @param string|int|array      $condition 条件 数组时为in is 等具体看操作符
      */
-    private function addWhere($logic, $field, $op = null, $condition = null) {
+    private function addWhere($logic, $field, $op = null, $condition = null)
+    {
         if (!$field) {
             return;
         }
@@ -158,7 +167,7 @@ class Where {
                 } else {
                     $op = "=";
                 }
-            } else if ($op == 'not') {
+            } elseif ($op == 'not') {
                 if (is_array($condition)) {
                     $c = count($condition);
                     if ($c == 1) {
@@ -170,13 +179,13 @@ class Where {
                 } else {
                     $op = "!=";
                 }
-            } else if ($op == 'start') {
+            } elseif ($op == 'start') {
                 $op = "like";
                 $condition = $condition . "%";
-            } else if ($op == 'end') {
+            } elseif ($op == 'end') {
                 $op = "like";
                 $condition = "%" . $condition;
-            } else if ($op == "contain") {
+            } elseif ($op == "contain") {
                 $op = "like";
                 $condition = "%" . $condition . "%";
             }
@@ -206,7 +215,6 @@ class Where {
                                    'logic' => $logic,
                                    'condition' => $condition];
             }
-
         }
     }
 
@@ -218,7 +226,8 @@ class Where {
      *
      * @return string
      */
-    private function parseWhere($wheres, &$data) {
+    private function parseWhere($wheres, &$data)
+    {
         $sql = "";
         foreach ($wheres as $where) {
             if (isset($where[ 'child' ])) {
@@ -241,13 +250,13 @@ class Where {
                             $data[] = $item;
                         }
                     }
-                } else if ($op == 'null') {
+                } elseif ($op == 'null') {
                     $op = "is null";
                     $sql .= " " . $where[ 'field' ] . ' ' . $op;
-                } else if ($op == 'not null') {
+                } elseif ($op == 'not null') {
                     $op = "is not null";
                     $sql .= " " . $where[ 'field' ] . ' ' . $op;
-                } else if ($op == 'in' || $op == 'not in') {
+                } elseif ($op == 'in' || $op == 'not in') {
                     $condition = $where[ 'condition' ];
                     if (!is_array($condition)) {
                         $condition = explode(',', $condition);
@@ -260,11 +269,11 @@ class Where {
                     $p = implode(",", $p);
                     $op .= " (" . $p . ")";
                     $sql .= " " . $where[ 'field' ] . ' ' . $op;
-                } else if ($op == 'between' || $op == 'not between') {
+                } elseif ($op == 'between' || $op == 'not between') {
                     $sql .= " " . $where[ 'field' ] . ' ' . $op . ' ? and ? ';
                     $data[] = $where[ 'condition' ][ 0 ];
                     $data[] = $where[ 'condition' ][ 1 ];
-                } else if ($op == 'day') {
+                } elseif ($op == 'day') {
                     if (is_array($where[ 'condition' ])) {
                         $sql .= " " . $where[ 'field' ] . ' ' . 'between' . ' ? and ? ';
                         $data[] = strtotime($where[ 'condition' ][ 0 ]);
@@ -296,7 +305,8 @@ class Where {
      * 获取where条件的参数
      * @return array
      */
-    protected function whereParams() {
+    protected function whereParams()
+    {
         return $this->params;
     }
 
@@ -309,7 +319,8 @@ class Where {
      *
      * @return $this
      */
-    public function order($field) {
+    public function order($field)
+    {
         $order = [];
         if (is_array($field)) {
             foreach ($field as $key => $value) {
@@ -333,7 +344,8 @@ class Where {
      *
      * @return $this
      */
-    public function limit($offset, $length = 0) {
+    public function limit($offset, $length = 0)
+    {
         if ($length == 0) {
             $length = $offset;
             $offset = 0;
@@ -352,7 +364,8 @@ class Where {
      * 锁行 请在事务中使用
      * @return $this
      */
-    public function lock() {
+    public function lock()
+    {
         $this->lock = " FOR UPDATE ";
         return $this;
     }

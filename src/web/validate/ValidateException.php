@@ -9,9 +9,9 @@
 
 namespace rap\web\validate;
 
-
 use rap\exception\MsgException;
 
-class ValidateException extends MsgException {
+class ValidateException extends MsgException
+{
 
 }

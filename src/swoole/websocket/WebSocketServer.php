@@ -9,7 +9,6 @@ use rap\ioc\Ioc;
 use rap\log\Log;
 use rap\ServerEvent;
 use rap\swoole\Context;
-use rap\swoole\pool\ResourcePool;
 use rap\swoole\ServerWatch;
 use rap\swoole\task\TaskConfig;
 use rap\swoole\web\SwooleRequest;
@@ -25,7 +24,8 @@ use Swoole\Runtime;
  * Date: 18/6/9
  * Time: 下午11:45
  */
-class WebSocketServer extends Command {
+class WebSocketServer extends Command
+{
 
     private $config = ['ip' => '0.0.0.0',
                        'port' => '9501',
@@ -46,7 +46,8 @@ class WebSocketServer extends Command {
     public $secret;
 
 
-    public function run() {
+    public function run()
+    {
         $host_name='0.0.0.0';
         $ips = swoole_get_local_ip();
         if ($ips[ "eth0" ]) {
@@ -80,7 +81,8 @@ class WebSocketServer extends Command {
         $this->server->start();
     }
 
-    public function onStart(\swoole_server $server) {
+    public function onStart(\swoole_server $server)
+    {
         Log::notice('swoole webSocket start: webSocket服务启动');
         $application = Ioc::get(Application::class);
         $application->server = $server;
@@ -91,13 +93,15 @@ class WebSocketServer extends Command {
             $reload->init($server);
         }
     }
-    public function onShutdown($server) {
+    public function onShutdown($server)
+    {
         Log::notice('swoole webSocket shutdown : webSocket服务停止');
         Event::trigger(ServerEvent::onServerShutdown, $server);
     }
 
 
-    public function onTask(\swoole_server $server, $task_id, $from_id, $data) {
+    public function onTask(\swoole_server $server, $task_id, $from_id, $data)
+    {
         if ($data[ 'fid' ]&&$data[ 'msg' ]) {
             $this->server->push($data[ 'fid' ], $data[ 'msg' ]);
         } else {
@@ -114,8 +118,8 @@ class WebSocketServer extends Command {
         }
     }
 
-    public function onFinish() {
-
+    public function onFinish()
+    {
     }
 
     /**
@@ -158,18 +162,21 @@ class WebSocketServer extends Command {
             //释放协程里的变量和
         } catch (\Exception $exception) {
             $response->end($exception->getMessage());
-            $msg = str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
+            $msg = str_replace("rap\\exception\\", "", get_class($exception))
+                . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
             Log::error('http request error :' . $exception->getCode() . ' : ' . $msg);
             return;
         } catch (\Error $e) {
             $response->end($e->getMessage());
-            $msg = str_replace("rap\\exception\\", "", get_class($e)) . " in " . str_replace(ROOT_PATH, "", $e->getFile()) . " line " . $e->getLine();
+            $msg = str_replace("rap\\exception\\", "", get_class($e))
+                . " in " . str_replace(ROOT_PATH, "", $e->getFile()) . " line " . $e->getLine();
             Log::error('http request error :' . $e->getCode() . ' : ' . $msg);
             return;
         }
     }
 
-    public function onWorkStart($server, $id) {
+    public function onWorkStart($server, $id)
+    {
         /* @var $service WebSocketService */
         $service = Ioc::get($this->config[ 'service' ]);
         $service->server = $this;
@@ -181,7 +188,8 @@ class WebSocketServer extends Command {
         CoContext::getContext()->release();
     }
 
-    public function onWorkerStop(\swoole_server $server, $id) {
+    public function onWorkerStop(\swoole_server $server, $id)
+    {
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
@@ -196,16 +204,19 @@ class WebSocketServer extends Command {
      * @param $server
      * @param $request
      */
-    public function onOpen(\swoole_websocket_server $server, $request) {
+    public function onOpen(\swoole_websocket_server $server, $request)
+    {
         /* @var $service WebSocketService */
         $service = Ioc::get($this->config[ 'service' ]);
         $user_id = $service->tokenToUserId($request->get);
         if (!$user_id) {
-            $this->server->push($request->fd, json_encode(['msg_type' => 'error', 'code' => '10010', 'msg' => '用户信息错误']));
+            $this->server->push($request->fd, json_encode(['msg_type' => 'error',
+                                                           'code' => '10010',
+                                                           'msg' => '用户信息错误']));
             $server->close($request->fd);
             return;
         } else {
-            $this->server->push($request->fd,json_encode(['msg_type' => 'login_success',
+            $this->server->push($request->fd, json_encode(['msg_type' => 'login_success',
                                                           'code' => '10000',
                                                           'msg' => '登录成功']));
         }
@@ -214,15 +225,16 @@ class WebSocketServer extends Command {
         if ($old_fid) {
             $old = explode("@", $old_fid);
             if ($old[ 0 ] == $this->host_name) {
-                $this->server->push($old[ 1 ],json_encode(['msg_type' => 'error',
+                $this->server->push($old[ 1 ], json_encode(['msg_type' => 'error',
                                                            'code' => '10011',
                                                            'msg' => '用户已在其他地方登录']));
                 $server->close($old[ 1 ]);
             } else {
                 try {
                     //通过集群中的其他服务器推送
-                    Http::put('http://' . $old[ 0 ] . ':' . $this->config[ 'port' ] . '/open/close', [], ['fid' => $old[ 1 ],
-                                                                                                          'secret' => $this->config[ 'secret' ]]);
+                    $url='http://' . $old[ 0 ] . ':' . $this->config[ 'port' ] . '/open/close';
+                    Http::put($url, [], ['fid' => $old[ 1 ],
+                                         'secret' => $this->config[ 'secret' ]]);
                 } catch (\Exception $exception) {
                 } catch (\Error $exception) {
                 }
@@ -238,7 +250,7 @@ class WebSocketServer extends Command {
         Cache::redis()->hSet('fid_#_user_id', $this->host_name . "@" . $request->fd, $user_id);
         Cache::release();
         //1s后发送未读消息
-        if(!$request->get['no_push']){
+        if (!$request->get['no_push']) {
             $service = Ioc::get($this->config[ 'service' ]);
             $service->onOpen($user_id);
         }
@@ -247,15 +259,16 @@ class WebSocketServer extends Command {
     }
 
     /**
-     * 接受消息回调
-     *
      * @param $server
      * @param $frame
      */
-    public function onMessage($server, $frame) {
+    public function onMessage($server, $frame)
+    {
         $data = json_decode($frame->data, true);
         $method = $data[ 'method' ];
-        if(!$method)return;
+        if (!$method) {
+            return;
+        }
         unset($data[ 'method' ]);
         $user_id = $this->fidToUserId($frame->fd);
         /* @var $service WebSocketService */
@@ -271,7 +284,8 @@ class WebSocketServer extends Command {
      * @param \swoole_websocket_server $server
      * @param string                   $fd
      */
-    public function onClose(\swoole_websocket_server $server, $fd) {
+    public function onClose(\swoole_websocket_server $server, $fd)
+    {
         $user_id = $this->fidToUserId($fd);
         $fid = $this->userIdToFid($user_id);
         Cache::redis()->hDel('user_id_#_fid', $user_id);
@@ -288,7 +302,8 @@ class WebSocketServer extends Command {
      *
      * @return string
      */
-    public function userIdToFid($uid) {
+    public function userIdToFid($uid)
+    {
         $value = Cache::redis()->hGet('user_id_#_fid', $uid);
         Cache::release();
         return $value;
@@ -301,7 +316,8 @@ class WebSocketServer extends Command {
      *
      * @return string
      */
-    public function fidToUserId($fid) {
+    public function fidToUserId($fid)
+    {
         $value = Cache::redis()->hGet('fid_#_user_id', $this->host_name . '@' . $fid);
         Cache::release();
         return $value;
@@ -316,7 +332,8 @@ class WebSocketServer extends Command {
      *
      * @return bool|null
      */
-    public function sendToUser($user_id, array $msg) {
+    public function sendToUser($user_id, array $msg)
+    {
         //检查redis ping 防止掉线
         $fid = $this->userIdToFid($user_id);
         if (!$fid) {
@@ -325,7 +342,7 @@ class WebSocketServer extends Command {
         $fid_server = explode('@', $fid);
         $host_name = $fid_server[ 0 ];
         $fid = $fid_server[ 1 ];
-        $m=substr($this->host_name,0,6);
+        $m=substr($this->host_name, 0, 6);
         if ($host_name == $this->host_name) {
             if (!$this->server->exist($fid)) {
                 //断开
@@ -336,8 +353,8 @@ class WebSocketServer extends Command {
                 Cache::release();
                 return false;
             }
-            $this->server->push($fid,json_encode($msg));
-        } else if(strpos($host_name,$m)===0) {
+            $this->server->push($fid, json_encode($msg));
+        } elseif (strpos($host_name, $m)===0) {
             try {
                 //通过集群中的其他服务器推送
                 Http::put('http://' . $host_name . ':' . $this->config[ 'port' ] . '/open/push', [], ['fid' => $fid,
@@ -350,9 +367,8 @@ class WebSocketServer extends Command {
         return null;
     }
 
-    public function configure() {
+    public function configure()
+    {
         $this->name('websocket')->asName("swoole websocket服务")->des("启动swoole websocket服务 需要安装 swoole 拓展");
     }
-
-
 }

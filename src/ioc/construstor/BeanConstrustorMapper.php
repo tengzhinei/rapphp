@@ -3,7 +3,6 @@
 
 namespace rap\ioc\construstor;
 
-
 use rap\ioc\Ioc;
 
 abstract class BeanConstrustorMapper
@@ -18,6 +17,5 @@ abstract class BeanConstrustorMapper
             Ioc::register($simpleConstrustor);
         }
     }
-    public abstract function mapper();
-
+    abstract public function mapper();
 }

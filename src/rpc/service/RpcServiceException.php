@@ -9,7 +9,7 @@
 
 namespace rap\rpc\service;
 
-
-class RpcServiceException extends \RuntimeException {
+class RpcServiceException extends \RuntimeException
+{
 
 }

@@ -8,8 +8,8 @@
 
 namespace rap\exception;
 
-
-class ErrorException extends \Exception{
+class ErrorException extends \Exception
+{
 
     public $error;
 
@@ -17,10 +17,9 @@ class ErrorException extends \Exception{
      * ErrorException constructor.
      * @param $error
      */
-    public function __construct(\Error $error){
+    public function __construct(\Error $error)
+    {
         parent::__construct("系统服务出现错误");
         $this->error = $error;
     }
-
-
 }

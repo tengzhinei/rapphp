@@ -9,13 +9,14 @@
 
 namespace rap\util;
 
-
 /**
  * 数组工具类
  */
-class ArrayUtil {
+class ArrayUtil
+{
 
-    static function groupBy($list, $parent_field = 'parent_id') {
+    public static function groupBy($list, $parent_field = 'parent_id')
+    {
         $map = [];
         foreach ($list as $item) {
             $parent_id = null;
@@ -28,7 +29,8 @@ class ArrayUtil {
         return $map;
     }
 
-    static function indexBy($list, $parent_field = 'parent_id') {
+    public static function indexBy($list, $parent_field = 'parent_id')
+    {
         $map = [];
         foreach ($list as $item) {
             $parent_id = null;
@@ -49,13 +51,14 @@ class ArrayUtil {
      *
      * @return array
      */
-    static  function toTree($list,$parent_field = 'parent_id',$id_field='id',$children_field='children') {
+    public static function toTree($list, $parent_field = 'parent_id', $id_field = 'id', $children_field = 'children')
+    {
         $map = self::groupBy($list);
         $data=[];
         foreach ($list as $item) {
             $item->text=$item->name;
-            if(is_object($item)){
-                if(!$item->$parent_field){
+            if (is_object($item)) {
+                if (!$item->$parent_field) {
                     $item->$children_field=$map[$item->$id_field];
                     $data[]=$item;
                 }
@@ -70,7 +73,8 @@ class ArrayUtil {
      *
      * @return null
      */
-    static  function find($list, $where) {
+    public static function find($list, $where)
+    {
         if (is_array($where)) {
             foreach ($list as $item) {
                 $is_ok = true;
@@ -95,7 +99,8 @@ class ArrayUtil {
     }
 
 
-    static function where($list, $where) {
+    public static function where($list, $where)
+    {
         $items = [];
         if (is_array($where)) {
             foreach ($list as $item) {
@@ -120,13 +125,12 @@ class ArrayUtil {
         return $items;
     }
 
-   static function pluck($list, $name) {
+    public static function pluck($list, $name)
+    {
         $values = [];
         foreach ($list as $item) {
             $values[] = $item[ $name ];
         }
         return $values;
     }
-
-
 }

@@ -8,21 +8,25 @@
 
 namespace rap\swoole\web;
 
-
 use rap\session\RedisSession;
 use rap\session\Session;
 use rap\web\Response;
 
-class SwooleResponse extends Response{
+class SwooleResponse extends Response
+{
 
     private $request;
     private $swooleResponse;
-    public function swoole($request, $response){
+    public function swoole($request, $response)
+    {
         $this->swooleResponse=$response;
         $this->request=$request;
     }
-    public function send(){
-        if($this->hasSend)return;
+    public function send()
+    {
+        if ($this->hasSend) {
+            return;
+        }
         $this->hasSend=true;
         // 发送状态码
         $this->swooleResponse->status($this->code);
@@ -30,24 +34,33 @@ class SwooleResponse extends Response{
         if (!empty($this->header)) {
             // 发送头部信息
             foreach ($this->header as $name => $val) {
-                $this->swooleResponse->header($name,$val);
+                $this->swooleResponse->header($name, $val);
             }
         }
         // $this->swooleResponse->  gzip(1);
         $this->swooleResponse->end($this->content);
     }
 
-    public function cookie( $key,  $value = '',  $expire = 0 ,  $path = '/',  $domain = '',  $secure = false ,  $httponly = false){
-        $this->swooleResponse->cookie($key,$value,$expire,$path,$domain,$secure,$httponly);
+    public function cookie(
+        $key,
+        $value = '',
+        $expire = 0,
+        $path = '/',
+        $domain = '',
+        $secure = false,
+        $httponly = false
+    ) {
+        $this->swooleResponse->cookie($key, $value, $expire, $path, $domain, $secure, $httponly);
     }
 
     /**
      *
      * @return Session
      */
-    public function session(){
-        if(!$this->session){
-            $this->session=new RedisSession($this->request,$this);
+    public function session()
+    {
+        if (!$this->session) {
+            $this->session=new RedisSession($this->request, $this);
         }
         return $this->session;
     }
@@ -57,14 +70,15 @@ class SwooleResponse extends Response{
      * @param $file
      * @param $file_name
      */
-    public function sendFile($file,$file_name=''){
+    public function sendFile($file, $file_name = '')
+    {
         $this->hasSend=true;
         $this->swooleResponse->status($this->code);
-        $this->fileToContentType($file,$file_name);
+        $this->fileToContentType($file, $file_name);
         if (!empty($this->header)) {
             // 发送头部信息
             foreach ($this->header as $name => $val) {
-                $this->swooleResponse->header($name,$val);
+                $this->swooleResponse->header($name, $val);
             }
         }
         $this->swooleResponse->sendfile($file);

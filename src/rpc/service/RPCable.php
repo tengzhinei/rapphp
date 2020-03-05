@@ -9,7 +9,7 @@
 
 namespace rap\rpc\service;
 
-
-interface RPCable {
+interface RPCable
+{
 
 }

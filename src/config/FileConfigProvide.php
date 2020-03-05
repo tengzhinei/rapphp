@@ -6,9 +6,8 @@
 
 namespace rap\config;
 
-
-interface FileConfigProvide {
+interface FileConfigProvide
+{
 
     public function load();
-
 }

@@ -6,21 +6,22 @@
 
 namespace rap\config;
 
-
 use rap\util\FileUtil;
 
-class FileConfig {
+class FileConfig
+{
 
     private $fileDate;
 
     private $provides=[];
 
-    public function __construct() {
+    public function __construct()
+    {
         if (is_file(APP_PATH . 'config.php')) {
             $this->fileDate = include APP_PATH . 'config.php';
-        } else if (is_file(APP_PATH . 'config/config.php')) {
+        } elseif (is_file(APP_PATH . 'config/config.php')) {
             $this->fileDate = include APP_PATH . 'config/config.php';
-            FileUtil::eachAll(APP_PATH . 'config', function($path, $name) {
+            FileUtil::eachAll(APP_PATH . 'config', function ($path, $name) {
                 if ($name != 'config.php') {
                     $name = str_replace('.php', '', $name);
                     $data = include $path;
@@ -38,7 +39,8 @@ class FileConfig {
      *
      * @return mixed
      */
-    public function get($module) {
+    public function get($module)
+    {
         $data = $this->fileDate[ $module ];
         return $data;
     }
@@ -47,14 +49,16 @@ class FileConfig {
      * 获取所有配置
      * @return mixed
      */
-    public function getAll(){
+    public function getAll()
+    {
         return $this->fileDate;
     }
 
     /**
      * 合并模块
      */
-    public function mergeProvide(){
+    public function mergeProvide()
+    {
         /* @var $provide FileConfigProvide  */
         foreach ($this->provides as $provide) {
             $config = $provide->load();
@@ -67,7 +71,6 @@ class FileConfig {
                     }
                 }
             }
-
         }
     }
 
@@ -75,8 +78,8 @@ class FileConfig {
      * 注册配置提供器
      * @param FileConfigProvide $provide
      */
-    public function registerProvide(FileConfigProvide $provide){
+    public function registerProvide(FileConfigProvide $provide)
+    {
         $this->provides[]=$provide;
     }
-
 }

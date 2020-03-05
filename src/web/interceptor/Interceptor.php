@@ -1,5 +1,6 @@
 <?php
 namespace rap\web\interceptor;
+
 use rap\web\Request;
 use rap\web\Response;
 
@@ -9,8 +10,8 @@ use rap\web\Response;
  * Date: 18/4/20
  * Time: 下午12:03
  */
-interface Interceptor{
+interface Interceptor
+{
 
-    public function handler(Request $request,Response $response);
-
+    public function handler(Request $request, Response $response);
 }

@@ -8,11 +8,11 @@
 
 namespace rap\web\mvc;
 
-
 use rap\web\Request;
 use rap\web\Response;
 
-class ClosureHandlerAdapter  extends HandlerAdapter{
+class ClosureHandlerAdapter extends HandlerAdapter
+{
 
     /**
      * @var \Closure
@@ -24,19 +24,20 @@ class ClosureHandlerAdapter  extends HandlerAdapter{
      * ClosureHandlerAdapter constructor.
      * @param \Closure $closure
      */
-    public function __construct(\Closure $closure){
+    public function __construct(\Closure $closure)
+    {
         $this->closure=$closure;
     }
 
-    public function handle(Request $request, Response $response){
+    public function handle(Request $request, Response $response)
+    {
 
         $closure=$this->closure;
-        $value=$this->invokeClosure($closure,$request,$response);
+        $value=$this->invokeClosure($closure, $request, $response);
         return $value;
     }
 
-    public function viewBase(){
+    public function viewBase()
+    {
     }
-
-
 }

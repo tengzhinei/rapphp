@@ -1,5 +1,6 @@
 <?php
 namespace rap\web\mvc;
+
 use rap\web\Request;
 use rap\web\Response;
 
@@ -9,7 +10,8 @@ use rap\web\Response;
  * Date: 17/8/31
  * Time: 下午9:46
  */
-interface  HandlerMapping{
+interface HandlerMapping
+{
 
     /**
      * @param Request $request
@@ -17,5 +19,4 @@ interface  HandlerMapping{
      * @return HandlerAdapter
      */
     public function map(Request $request, Response $response);
-
 }

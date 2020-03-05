@@ -13,7 +13,8 @@ namespace rap\db;
  * Class Comment
  * @package rap\db
  */
-trait Comment{
+trait Comment
+{
 
     /**
      * 备注信息
@@ -26,7 +27,8 @@ trait Comment{
      * @param string $comment 注释
      * @return $this
      */
-    public function comment($comment=""){
+    public function comment($comment = "")
+    {
         $this->comment=!empty($comment) ? ' /* ' . $comment . ' */' : '';
         return $this;
     }

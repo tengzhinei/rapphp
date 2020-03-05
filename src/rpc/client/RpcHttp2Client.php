@@ -16,7 +16,8 @@ use Swoole\Coroutine\Http2\Client;
 /**
  * 通过 http2 实现的 Rpc 客户端 支持长链接
  */
-class RpcHttp2Client implements RpcClient {
+class RpcHttp2Client implements RpcClient
+{
     use PoolTrait;
 
     private $config = ['host' => '',
@@ -36,7 +37,8 @@ class RpcHttp2Client implements RpcClient {
      */
     private $cli;
 
-    public function config($config) {
+    public function config($config)
+    {
         $this->config = array_merge($this->config, $config);
         $this->config[ 'name' ] = Config::getFileConfig()[ 'app' ][ 'name' ];
         if (!$this->config[ 'name' ]) {
@@ -45,7 +47,8 @@ class RpcHttp2Client implements RpcClient {
     }
 
 
-    public function poolConfig() {
+    public function poolConfig()
+    {
         return $this->config[ 'pool' ];
     }
 
@@ -60,7 +63,8 @@ class RpcHttp2Client implements RpcClient {
      * @return mixed
      * @return mixed   返回结果
      */
-    public function query($interface, $method, $data, $header = []) {
+    public function query($interface, $method, $data, $header = [])
+    {
         //
         if (!$this->cli) {
             $this->connect();
@@ -97,7 +101,7 @@ class RpcHttp2Client implements RpcClient {
             $data = $response->data;
             if ($data && strpos($type, 'application/php-serialize') == 0) {
                 $data = unserialize($data);
-            } else if ($data && strpos($type, 'application/json') == 0) {
+            } elseif ($data && strpos($type, 'application/json') == 0) {
                 $data = json_decode($data, true);
             }
             if ($response->headers[ 'rpc-exception' ]) {
@@ -113,17 +117,18 @@ class RpcHttp2Client implements RpcClient {
         }
     }
 
-    public function fuseConfig() {
+    public function fuseConfig()
+    {
         return ['fuse_time' => $this->config[ 'fuse_time' ],//熔断器熔断后多久进入半开状态
                 'fuse_fail_count' => $this->config[ 'fuse_fail_count' ],//连续失败多少次开启熔断
         ];
     }
 
 
-    public function connect() {
+    public function connect()
+    {
         $this->cli = new Client($this->config[ 'host' ], $this->config[ 'port' ], false);
         $this->cli->set(['timeout' => $this->config[ 'timeout' ]]);
         $this->cli->connect();
     }
-
 }

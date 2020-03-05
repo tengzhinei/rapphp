@@ -12,8 +12,8 @@ use rap\swoole\pool\Pool;
 use rap\swoole\CoContext;
 use rap\swoole\pool\PoolAble;
 
-
-class Cache {
+class Cache
+{
 
     /**
      * @var CacheInterface
@@ -26,7 +26,8 @@ class Cache {
      *
      * @param CacheInterface $cache
      */
-    private function __construct(CacheInterface $cache) {
+    private function __construct(CacheInterface $cache)
+    {
         $this->cache = $cache;
     }
 
@@ -37,7 +38,8 @@ class Cache {
      *
      * @return CacheInterface
      */
-    public static function getCache($name = '') {
+    public static function getCache($name = '')
+    {
         if ($name) {
             return Pool::get($name);
         }
@@ -53,7 +55,8 @@ class Cache {
      *
      * @throws \Error
      */
-    public static function set($key, $value, $expire = 0) {
+    public static function set($key, $value, $expire = 0)
+    {
         try {
             self::getCache()->set($key, $value, $expire);
         } finally {
@@ -71,7 +74,8 @@ class Cache {
      * @return mixed
      * @throws \Error
      */
-    public static function get($key, $default = "") {
+    public static function get($key, $default = "")
+    {
         try {
             return self::getCache()->get($key, $default);
         } finally {
@@ -87,7 +91,8 @@ class Cache {
      * @return bool
      * @throws \Error
      */
-    public static function has($key) {
+    public static function has($key)
+    {
         try {
             return self::getCache()->has($key);
         } finally {
@@ -104,7 +109,8 @@ class Cache {
      *
      * @throws \Error
      */
-    public static function inc($key, $step = 1) {
+    public static function inc($key, $step = 1)
+    {
         try {
             return self::getCache()->inc($key, $step);
         } finally {
@@ -120,7 +126,8 @@ class Cache {
      *
      * @throws \Error
      */
-    public static function dec($key, $step = 1) {
+    public static function dec($key, $step = 1)
+    {
         try {
             return self::getCache()->dec($key, $step);
         } finally {
@@ -135,7 +142,8 @@ class Cache {
      *
      * @throws \Error
      */
-    public static function remove($key) {
+    public static function remove($key)
+    {
         try {
             self::getCache()->remove($key);
         } finally {
@@ -147,7 +155,8 @@ class Cache {
      * 清空
      * @throws \Error
      */
-    public static function clear() {
+    public static function clear()
+    {
         try {
             self::getCache()->clear();
         } finally {
@@ -164,7 +173,8 @@ class Cache {
      *
      * @throws \Error
      */
-    public static function hashSet($name, $key, $value) {
+    public static function hashSet($name, $key, $value)
+    {
         try {
             self::getCache()->hashSet($name, $key, $value);
         } finally {
@@ -181,7 +191,8 @@ class Cache {
      *
      * @throws \Error
      */
-    public static function hashGet($name, $key, $default = "") {
+    public static function hashGet($name, $key, $default = "")
+    {
         try {
             return self::getCache()->hashGet($name, $key, $default);
         } finally {
@@ -197,7 +208,8 @@ class Cache {
      *
      * @throws \Error
      */
-    public static function hashRemove($name, $key) {
+    public static function hashRemove($name, $key)
+    {
         try {
             self::getCache()->hashRemove($name, $key);
         } finally {
@@ -210,7 +222,8 @@ class Cache {
      * @return null|\Redis
      * @throws
      */
-    public static function redis() {
+    public static function redis()
+    {
         $redisCache = self::getCache();
         if ($redisCache instanceof RedisCache) {
             $redisCache->open();
@@ -222,9 +235,10 @@ class Cache {
     /**
      * 连接池回收
      */
-    public static function release() {
+    public static function release()
+    {
         $cache = self::getCache();
-        if ($cache&&$cache instanceof PoolAble){
+        if ($cache&&$cache instanceof PoolAble) {
             Pool::release($cache);
         }
     }

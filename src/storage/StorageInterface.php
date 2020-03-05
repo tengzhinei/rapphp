@@ -13,7 +13,8 @@ namespace rap\storage;
  * Interface StorageInterface
  * @package rap\storage
  */
-interface StorageInterface{
+interface StorageInterface
+{
     const resize_rect_out= 1; //常量，标识缩略图等比例缩放类型
     const resize_rect_in=2;  //常量，标识缩略图缩放后填充类型
     const resize_fix_w=3;  //固定框
@@ -26,7 +27,7 @@ interface StorageInterface{
      * @param string $name 文件保存名称
      * @param bool $replace 文件保存名称
      */
-    public function upload(File $file,$category,$name="",$replace= false);
+    public function upload(File $file, $category, $name = "", $replace = false);
 
     /**
      * 获取文件外部可访问地址,如http://pic.com/head/user_1.jpg
@@ -47,7 +48,7 @@ interface StorageInterface{
      * @param int $blur    模糊程度
      * @return string
      */
-    public function getPicUrl($name,$width=0,$height=0,$water=false,$crop=self::resize_rect_in,$blur=-1);
+    public function getPicUrl($name, $width = 0, $height = 0, $water = false, $crop = self::resize_rect_in, $blur = -1);
 
 
     /**
@@ -55,5 +56,4 @@ interface StorageInterface{
      * @param $name
      */
     public function delete($name);
-
 }

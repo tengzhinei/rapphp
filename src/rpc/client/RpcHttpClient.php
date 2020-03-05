@@ -9,18 +9,17 @@
 
 namespace rap\rpc\client;
 
-
 use rap\config\Config;
 use rap\swoole\pool\PoolTrait;
 use rap\util\http\Http;
 use Swoole\Coroutine\Http\Client;
 
-
 /**
  * 通过 http 实现的 Rpc 客户端
  * swoole环境下用协程客户端,否者自动降级
  */
-class RpcHttpClient implements RpcClient {
+class RpcHttpClient implements RpcClient
+{
     use PoolTrait;
 
     public $FUSE_STATUS     = 3;
@@ -39,7 +38,8 @@ class RpcHttpClient implements RpcClient {
                        'pool' => ['min' => 1, 'max' => 10]];
 
 
-    public function config($config) {
+    public function config($config)
+    {
         $this->config = array_merge($this->config, $config);
         $this->config[ 'name' ] = Config::getFileConfig()[ 'app' ][ 'name' ];
         if (!$this->config[ 'name' ]) {
@@ -47,7 +47,8 @@ class RpcHttpClient implements RpcClient {
         }
     }
 
-    public function poolConfig() {
+    public function poolConfig()
+    {
         return $this->config[ 'pool' ];
     }
 
@@ -62,7 +63,8 @@ class RpcHttpClient implements RpcClient {
      * @return mixed
      * @return mixed   返回结果
      */
-    public function query($interface, $method, $data, $header = []) {
+    public function query($interface, $method, $data, $header = [])
+    {
         $authorization = $header[ 'authorization' ];
         $headers = array_merge($header, ['Rpc-Client-Name' => Config::get('app')[ 'name' ],
                                          'Authorization' => $this->config[ 'authorization' ],
@@ -75,11 +77,11 @@ class RpcHttpClient implements RpcClient {
         } else {
             return $this->queryByRequest($headers, $data);
         }
-
     }
 
 
-    public function queryByRequest($headers, $data) {
+    public function queryByRequest($headers, $data)
+    {
         $scheme = 'http://';
         if ($this->config[ 'port' ] == 443) {
             $scheme = 'https://';
@@ -89,13 +91,15 @@ class RpcHttpClient implements RpcClient {
         } else {
             $data = json_encode($data);
         }
-        $response = Http::put($scheme . $this->config[ 'host' ] . ':' . $this->config[ 'port' ] . $this->config[ 'base_path' ] . $this->config[ 'path' ], $headers, $data, $this->config[ 'timeout' ]);
+        $response = Http::put($scheme . $this->config[ 'host' ]
+            . ':' . $this->config[ 'port' ] . $this->config[ 'base_path' ]
+            . $this->config[ 'path' ], $headers, $data, $this->config[ 'timeout' ]);
         if ($response->status_code == 200) {
             $type = $response->headers[ 'content-type' ];
             $data = $response->body;
             if ($data && strpos($type, 'application/php-serialize') == 0) {
                 $data = unserialize($data);
-            } else if ($data && strpos($type, 'application/json') == 0) {
+            } elseif ($data && strpos($type, 'application/json') == 0) {
                 $data = json_decode($data, true);
             }
             if ($response->headers[ 'rpc-exception' ]) {
@@ -111,7 +115,8 @@ class RpcHttpClient implements RpcClient {
         }
     }
 
-    public function queryCoroutine($headers, $data) {
+    public function queryCoroutine($headers, $data)
+    {
         $cli = new Client($this->config[ 'host' ], $this->config[ 'port' ]);
         $cli->set(['timeout' => $this->config[ 'timeout' ]]);
         $cli->setHeaders($headers);
@@ -127,7 +132,7 @@ class RpcHttpClient implements RpcClient {
             $data = $cli->body;
             if ($data && strpos($type, 'application/php-serialize') == 0) {
                 $data = unserialize($data);
-            } else if ($data && strpos($type, 'application/json') == 0) {
+            } elseif ($data && strpos($type, 'application/json') == 0) {
                 $data = json_decode($data, true);
             }
             if ($cli->headers[ 'rpc-exception' ]) {
@@ -141,18 +146,17 @@ class RpcHttpClient implements RpcClient {
         } else {
             throw new RpcClientException('服务异常', 100);
         }
-
     }
 
 
-    public function connect() {
-
+    public function connect()
+    {
     }
 
-    public function fuseConfig() {
+    public function fuseConfig()
+    {
         return ['fuse_time' => $this->config[ 'fuse_time' ],//熔断器熔断后多久进入半开状态
                 'fuse_fail_count' => $this->config[ 'fuse_fail_count' ],//连续失败多少次开启熔断
         ];
     }
-
 }

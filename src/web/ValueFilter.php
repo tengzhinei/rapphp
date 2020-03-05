@@ -12,7 +12,8 @@ namespace rap\web;
  * Class ValueFilter
  * @package rap\web
  */
-class ValueFilter{
+class ValueFilter
+{
 
 
     /**
@@ -21,9 +22,8 @@ class ValueFilter{
      * @param $filter
      * @return mixed
      */
-    public function filter($value,$filter=''){
+    public function filter($value, $filter = '')
+    {
         return $value;
     }
-
-
 }

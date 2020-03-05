@@ -8,7 +8,6 @@
 
 namespace rap\web;
 
-
 use rap\aop\Event;
 use rap\config\Config;
 use rap\ServerEvent;
@@ -17,7 +16,8 @@ use rap\session\HttpSession;
 use rap\session\Session;
 use rap\swoole\Context;
 
-class Response {
+class Response
+{
     // 当前的contentType
     protected $contentType = 'text/html';
 
@@ -37,11 +37,13 @@ class Response {
 
     private $request;
 
-    public function setRequest(Request $request) {
+    public function setRequest(Request $request)
+    {
         $this->request = $request;
     }
 
-    public function send() {
+    public function send()
+    {
         if ($this->hasSend) {
             return;
         }
@@ -60,18 +62,20 @@ class Response {
             // 提高页面响应
             fastcgi_finish_request();
         }
-        if(!IS_SWOOLE){
+        if (!IS_SWOOLE) {
             Event::trigger(ServerEvent::onRequestDefer);
             Context::release();
         }
     }
 
-    public function setContent($content) {
+    public function setContent($content)
+    {
         $this->content = $content;
     }
 
 
-    public function redirect($url, $code = 302) {
+    public function redirect($url, $code = 302)
+    {
         $this->code($code);
         $this->header("location", $url);
         $this->send();
@@ -84,7 +88,8 @@ class Response {
      *
      * @return mixed
      */
-    public function getHeader($name = '') {
+    public function getHeader($name = '')
+    {
         return !empty($name) ? $this->header[ $name ] : $this->header;
     }
 
@@ -96,7 +101,8 @@ class Response {
      *
      * @return $this
      */
-    public function contentType($contentType, $charset = 'utf-8') {
+    public function contentType($contentType, $charset = 'utf-8')
+    {
         $this->contentType = $contentType;
         $this->charset = $charset;
         return $this;
@@ -112,7 +118,8 @@ class Response {
      *
      * @return $this
      */
-    public function header($name, $value = null) {
+    public function header($name, $value = null)
+    {
         if (is_array($name)) {
             $this->header = array_merge($this->header, $name);
         } else {
@@ -128,12 +135,14 @@ class Response {
      *
      * @return $this
      */
-    public function code($code) {
+    public function code($code)
+    {
         $this->code = $code;
         return $this;
     }
 
-    public function assign($key, $value = null) {
+    public function assign($key, $value = null)
+    {
         if (is_array($key)) {
             $this->data = array_merge($this->data, $key);
         } else {
@@ -141,14 +150,23 @@ class Response {
         }
     }
 
-    public function data($key = "") {
+    public function data($key = "")
+    {
         if ($key) {
             return $this->data[ $key ];
         }
         return $this->data;
     }
 
-    public function cookie($key, $value = '', $expire = 0, $path = '/', $domain = '', $secure = false, $httponly = false) {
+    public function cookie(
+        $key,
+        $value = '',
+        $expire = 0,
+        $path = '/',
+        $domain = '',
+        $secure = false,
+        $httponly = false
+    ) {
         setcookie($key, $value, $expire, $path, $domain, $secure, $httponly);
     }
 
@@ -160,7 +178,8 @@ class Response {
     /**
      * @return Session
      */
-    public function session() {
+    public function session()
+    {
 
         if (!$this->session) {
             if (Config::getFileConfig()['session']['type'] == 'redis') {
@@ -172,7 +191,8 @@ class Response {
         return $this->session;
     }
 
-    public function sendFile($file, $file_name = '') {
+    public function sendFile($file, $file_name = '')
+    {
         header("Accept-Ranges: bytes");
         $fp = fopen($file, 'rb');//只读方式打开
         $filesize = filesize($file);//文件大小
@@ -204,7 +224,8 @@ class Response {
         die;
     }
 
-    protected function fileToContentType($file, $file_name = '') {
+    protected function fileToContentType($file, $file_name = '')
+    {
         //等于默认值说明没有设置
         if ($this->contentType == 'text/html') {
             $items = explode('.', $file);
@@ -218,7 +239,6 @@ class Response {
                       'jpg' => 'image/jpeg',
                       'gif' => 'image/*'];
             if (key_exists($type, $types)) {
-
                 $this->header[ 'Content-Type' ] = $types[ $type ];
             } else {
                 $this->header[ 'Content-Type' ] = "application/octet-stream";
@@ -231,7 +251,5 @@ class Response {
         } else {
             $this->header[ 'Content-Type' ] = $this->contentType;
         }
-
     }
-
 }

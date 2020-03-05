@@ -8,13 +8,14 @@
 
 namespace rap\console\command;
 
-
 use rap\aop\Aop;
 use rap\console\Command;
 
-class AopFileBuild extends Command {
+class AopFileBuild extends Command
+{
 
-    public function configure() {
+    public function configure()
+    {
         $this->name('aop')
             ->asName("生成AOP需要的文件")
             ->param("-d", true, '删除文件', false)
@@ -24,7 +25,8 @@ class AopFileBuild extends Command {
             ");
     }
 
-    public function run($d) {
+    public function run($d)
+    {
         if ($d) {
             Aop::clear();
             $this->writeln("AOP文件已删除成功,需要时可以重新生成");
@@ -32,7 +34,5 @@ class AopFileBuild extends Command {
             Aop::buildProxy();
             $this->writeln("AOP文件生成成功,文件在" . ROOT_PATH . 'aop下');
         }
-
     }
-
 }

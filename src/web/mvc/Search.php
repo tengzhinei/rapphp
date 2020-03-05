@@ -9,8 +9,8 @@
 
 namespace rap\web\mvc;
 
-
-class Search {
+class Search
+{
 
     private $value;
 
@@ -19,7 +19,8 @@ class Search {
      *
      * @param $value
      */
-    public function __construct($value) {
+    public function __construct($value)
+    {
         $this->value = (int)$value;
     }
 
@@ -29,10 +30,8 @@ class Search {
      * 获取搜索的值
      * @return int
      */
-    public function value(){
+    public function value()
+    {
         return $this->value;
     }
-
-
-
 }

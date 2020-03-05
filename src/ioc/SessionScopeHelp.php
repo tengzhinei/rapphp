@@ -3,7 +3,6 @@
 
 namespace rap\ioc;
 
-
 use rap\cache\Cache;
 use rap\ioc\scope\SessionScope;
 use rap\session\RedisSession;
@@ -13,10 +12,12 @@ use rap\swoole\Context;
  * SessionScope获取和保存
  * @author: 藤之内
  */
-class SessionScopeHelp {
+class SessionScopeHelp
+{
 
 
-    public static function get($clazzOrName){
+    public static function get($clazzOrName)
+    {
         $request = request();
         $bean = Context::get('Ioc_' . $clazzOrName);
         if ($bean) {
@@ -41,9 +42,10 @@ class SessionScopeHelp {
     }
 
 
-    public static function save(SessionScope $sessionScope){
+    public static function save(SessionScope $sessionScope)
+    {
         $request=request();
-        if(!request()){
+        if (!request()) {
             exception('request不存在');
         }
         $session_id = $request->session()->sessionId();
@@ -51,5 +53,4 @@ class SessionScopeHelp {
         $cache = Cache::getCache(RedisSession::REDIS_CACHE_NAME);
         $cache->set($cache_key, $sessionScope, 60 * 30);
     }
-
 }

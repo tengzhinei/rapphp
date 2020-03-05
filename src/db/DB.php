@@ -8,11 +8,11 @@
 
 namespace rap\db;
 
-
 use rap\swoole\pool\Pool;
 use rap\swoole\pool\ResourcePool;
 
-class DB {
+class DB
+{
 
 
     /**
@@ -23,7 +23,8 @@ class DB {
      * @param string  $connection_name  名称
      * @return Insert|string
      */
-    public static function insert($table, $data = null, $connection_name = '') {
+    public static function insert($table, $data = null, $connection_name = '')
+    {
         if ($data !== null) {
             return Insert::insert($table, $data, $connection_name);
         } else {
@@ -40,7 +41,8 @@ class DB {
      *
      * @return null|Delete
      */
-    public static function delete($table, $where = null, $connection_name = '') {
+    public static function delete($table, $where = null, $connection_name = '')
+    {
         if ($where) {
             Delete::delete($table, $where, $connection_name);
         } else {
@@ -60,7 +62,8 @@ class DB {
      *
      * @return null|Update|int
      */
-    public static function update($table, $data = null, $where = null, $connection_name = '') {
+    public static function update($table, $data = null, $where = null, $connection_name = '')
+    {
         if ($data) {
             return   Update::update($table, $data, $where, $connection_name);
         } else {
@@ -75,8 +78,9 @@ class DB {
      * @param string $connection_name 连接名
      * @return Select
      */
-    public static function select($table,$connection_name='') {
-        return Select::table($table,$connection_name);
+    public static function select($table, $connection_name = '')
+    {
+        return Select::table($table, $connection_name);
     }
 
     /**
@@ -87,7 +91,8 @@ class DB {
      * @return mixed
      * @throws \Error
      */
-    public static function runInTrans(\Closure $closure) {
+    public static function runInTrans(\Closure $closure)
+    {
         /* @var $connection Connection */
         $connection = Pool::get(Connection::class);
         $pool = ResourcePool::instance();
@@ -96,7 +101,7 @@ class DB {
         try {
             $value = $connection->runInTrans($closure);
             return $value;
-        } finally{
+        } finally {
             //释放锁
             $pool->unLock($connection);
             //释放连接
@@ -112,15 +117,15 @@ class DB {
      *
      * @throws \Error
      */
-    public static function execute($sql, $bind = []) {
+    public static function execute($sql, $bind = [])
+    {
         /* @var $connection Connection */
         $connection = Pool::get(Connection::class);
         try {
             $connection->execute($sql, $bind);
-        } finally{
+        } finally {
             Pool::release($connection);
         }
-
     }
 
     /**
@@ -133,13 +138,14 @@ class DB {
      * @return array
      * @throws \Error
      */
-    public static function query($sql, $bind = [], $cache = false) {
+    public static function query($sql, $bind = [], $cache = false)
+    {
         /* @var $connection Connection */
         $connection = Pool::get(Connection::class);
         try {
             $items = $connection->query($sql, $bind, $cache);
             return $items;
-        }finally{
+        } finally {
             Pool::release($connection);
         }
     }

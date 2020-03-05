@@ -3,8 +3,8 @@
 
 namespace rap\util\http;
 
-
-interface HttpClient {
+interface HttpClient
+{
     /**
      * get 请求
      *

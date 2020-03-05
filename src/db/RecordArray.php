@@ -3,14 +3,15 @@
 
 namespace rap\db;
 
-
 /**
  *对象转数据帮助类
  * @author: 藤之内
  */
-class RecordArray {
+class RecordArray
+{
 
-    public static function toArray($model, $fields, $contain) {
+    public static function toArray($model, $fields, $contain)
+    {
         $data = [];
         if (!$fields) {
             foreach ($model as $key => $value) {
@@ -33,12 +34,12 @@ class RecordArray {
                     }
                 }
             }
-
         }
         return $data;
     }
 
-    private static function valueDiscern($value) {
+    private static function valueDiscern($value)
+    {
         if ($value instanceof Record) {
             $value = $value->jsonSerialize();
         }

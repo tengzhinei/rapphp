@@ -10,25 +10,28 @@ namespace rap\web\mvc;
 use rap\web\Request;
 use rap\web\Response;
 
-class AutoFindHandlerMapping implements HandlerMapping{
+class AutoFindHandlerMapping implements HandlerMapping
+{
 
     public $separator="/";
     public $controllerDir="controller";
     public $controllerPostfix="Controller";
     public $prefixArr=[];
 
-    public function prefix($prefix,$dir){
-        $dir=str_replace('/','\\',$dir);
+    public function prefix($prefix, $dir)
+    {
+        $dir=str_replace('/', '\\', $dir);
         $this->prefixArr[$prefix]=$dir;
     }
 
-    public function map(Request $request, Response $response){
+    public function map(Request $request, Response $response)
+    {
         $path=$request->routerPath();
         $prefix="";
         $dir="";
         $find=false;
-        foreach ($this->prefixArr as $toPrefix=>$toDir) {
-            if(strpos($path, $toPrefix."/") === 0&&strlen($toPrefix)>strlen($prefix)){
+        foreach ($this->prefixArr as $toPrefix => $toDir) {
+            if (strpos($path, $toPrefix."/") === 0&&strlen($toPrefix)>strlen($prefix)) {
                 $prefix=$toPrefix;
                 $dir=$toDir;
                 $find=true;
@@ -36,51 +39,52 @@ class AutoFindHandlerMapping implements HandlerMapping{
             }
         }
         //没有找到为默认
-        if(!$find){
+        if (!$find) {
             $prefix="/";
             $dir=APP_DIR."\\";
         }
-        $path = substr($path,strlen($prefix));
+        $path = substr($path, strlen($prefix));
         $path = str_replace($this->separator, '|', $path);
-        $array=explode('|',$path);
+        $array=explode('|', $path);
         $items=[];
         $search=[];
         foreach ($array as $item) {
             $i=(int)$item;
-            if($i.''==$item){
+            if ($i.''==$item) {
                 $search[]=$item;
-            }else{
+            } else {
                 $items[]=$item;
             }
         }
         $array=$items;
         $request->search($search);
-        $classPath=$this->findController($dir,$array);
-        if(!class_exists($classPath)){
-            $classPath=$this->findControllerByGroup($find,$dir,$array);
-            if(!class_exists($classPath)){
+        $classPath=$this->findController($dir, $array);
+        if (!class_exists($classPath)) {
+            $classPath=$this->findControllerByGroup($find, $dir, $array);
+            if (!class_exists($classPath)) {
                 return null;
             }
         }
         $method= array_pop($array);
-        $handlerAdapter=new ControllerHandlerAdapter($classPath,$method);
+        $handlerAdapter=new ControllerHandlerAdapter($classPath, $method);
         $handlerAdapter->pattern($path);
         return $handlerAdapter;
     }
 
 
 
-    public function findControllerByGroup($find,$dir,$array){
-        if(count($array)!=2){
-            array_splice($array,count($array)-2,0,[$this->controllerDir]);
+    public function findControllerByGroup($find, $dir, $array)
+    {
+        if (count($array)!=2) {
+            array_splice($array, count($array)-2, 0, [$this->controllerDir]);
         }
         array_pop($array);
-        if(count($array)!=1) {
+        if (count($array)!=1) {
             $array[count($array)-1]=ucfirst($array[count($array)-1]);
             $classPath = $dir . implode('\\', $array) . $this->controllerPostfix;
-        }else if($find){
+        } elseif ($find) {
             $classPath = $dir . implode('\\', $array);
-        }else{
+        } else {
             $array[count($array)-1]=ucfirst($array[count($array)-1]);
             $classPath = $dir.'controller\\' . implode('\\', $array). $this->controllerPostfix;
         }
@@ -88,12 +92,11 @@ class AutoFindHandlerMapping implements HandlerMapping{
     }
 
 
-    public function findController($dir,$array){
+    public function findController($dir, $array)
+    {
         array_pop($array);
         $array[count($array)-1]=ucfirst($array[count($array)-1]);
         $classPath = $dir.'controller\\' . implode('\\', $array). $this->controllerPostfix;
         return $classPath;
     }
-
-
 }

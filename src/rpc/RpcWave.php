@@ -19,7 +19,8 @@ use rap\swoole\pool\Pool;
 /**
  * 主要实现了 RCP 远程调用和熔断器的功能
  */
-class RpcWave {
+class RpcWave
+{
 
     const FUSE_STATUS_OPEN      = 1;
     const FUSE_STATUS_HALF_OPEN = 2;
@@ -35,11 +36,13 @@ class RpcWave {
      *
      * @param Rpc $rpc
      */
-    public function __construct(Rpc $rpc) {
+    public function __construct(Rpc $rpc)
+    {
         $this->rpc = $rpc;
     }
 
-    public function before(JoinPoint $point) {
+    public function before(JoinPoint $point)
+    {
         $method = $point->getMethod();//对应的反射方法
         /* @var $obj RpcSTATUS */
         $obj = $point->getObj();//对应包装对象
@@ -72,11 +75,10 @@ class RpcWave {
                     $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_CLOSE;
                     Log::alert('RPC FUSE_STATUS_CLOSE :关闭熔断', $context);
                     if ($value == null) {
-                        $value = Aop::NuLL;
+                        $value = Aop::AOP_NULL;
                     }
                     return $value;
                 } catch (RpcClientException $exception) {
-
                     $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
                     return null;
                 }
@@ -89,7 +91,7 @@ class RpcWave {
                         $obj->FUSE_FAIL_COUNT = 0;
                     }
                     if ($value == null) {
-                        $value = Aop::NuLL;
+                        $value = Aop::AOP_NULL;
                     }
                     return $value;
                 } catch (RpcClientException $exception) {
@@ -110,7 +112,8 @@ class RpcWave {
         return null;
     }
 
-    private function header(){
+    private function header()
+    {
         $header = [];
         $request = request();
         if ($request) {
@@ -132,5 +135,4 @@ class RpcWave {
         }
         return $header;
     }
-
 }

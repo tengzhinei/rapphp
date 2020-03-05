@@ -6,13 +6,13 @@
 
 namespace rap\swoole;
 
-
 use rap\config\Config;
 
 /**
  * 监听服务器的变化
  */
-class ServerWatch {
+class ServerWatch
+{
 
     public $last_time_id = 0;
 
@@ -22,29 +22,31 @@ class ServerWatch {
                        IN_CREATE => 'File Created',
                        IN_DELETE => 'File Deleted'];
 
-    public function init($server) {
-        $callback=function() use ($server) {
+    public function init($server)
+    {
+        $callback=function () use ($server) {
             //重启 worker 进车功能
             if ($this->last_time_id) {
                 swoole_timer_clear($this->last_time_id);
             }
-            $this->last_time_id = swoole_timer_after(2 * 1000, function() use ($server) {
+            $this->last_time_id = swoole_timer_after(2 * 1000, function () use ($server) {
                 $this->last_time_id = 0;
                 $server->reload();
             });
         };
         $dir = Config::get('swoole_http')[ 'auto_reload_dir' ];
-        if(!$dir){
+        if (!$dir) {
             foreach ($dir as $item) {
-                $this->watchDir(ROOT_PATH.$item,$callback);
+                $this->watchDir(ROOT_PATH.$item, $callback);
             }
-        }else{
-            $this->watchDir(APP_PATH,$callback);
+        } else {
+            $this->watchDir(APP_PATH, $callback);
         }
     }
 
 
-    function watchDir($directory, $callback) {
+    private function watchDir($directory, $callback)
+    {
 
 
         $my_event = array_sum(array_keys($this->events));
@@ -53,7 +55,7 @@ class ServerWatch {
         foreach ($this->getAllDirs($directory) as $dir) {
             inotify_add_watch($ifd, $dir, $my_event);
         }
-        swoole_event_add($ifd, function($fd) use (&$callback) {
+        swoole_event_add($ifd, function ($fd) use (&$callback) {
             $event_list = inotify_read($fd);
             foreach ($event_list as $arr) {
                 $ev_mask = $arr[ 'mask' ];
@@ -63,11 +65,11 @@ class ServerWatch {
                 }
             }
         });
-
     }
 
     // 使用迭代器遍历目录
-    protected function getAllDirs($base) {
+    protected function getAllDirs($base)
+    {
         $files = scandir($base);
         foreach ($files as $file) {
             if ($file == '.' || $file == '..') {
@@ -79,6 +81,5 @@ class ServerWatch {
                 yield from $this->getAllDirs($filename);
             }
         }
-
     }
 }

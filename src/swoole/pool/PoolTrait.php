@@ -1,5 +1,6 @@
 <?php
 namespace rap\swoole\pool;
+
     /**
      * User: jinghao@duohuo.net
      * Date: 18/11/28
@@ -10,7 +11,8 @@ namespace rap\swoole\pool;
 
 /**
  */
-trait PoolTrait {
+trait PoolTrait
+{
 
     public $_poolName_ = "";
 
@@ -20,8 +22,4 @@ trait PoolTrait {
      * @var PoolBuffer
      */
     public $_poolBuffer_ = null;
-
-
-
-
 }

@@ -29,9 +29,11 @@ use rap\web\mvc\view\View;
  * Date: 18/4/3
  * Time: 下午2:26
  */
-class RapApplication extends Application {
+class RapApplication extends Application
+{
 
-    public function init(AutoFindHandlerMapping $autoMapping, Router $router) {
+    public function init(AutoFindHandlerMapping $autoMapping, Router $router)
+    {
         $config = Config::getFileConfig();
         $map = $config[ "mapping" ];
         if ($map) {
@@ -43,12 +45,12 @@ class RapApplication extends Application {
         if ($item) {
             if ($item[ 'type' ] == 'php') {
                 unset($item[ 'type' ]);
-                Ioc::bind(View::class, PhpView::class, function(PhpView $view) use ($item) {
+                Ioc::bind(View::class, PhpView::class, function (PhpView $view) use ($item) {
                     $view->config($item);
                 });
-            } else if ($item[ 'type' ] == 'twig') {
+            } elseif ($item[ 'type' ] == 'twig') {
                 unset($item[ 'type' ]);
-                Ioc::bind(View::class, TwigView::class, function(TwigView $view) use ($item) {
+                Ioc::bind(View::class, TwigView::class, function (TwigView $view) use ($item) {
                     $view->config($item);
                 });
             }
@@ -63,80 +65,148 @@ class RapApplication extends Application {
             /* @var $init Init */
             $init = Ioc::get(Init::class);
             $init->appInit($autoMapping, $router);
-
         }
-
     }
 
-    public function onServerWorkStart() {
+    public function onServerWorkStart()
+    {
         /* @var $fileConfig  FileConfig*/
         $fileConfig = Ioc::get(FileConfig::class);
         $fileConfig->mergeProvide();
         //合并配置中心的配置
         $config = Config::getFileConfig();
+        $this->initConnection($config);
+        $this->initStorage($config);
+        $this->initCache($config);
+        $this->initSession($config);
+        if (IS_SWOOLE) {
+            $this->preparePool($config);
+        }
+    }
+
+    /**
+     * 初始化Connection
+     * @param array $config 配置项
+     */
+    private function initConnection($config)
+    {
         $item = $config[ "db" ];
         if ($item) {
             if ($item[ 'type' ] == 'mysql') {
                 unset($item[ 'type' ]);
-                Ioc::bind(Connection::class, MySqlConnection::class, function(MySqlConnection $connection) use ($item) {
-                    $connection->config($item);
-                });
+                Ioc::bind(
+                    Connection::class,
+                    MySqlConnection::class,
+                    function (MySqlConnection $connection) use ($item) {
+                        $connection->config($item);
+                    }
+                );
             }
             if ($item[ 'type' ] == 'sqlite') {
                 unset($item[ 'type' ]);
-                Ioc::bind(Connection::class, SqliteConnection::class, function(SqliteConnection $connection) use ($item) {
-                    $connection->config($item);
-                });
+                Ioc::bind(
+                    Connection::class,
+                    SqliteConnection::class,
+                    function (SqliteConnection $connection) use ($item) {
+                        $connection->config($item);
+                    }
+                );
             }
         }
+    }
+
+    /**
+     * 初始化Storage
+     * @param array $config 配置项
+     */
+    private function initStorage($config)
+    {
         $item = $config[ "storage" ];
         if ($item) {
             if ($item[ 'type' ] == 'oss') {
                 unset($item[ 'type' ]);
-                Ioc::bind(StorageInterface::class, OssStorage::class, function(OssStorage $ossStorage) use ($item) {
-                    $ossStorage->config($item);
-                });
-            } else if ($item[ 'type' ] == 'local') {
+                Ioc::bind(
+                    StorageInterface::class,
+                    OssStorage::class,
+                    function (OssStorage $ossStorage) use ($item) {
+                        $ossStorage->config($item);
+                    }
+                );
+            } elseif ($item[ 'type' ] == 'local') {
                 unset($item[ 'type' ]);
-                Ioc::bind(StorageInterface::class, LocalFileStorage::class, function(LocalFileStorage $ossStorage) use ($item) {
-                    $ossStorage->config($item);
-                });
+                Ioc::bind(
+                    StorageInterface::class,
+                    LocalFileStorage::class,
+                    function (LocalFileStorage $ossStorage) use ($item) {
+                        $ossStorage->config($item);
+                    }
+                );
             }
         }
+    }
 
+    /**
+     * 初始化Cache
+     * @param array $config 配置项
+     */
+    private function initCache($config)
+    {
         $item = $config[ "cache" ];
         if ($item) {
             if ($item[ 'type' ] == 'file') {
-                Ioc::bind(CacheInterface::class, FileCache::class, function(FileCache $fileCache) use ($item) {
-                    $fileCache->config($item);
-                });
+                Ioc::bind(
+                    CacheInterface::class,
+                    FileCache::class,
+                    function (FileCache $fileCache) use ($item) {
+                        $fileCache->config($item);
+                    }
+                );
             } elseif ($item[ 'type' ] == 'redis') {
-                Ioc::bind(CacheInterface::class, RedisCache::class, function(RedisCache $redisCache) use ($item) {
-                    $redisCache->config($item);
-                });
+                Ioc::bind(
+                    CacheInterface::class,
+                    RedisCache::class,
+                    function (RedisCache $redisCache) use ($item) {
+                        $redisCache->config($item);
+                    }
+                );
             }
         }
+    }
+
+    /**
+     * 初始化Session
+     * @param array $config 配置项
+     */
+    private function initSession($config)
+    {
         $item = $config[ "session" ];
         if ($item) {
             if ($item[ 'type' ] == 'redis') {
-                Ioc::bind(RedisSession::REDIS_CACHE_NAME, RedisCache::class, function(RedisCache $redisCache) use ($item) {
-                    $redisCache->config($item);
-                });
+                Ioc::bind(
+                    RedisSession::REDIS_CACHE_NAME,
+                    RedisCache::class,
+                    function (RedisCache $redisCache) use ($item) {
+                        $redisCache->config($item);
+                    }
+                );
             }
         }
-        if (IS_SWOOLE) {
-            if ($config[ 'db' ]) {
-                ResourcePool::instance()->preparePool(Connection::class);
-            }
-            if ($config[ 'cache' ]) {
-                ResourcePool::instance()->preparePool(CacheInterface::class);
-            }
-            if ($config[ 'session' ] && $config[ 'session' ][ 'type' ] == 'redis') {
-                ResourcePool::instance()->preparePool(RedisSession::REDIS_CACHE_NAME);
-            }
-        }
-
     }
 
-
+    /**
+     * 初始化 对应的连接池
+     * @param array $config 配置项
+     */
+    private function preparePool($config)
+    {
+        if ($config[ 'db' ]) {
+            ResourcePool::instance()->preparePool(Connection::class);
+        }
+        if ($config[ 'cache' ]) {
+            ResourcePool::instance()->preparePool(CacheInterface::class);
+        }
+        if ($config[ 'session' ] && $config[ 'session' ][ 'type' ] == 'redis') {
+            ResourcePool::instance()->preparePool(RedisSession::REDIS_CACHE_NAME);
+        }
+    }
 }

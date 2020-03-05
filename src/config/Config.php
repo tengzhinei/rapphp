@@ -9,7 +9,8 @@ use rap\ioc\Ioc;
  * Date: 17/9/6
  * Time: 下午9:52
  */
-class Config {
+class Config
+{
 
 
 
@@ -22,7 +23,8 @@ class Config {
      *
      * @return mixed
      */
-    public static function get($module, $key = "", $default = "") {
+    public static function get($module, $key = "", $default = "")
+    {
         /* @var $file FileConfig */
         $file = Ioc::get(FileConfig::class);
         $data = $file->get($module);
@@ -52,10 +54,11 @@ class Config {
      * @param string|array $key
      * @param string|array $value
      */
-    public static function set($module, $key, $value = null) {
+    public static function set($module, $key, $value = null)
+    {
         /* @var $db DbConfig  */
         $db = Ioc::get(DbConfig::class);
-        $db->set($module,$key,$value);
+        $db->set($module, $key, $value);
     }
 
     /**
@@ -64,10 +67,11 @@ class Config {
      * @param string $module
      * @param array  $data
      */
-    public static function setAll($module, $data) {
+    public static function setAll($module, $data)
+    {
         /* @var $db DbConfig  */
         $db = Ioc::get(DbConfig::class);
-        $db->setAll($module,$data);
+        $db->setAll($module, $data);
     }
 
 
@@ -75,10 +79,10 @@ class Config {
      * 获取文件配置
      * @return array
      */
-    public static function getFileConfig() {
+    public static function getFileConfig()
+    {
         /* @var $file FileConfig */
         $file = Ioc::get(FileConfig::class);
         return $file->getAll();
     }
-
 }

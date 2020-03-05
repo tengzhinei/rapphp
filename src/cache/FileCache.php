@@ -7,6 +7,7 @@
  */
 
 namespace rap\cache;
+
 use rap\swoole\pool\PoolAble;
 
 /**
@@ -14,11 +15,13 @@ use rap\swoole\pool\PoolAble;
  * Class FileCache
  * @package rap\cache
  */
-class FileCache implements CacheInterface , PoolAble  {
+class FileCache implements CacheInterface, PoolAble
+{
     private $options = ['path' => "cache/",
                         'data_compress' => false];
 
-    public function config($options = []) {
+    public function config($options = [])
+    {
         if (!empty($options)) {
             $this->options['path']=RUNTIME."cache".DS;
             $this->options = array_merge($this->options, $options);
@@ -33,7 +36,8 @@ class FileCache implements CacheInterface , PoolAble  {
      *
      * @return string
      */
-    protected function getCacheFile($name, $dirName = "") {
+    protected function getCacheFile($name, $dirName = "")
+    {
         if ($dirName) {
             $dirName .= DIRECTORY_SEPARATOR;
         }
@@ -55,7 +59,8 @@ class FileCache implements CacheInterface , PoolAble  {
      *
      * @return bool
      */
-    public function set($name, $value, $expire) {
+    public function set($name, $value, $expire)
+    {
         if (is_null($expire)) {
             $expire = $this->options[ 'expire' ];
         }
@@ -77,7 +82,8 @@ class FileCache implements CacheInterface , PoolAble  {
     }
 
 
-    public function get($name, $default = null) {
+    public function get($name, $default = null)
+    {
         $filename = $this->getCacheFile($name);
         if (!is_file($filename)) {
             return $default;
@@ -100,14 +106,15 @@ class FileCache implements CacheInterface , PoolAble  {
         } else {
             return $default;
         }
-
     }
 
-    public function has($name) {
+    public function has($name)
+    {
         return $this->get($name) ? true : false;
     }
 
-    public function inc($name, $step = 1) {
+    public function inc($name, $step = 1)
+    {
         if ($this->has($name)) {
             $value = $this->get($name) + $step;
         } else {
@@ -116,7 +123,8 @@ class FileCache implements CacheInterface , PoolAble  {
         return $this->set($name, $value, 0) ? $value : false;
     }
 
-    public function dec($name, $step = 1) {
+    public function dec($name, $step = 1)
+    {
         if ($this->has($name)) {
             $value = $this->get($name) - $step;
         } else {
@@ -125,12 +133,15 @@ class FileCache implements CacheInterface , PoolAble  {
         return $this->set($name, $value, 0) ? $value : false;
     }
 
-    public function remove($name) {
+    public function remove($name)
+    {
         return $this->unlink($this->getCacheFile($name));
     }
 
-    public function clear() {
-        $files = (array)glob($this->options[ 'path' ] . ($this->options[ 'prefix' ] ? $this->options[ 'prefix' ] . DIRECTORY_SEPARATOR : '') . '*');
+    public function clear()
+    {
+        $files = (array)glob($this->options[ 'path' ] . ($this->options[ 'prefix' ]
+                ? $this->options[ 'prefix' ] . DIRECTORY_SEPARATOR : '') . '*');
         foreach ($files as $path) {
             if (is_dir($path)) {
                 array_map('unlink', glob($path . '/*.php'));
@@ -140,7 +151,8 @@ class FileCache implements CacheInterface , PoolAble  {
         }
     }
 
-    public function hashSet($name, $key, $value) {
+    public function hashSet($name, $key, $value)
+    {
         $filename = $this->getCacheFile($key, $name);
         $data = serialize($value);
         if ($this->options[ 'data_compress' ] && function_exists('gzcompress')) {
@@ -157,7 +169,8 @@ class FileCache implements CacheInterface , PoolAble  {
         }
     }
 
-    public function hashGet($name, $key, $default) {
+    public function hashGet($name, $key, $default)
+    {
         $filename = $this->getCacheFile($key, $name);
         if (!is_file($filename)) {
             return $default;
@@ -180,10 +193,10 @@ class FileCache implements CacheInterface , PoolAble  {
         } else {
             return $default;
         }
-
     }
 
-    public function hashRemove($name, $key) {
+    public function hashRemove($name, $key)
+    {
         $filename = $this->getCacheFile($key, $name);
         $this->unlink($filename);
     }
@@ -197,19 +210,23 @@ class FileCache implements CacheInterface , PoolAble  {
      * @author byron sampson <xiaobo.sun@qq.com>
      * @return boolean
      */
-    private function unlink($path) {
+    private function unlink($path)
+    {
         return is_file($path) && unlink($path);
     }
 
-    public function poolConfig() {
+    public function poolConfig()
+    {
         // TODO: Implement poolConfig() method.
     }
 
-    public function connect() {
+    public function connect()
+    {
         // TODO: Implement connect() method.
     }
 
-    public function expire($key, $ttl){
+    public function expire($key, $ttl)
+    {
         $filename = $this->getCacheFile($key);
         if (!is_file($filename)) {
             return;
@@ -217,11 +234,9 @@ class FileCache implements CacheInterface , PoolAble  {
         $content = file_get_contents($filename);
         if (false !== $content) {
             $pre = "<?php\n//" . sprintf('%012d', $ttl);
-            $content=$pre.substr($content,strlen($pre));
-            file_put_contents($filename,$content);
+            $content=$pre.substr($content, strlen($pre));
+            file_put_contents($filename, $content);
             clearstatcache();
         }
     }
-
-
 }

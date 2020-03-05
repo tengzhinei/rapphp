@@ -9,26 +9,26 @@
 
 namespace rap\util;
 
-
 use rap\config\Config;
 use rap\web\Request;
 
 /**
  * 语言包
  */
-class Lang {
+class Lang
+{
 
     /**
      * 提供默认语言包
      * @var array
      */
-    static $sys_lang = [];
+    private static $sys_lang = [];
 
     /**
      * 应用默认语言包
      * @var array
      */
-    static $app_lang = [];
+    private static $app_lang = [];
 
     /**
      * 当前
@@ -39,10 +39,11 @@ class Lang {
     /**
      * 加载系统语言包
      */
-     private static function loadSys() {
+    private static function loadSys()
+    {
         $lang = Config::get('app', 'lang', 'zh-cn');
         $lang_array1=[];
-        if(in_array($lang,['zh-cn','en-us'])){
+        if (in_array($lang, ['zh-cn','en-us'])) {
             $lang_array1 = include __DIR__ .DS. 'lang' . DS . $lang . ".php";
         }
         if (is_file(APP_PATH . 'lang' . DS . $lang . ".php")) {
@@ -57,30 +58,33 @@ class Lang {
     /**
      * @param Request $request
      */
-    public static function loadLand(Request $request){
-         $lang_switch_on=Config::get('app','lang_switch_on');
-         if(!$lang_switch_on)return;
+    public static function loadLand(Request $request)
+    {
+         $lang_switch_on=Config::get('app', 'lang_switch_on');
+        if (!$lang_switch_on) {
+            return;
+        }
         $lang=$request->get('lang');
-        if(!$lang){
+        if (!$lang) {
             $lang=$request->cookie('rap_lang');
         }
-        if(!$lang){
+        if (!$lang) {
             static::$current_lang='';
             return;
         }
-        if($lang!=$request->cookie('rap_lang')){
-           $response=$request->response();
-           $response->cookie('rap_lang',$lang);
+        if ($lang!=$request->cookie('rap_lang')) {
+            $response=$request->response();
+            $response->cookie('rap_lang', $lang);
         }
         $lang_sys = Config::get('app', 'lang', 'zh-cn');
-        if($lang==$lang_sys){
+        if ($lang==$lang_sys) {
             static::$current_lang='';
             return;
         }
         static::$current_lang=$lang;
         $lang_array=static::$app_lang[$lang];
-        if(!$lang_array){
-            if(in_array($lang,['zh-cn','en-us'])){
+        if (!$lang_array) {
+            if (in_array($lang, ['zh-cn','en-us'])) {
                 $lang_array1 = include __DIR__ .DS. 'lang' . DS . $lang . ".php";
             }
 
@@ -94,23 +98,24 @@ class Lang {
         }
     }
 
-    public static function get($moudle, $key,$vars=[]){
-        $value = self::loadMsg($moudle,$key);
-       if($vars){
-           if (key($vars) === 0) {
-               // 数字索引解析
-               array_unshift($vars, $value);
-               $value = call_user_func_array('sprintf', $vars);
-           } else {
-               // 关联索引解析
-               $replace = array_keys($vars);
-               foreach ($replace as &$v) {
-                   $v = ":$v";
-               }
-               $value = str_replace($replace, $vars, $value);
-           }
-       }
-       return $value;
+    public static function get($moudle, $key, $vars = [])
+    {
+        $value = self::loadMsg($moudle, $key);
+        if ($vars) {
+            if (key($vars) === 0) {
+                // 数字索引解析
+                array_unshift($vars, $value);
+                $value = call_user_func_array('sprintf', $vars);
+            } else {
+                // 关联索引解析
+                $replace = array_keys($vars);
+                foreach ($replace as &$v) {
+                    $v = ":$v";
+                }
+                $value = str_replace($replace, $vars, $value);
+            }
+        }
+        return $value;
     }
 
     /**
@@ -120,25 +125,24 @@ class Lang {
      *
      * @return string
      */
-    private static function loadMsg($moudle, $key) {
-        if(static::$current_lang){
+    private static function loadMsg($moudle, $key)
+    {
+        if (static::$current_lang) {
             $lang=static::$app_lang[static::$current_lang];
             $array=$lang[$moudle];
-            if($array){
-               if($array[$key]){
+            if ($array) {
+                if ($array[$key]) {
                     return $array[$key];
-               }
+                }
             }
         }
-        if(!static::$sys_lang){
-           static::loadSys();
+        if (!static::$sys_lang) {
+            static::loadSys();
         }
         $array=static::$sys_lang[$moudle];
-        if($array){
+        if ($array) {
             return $array[$key];
         }
         return "";
     }
-
-
 }

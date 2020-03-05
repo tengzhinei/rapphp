@@ -8,8 +8,8 @@
 
 namespace rap\ioc;
 
-
-class BeanDefine {
+class BeanDefine
+{
     /**
      * @var string 类名
      */
@@ -26,10 +26,9 @@ class BeanDefine {
      * @param string   $ClassName
      * @param \Closure $closure
      */
-    public function __construct($ClassName, \Closure $closure = null) {
+    public function __construct($ClassName, \Closure $closure = null)
+    {
         $this->ClassName = $ClassName;
         $this->closure = $closure;
     }
-
-
 }

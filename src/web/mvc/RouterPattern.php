@@ -8,14 +8,14 @@
 
 namespace rap\web\mvc;
 
-
 use rap\web\Request;
 
 /**
  *具有匹配
  * @author: 藤之内
  */
-class RouterPattern {
+class RouterPattern
+{
 
     private $method  = [];
     private $header  = [];
@@ -36,7 +36,8 @@ class RouterPattern {
      *
      * @param $url
      */
-    public function __construct($url) {
+    public function __construct($url)
+    {
         $this->url = $url;
     }
 
@@ -46,7 +47,8 @@ class RouterPattern {
      *
      * @return null|HandlerAdapter
      */
-    public function match(Request $request, $pathArray) {
+    public function match(Request $request, $pathArray)
+    {
 
         $urlArray = explode('/', $this->url);
         if (count($urlArray) != count($pathArray)) {
@@ -120,7 +122,8 @@ class RouterPattern {
      * @param $ctr
      * @param $method
      */
-    public function bindCtr($ctr, $method) {
+    public function bindCtr($ctr, $method)
+    {
         $this->handlerAdapter = new ControllerHandlerAdapter($ctr, $method);
     }
 
@@ -129,7 +132,8 @@ class RouterPattern {
      *
      * @param \Closure $closure
      */
-    public function toDo(\Closure $closure) {
+    public function toDo(\Closure $closure)
+    {
         $this->handlerAdapter = new ClosureHandlerAdapter($closure);
     }
 
@@ -140,7 +144,8 @@ class RouterPattern {
      *
      * @return $this
      */
-    public function ext($ext) {
+    public function ext($ext)
+    {
         $this->ext[] = $ext;
         return $this;
     }
@@ -152,7 +157,8 @@ class RouterPattern {
      *
      * @return $this
      */
-    public function extDeny($ext) {
+    public function extDeny($ext)
+    {
         $this->extDeny[] = $ext;
         return $this;
     }
@@ -164,7 +170,8 @@ class RouterPattern {
      *
      * @return $this
      */
-    public function https($https = true) {
+    public function https($https = true)
+    {
         $this->https = $https;
         return $this;
     }
@@ -173,7 +180,8 @@ class RouterPattern {
      * 匹配方法 get
      * @return $this
      */
-    public function get() {
+    public function get()
+    {
         $this->method[] = 'GET';
         return $this;
     }
@@ -183,7 +191,8 @@ class RouterPattern {
      * 匹配方法 post
      * @return $this
      */
-    public function post() {
+    public function post()
+    {
         $this->method[] = "POST";
         return $this;
     }
@@ -192,7 +201,8 @@ class RouterPattern {
      * 匹配方法 put
      * @return $this
      */
-    public function put() {
+    public function put()
+    {
         $this->method[] = "PUT";
         return $this;
     }
@@ -201,7 +211,8 @@ class RouterPattern {
      * 匹配方法 patch
      * @return $this
      */
-    public function delete() {
+    public function delete()
+    {
         $this->method[] = "DELETE";
         return $this;
     }
@@ -210,7 +221,8 @@ class RouterPattern {
      * 匹配方法 patch
      * @return $this
      */
-    public function patch() {
+    public function patch()
+    {
         $this->method[] = "PATCH";
         return $this;
     }
@@ -223,12 +235,14 @@ class RouterPattern {
      *
      * @return $this
      */
-    public function header($key, $value) {
+    public function header($key, $value)
+    {
         $this->header[ $key ] = $value;
         return $this;
     }
 
-    public function cache() {
+    public function cache()
+    {
         return $this;
     }
 
@@ -239,7 +253,8 @@ class RouterPattern {
      *
      * @return $this
      */
-    public function int($key) {
+    public function int($key)
+    {
         $this->int[] = $key;
         return $this;
     }
@@ -251,7 +266,8 @@ class RouterPattern {
      *
      * @return $this
      */
-    public function letters($key) {
+    public function letters($key)
+    {
         return $this;
     }
 
@@ -263,10 +279,9 @@ class RouterPattern {
      *
      * @return $this
      */
-    public function pattern($key, $pattern) {
+    public function pattern($key, $pattern)
+    {
         $this->pattern[ $key ] = $pattern;
         return $this;
     }
-
-
 }

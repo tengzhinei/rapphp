@@ -49,7 +49,6 @@ class CoroutineHttpClient implements HttpClient
         if ($cli->statusCode <0) {
             $code = $code = $cli->errCode;
             $body = socket_strerror($code);
-
         }
         $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
@@ -73,7 +72,6 @@ class CoroutineHttpClient implements HttpClient
         if ($cli->statusCode <0) {
             $code = $code = $cli->errCode;
             $body = socket_strerror($code);
-
         }
         $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
@@ -101,7 +99,6 @@ class CoroutineHttpClient implements HttpClient
         if ($cli->statusCode <0) {
             $code = $code = $cli->errCode;
             $body = socket_strerror($code);
-
         }
         $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
@@ -128,12 +125,9 @@ class CoroutineHttpClient implements HttpClient
         if ($cli->statusCode <0) {
             $code = $code = $cli->errCode;
             $body = socket_strerror($code);
-
         }
         $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
         return $response;
     }
-
-
 }

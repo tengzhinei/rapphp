@@ -1,38 +1,41 @@
 <?php
 
 namespace rap\aop;
-use rap\ioc\Ioc;
 
+use rap\ioc\Ioc;
 
 /**
  * AOP 拦截
+ * @SuppressWarnings(PHPMD)
  */
-class Aop {
 
-    const NuLL="Aop___NULL";
+class Aop
+{
+
+    const AOP_NULL = "Aop___NULL";
     /**
      * 所有前置拦截器
      * @var array
      */
-    static private $beforeActions = array();
+    private static $beforeActions = array();
 
     /**
      * 所有后置拦截器
      * @var array
      */
-    static private $afterActions = array();
+    private static $afterActions = array();
 
     /**
      * 所有包裹拦截器
      * @var array
      */
-    static private $aroundActions = array();
+    private static $aroundActions = array();
 
     /**
      * 计数用
      * @var int
      */
-    static private $range = 0;
+    private static $range = 0;
 
     /**
      * 包围时只能添加一个以最后一个为准
@@ -43,7 +46,8 @@ class Aop {
      * @param      $warpAction
      * @param null $call
      */
-    public static function around($clazz, $actions, $aroundClazz, $warpAction, $call = null) {
+    public static function around($clazz, $actions, $aroundClazz, $warpAction, $call = null)
+    {
         $actions = static::actionsBuild($actions);
         if (!isset(static::$aroundActions[ $clazz ])) {
             static::$aroundActions[ $clazz ] = array();
@@ -67,7 +71,8 @@ class Aop {
      * @param      $warpAction
      * @param null $call
      */
-    public static function before($clazz, $actions, $beforeClazz, $warpAction, $call = null) {
+    public static function before($clazz, $actions, $beforeClazz, $warpAction, $call = null)
+    {
         $actions = static::actionsBuild($actions);
         if (!isset(static::$beforeActions[ $clazz ])) {
             static::$beforeActions[ $clazz ] = array();
@@ -84,7 +89,8 @@ class Aop {
         static::$beforeActions[ $clazz ][ $actions[ 'type' ] ][] = $info;
     }
 
-    private static function actionsBuild($actions) {
+    private static function actionsBuild($actions)
+    {
         if (!array_key_exists('methods', $actions)) {
             $actions = array("type" => "only", "methods" => $actions);
         }
@@ -103,7 +109,8 @@ class Aop {
      * @param      $warpAction
      * @param null $call
      */
-    public static function after($clazz, $actions, $afterClazz, $warpAction, $call = null) {
+    public static function after($clazz, $actions, $afterClazz, $warpAction, $call = null)
+    {
         $actions = static::actionsBuild($actions);
         if (!isset(static::$afterActions[ $clazz ])) {
             static::$afterActions[ $clazz ] = array();
@@ -128,15 +135,33 @@ class Aop {
      *
      * @return array|null
      */
-    public static function getBeforeActions($clazz, $action) {
+    public static function getBeforeActions($clazz, $action)
+    {
         if (static::$beforeActions[ $clazz ]) {
             return static::buildActions(static::$beforeActions[ $clazz ], $action);
         }
         return null;
     }
 
-    private static function buildActions(&$wareactions, $action) {
+    private static function buildActions(&$wareactions, $action)
+    {
         $actions = array();
+        self::onlyAction($actions, $wareactions, $action);
+        self::exceptAction($actions, $wareactions, $action);
+        self::startAction($actions, $wareactions, $action);
+        self::endAction($actions, $wareactions, $action);
+        self::containsAction($actions, $wareactions, $action);
+        foreach ($actions as $val) {
+            $vals[] = $val[ 'range' ];
+        }
+        if ($actions) {
+            array_multisort($vals, $actions, SORT_ASC);
+        }
+        return $actions;
+    }
+
+    private static function onlyAction(&$actions, &$wareactions, $action)
+    {
         if (array_key_exists('only', $wareactions)) {
             $acs = $wareactions[ 'only' ];
             foreach ($acs as $ac) {
@@ -148,6 +173,10 @@ class Aop {
                 }
             }
         }
+    }
+
+    private static function exceptAction(&$actions, &$wareactions, $action)
+    {
         if (array_key_exists('except', $wareactions)) {
             $acs = $wareactions[ 'except' ];
             foreach ($acs as $ac) {
@@ -159,6 +188,10 @@ class Aop {
                 }
             }
         }
+    }
+
+    private static function startAction(&$actions, &$wareactions, $action)
+    {
         if (array_key_exists('start', $wareactions)) {
             $acs = $wareactions[ 'start' ];
             foreach ($acs as $ac) {
@@ -172,6 +205,11 @@ class Aop {
                 }
             }
         }
+    }
+
+
+    private static function endAction(&$actions, &$wareactions, $action)
+    {
         if (array_key_exists('end', $wareactions)) {
             $acs = $wareactions[ 'end' ];
             foreach ($acs as $ac) {
@@ -185,6 +223,10 @@ class Aop {
                 }
             }
         }
+    }
+
+    private static function containsAction(&$actions, &$wareactions, $action)
+    {
         if (array_key_exists('contains', $wareactions)) {
             $acs = $wareactions[ 'contains' ];
             foreach ($acs as $ac) {
@@ -198,15 +240,7 @@ class Aop {
                 }
             }
         }
-        foreach ($actions as $val) {
-            $vals[] = $val[ 'range' ];
-        }
-        if ($actions) {
-            array_multisort($vals, $actions, SORT_ASC);
-        }
-        return $actions;
     }
-
 
     /**
      * 获取某方法的所有的后置方法
@@ -216,7 +250,8 @@ class Aop {
      *
      * @return array|null
      */
-    public static function getAfterActions($clazz, $action) {
+    public static function getAfterActions($clazz, $action)
+    {
         if (static::$afterActions[ $clazz ]) {
             return static::buildActions(static::$afterActions[ $clazz ], $action);
         }
@@ -231,7 +266,8 @@ class Aop {
      *
      * @return array
      */
-    public static function getAroundActions($clazz, $action) {
+    public static function getAroundActions($clazz, $action)
+    {
         $actions = null;
         if (isset(static::$aroundActions[ $clazz ]) && static::$aroundActions[ $clazz ]) {
             $actions = static::buildActions(static::$aroundActions[ $clazz ], $action);
@@ -249,22 +285,26 @@ class Aop {
      *
      * @return bool
      */
-    public static function needWarp($bean) {
-        if (array_key_exists($bean, static::$beforeActions) || array_key_exists($bean, static::$afterActions) || array_key_exists($bean, static::$aroundActions)) {
+    public static function needWarp($bean)
+    {
+        if (array_key_exists($bean, static::$beforeActions) ||
+            array_key_exists($bean, static::$afterActions) ||
+            array_key_exists($bean, static::$aroundActions)) {
             return true;
         }
         return false;
     }
 
-    public static function warpBean($clazz, $name) {
+    public static function warpBean($clazz, $name)
+    {
         $who = $clazz;
         if (self::needWarp($name)) {
             $who = "rap\\aop\\build\\" . $clazz . "_PROXY";
-        } else if ($name != $clazz && self::needWarp($clazz)) {
+        } elseif ($name != $clazz && self::needWarp($clazz)) {
             $who = "rap\\aop\\build\\" . $clazz . "_PROXY";
         }
         $class = new \ReflectionClass($who);
-        if($class->isInterface()||$class->isAbstract()){
+        if ($class->isInterface() || $class->isAbstract()) {
             //接口和抽象类无法创建对象
             return null;
         }
@@ -272,7 +312,8 @@ class Aop {
         return $obj;
     }
 
-    private static function deleteAll($path) {
+    private static function deleteAll($path)
+    {
         if (!file_exists($path)) {
             return;
         }
@@ -287,11 +328,11 @@ class Aop {
             } else {
                 unlink($op->path . DS . $item);
             }
-
         }
     }
 
-    public static function init($version) {
+    public static function init($version)
+    {
         $file = str_replace(DS . "Aop.php", DS . "build" . DS . "build", __FILE__);
         if (file_exists($file)) {
             $content = file_get_contents($file);
@@ -308,13 +349,20 @@ class Aop {
     /**
      * 创建代理文件
      */
-    public static function buildProxy() {
+    public static function buildProxy()
+    {
         $dir = ROOT_PATH . 'aop';
         self::deleteAll($dir);
         if (!file_exists($dir)) {
             mkdir($dir, 0777, true);
         }
-        $clazzs = array_unique(array_merge(array_keys(static::$beforeActions), array_keys(static::$afterActions), array_keys(static::$aroundActions)));
+        $clazzs = array_unique(
+            array_merge(
+                array_keys(static::$beforeActions),
+                array_keys(static::$afterActions),
+                array_keys(static::$aroundActions)
+            )
+        );
         foreach ($clazzs as $aop_clazz) {
             $clazz = Ioc::getRealClass($aop_clazz);
             $reflection = new \ReflectionClass($clazz);
@@ -327,68 +375,78 @@ class Aop {
             $methods = $aop_reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
             $methodsStr = "";
 
-            /* @var $method \ReflectionMethod */
-            foreach ($methods as $method) {
-                if ($method->getName() == '_initialize' || $method->getName() == '_prepared') {
-                    continue;
-                }
-                $around = self::getAroundActions($aop_clazz, $method->getName());
-                $after = self::getAfterActions($aop_clazz, $method->getName());
-                $before = self::getBeforeActions($aop_clazz, $method->getName());
-                if (!$around && !$after && !$before) {
-                    continue;
-                }
-                $methodName = $method->getName();
-                $BeanClazz = "'" . $aop_clazz . "'";
-                $methodArgs = "";
-                $pointArgs = "";
-                $index = 0;
-                $params = $method->getParameters();
-                $names = [];
 
-                /* @var $param   \ReflectionParameter */
-                foreach ($params as $param) {
-                    if ($methodArgs) {
-                        $methodArgs .= ",";
-                        $pointArgs .= ",";
-                    }
-                    $paramClazz = $param->getClass();
-                    $names[] = '"' . $param->getName() . '"';
-                    if ($paramClazz) {
-                        $methodArgs .= "\\" . $paramClazz->getName() . " ";
-                    }
-                    $methodArgs .= "$" . $param->getName() . " ";
+            $methodsStr = self::buildMethods($methods, $aop_clazz, $isInterface, $methodsStr);
 
-                    if ($param->isDefaultValueAvailable()) {
-                        $value = $param->getDefaultValue();
-                        $isStr = gettype($value) == "string";
-                        $isArray = gettype($value) == "array";
-                        $methodArgs .= "=";
-                        if ($value === null) {
-                            $methodArgs .= 'null';
-                        }else if ($value === false){
-                            $methodArgs .= 'false';
-                        }  else {
-                            if($isArray){
-                                $methodArgs .= "[]";
-                            }else{
-                                if ($isStr) {
-                                    $methodArgs .= "\"";
-                                }
-                                $methodArgs .= $param->getDefaultValue();
-                                if ($isStr) {
-                                    $methodArgs .= "\"";
-                                }
-                            }
+            $extend_implements = $isInterface ? 'implements' : 'extends';
 
-                        }
-                    }
-                    $pointArgs .= "\$pointArgs[" . $index . "]";
-                    $index++;
-                }
-                $names = '[' . implode(',', $names) . ']';
-                $call_parent=$isInterface?'false':"parent::$methodName($pointArgs)";
-                $methodItem = <<<EOF
+
+            $clazzStr = <<<EOF
+<?php
+namespace rap\aop\build$nameSpace;
+use rap\aop\Aop;
+use rap\aop\JoinPoint;
+use rap\ioc\Ioc;
+class $clazzSimpleName $extend_implements $clazzExtend{
+         $methodsStr
+}
+EOF;
+
+            $file_dir = $dir . str_replace("\\", DS, $nameSpace);
+            if (!file_exists($file_dir)) {
+                mkdir($file_dir, 0777, true);
+            }
+            $path = $file_dir . "/" . $clazzSimpleName . ".php";
+            $file = fopen($path, "w");
+            fwrite($file, $clazzStr);
+        }
+    }
+
+    public static function buildProxyMethods()
+    {
+    }
+
+
+    public static function clear()
+    {
+        $dir = ROOT_PATH . 'aop';
+        self::deleteAll($dir);
+    }
+
+    /**
+     * @param $methods
+     * @param $aop_clazz
+     * @param $isInterface
+     * @param $methodsStr
+     * @SuppressWarnings(PHPMD)
+     * @return string
+     */
+    private static function buildMethods($methods, $aop_clazz, $isInterface, $methodsStr):string
+    {
+        /* @var $method \ReflectionMethod */
+        foreach ($methods as $method) {
+            if ($method->getName() == '_initialize' || $method->getName() == '_prepared') {
+                continue;
+            }
+            $around = self::getAroundActions($aop_clazz, $method->getName());
+            $after = self::getAfterActions($aop_clazz, $method->getName());
+            $before = self::getBeforeActions($aop_clazz, $method->getName());
+            if (!$around && !$after && !$before) {
+                continue;
+            }
+            $methodName = $method->getName();
+            $BeanClazz = "'" . $aop_clazz . "'";
+            $methodArgs = "";
+            $pointArgs = "";
+            $index = 0;
+            $params = $method->getParameters();
+            $names = [];
+            list($methodArgs, $pointArgs, $names) = self::buildParams($params, $methodArgs, $pointArgs, $names, $index);
+
+
+            $names = '[' . implode(',', $names) . ']';
+            $call_parent = $isInterface ? 'false' : "parent::$methodName($pointArgs)";
+            $methodItem = <<<EOF
         public function $methodName($methodArgs){
              \$names=$names;   
              
@@ -494,37 +552,75 @@ class Aop {
         }
 
 EOF;
-                $methodsStr .= $methodItem;
-            }
-
-            $extend_implements=$isInterface?'implements':'extends';
-
-
-            $clazzStr = <<<EOF
-<?php
-namespace rap\aop\build$nameSpace;
-use rap\aop\Aop;
-use rap\aop\JoinPoint;
-use rap\ioc\Ioc;
-class $clazzSimpleName $extend_implements $clazzExtend{
-         $methodsStr
-}
-EOF;
-
-            $file_dir = $dir . str_replace("\\", DS, $nameSpace);
-            if (!file_exists($file_dir)) {
-                mkdir($file_dir, 0777, true);
-            }
-            $path = $file_dir . "/" . $clazzSimpleName . ".php";
-            $file = fopen($path, "w");
-            fwrite($file, $clazzStr);
+            $methodsStr .= $methodItem;
         }
-
+        return $methodsStr;
     }
 
-    public static function clear() {
-        $dir = ROOT_PATH . 'aop';
-        self::deleteAll($dir);
+    /**
+     * @param $params
+     * @param $methodArgs
+     * @param $pointArgs
+     * @param $names
+     * @param $index
+     *
+     * @return array
+     */
+    private static function buildParams($params, $methodArgs, $pointArgs, $names, $index):array
+    {
+        /* @var $param   \ReflectionParameter */
+        foreach ($params as $param) {
+            if ($methodArgs) {
+                $methodArgs .= ",";
+                $pointArgs .= ",";
+            }
+            $paramClazz = $param->getClass();
+            $names[] = '"' . $param->getName() . '"';
+            if ($paramClazz) {
+                $methodArgs .= "\\" . $paramClazz->getName() . " ";
+            }
+            $methodArgs .= "$" . $param->getName() . " ";
+
+            if ($param->isDefaultValueAvailable()) {
+                $methodArgs = self::buildParamsDefault($methodArgs, $param);
+            }
+            $pointArgs .= "\$pointArgs[" . $index . "]";
+            $index++;
+        }
+        return array($methodArgs, $pointArgs, $names);
     }
 
+    /**
+     * @param $methodArgs
+     * @param $param   \ReflectionParameter
+     *
+     * @return string
+     */
+    private static function buildParamsDefault($methodArgs, $param):string
+    {
+        $value = $param->getDefaultValue();
+        $isStr = gettype($value) == "string";
+        $isArray = gettype($value) == "array";
+        $methodArgs .= "=";
+        if ($value === null) {
+            $methodArgs .= 'null';
+            return $methodArgs;
+        } elseif ($value === false) {
+            $methodArgs .= 'false';
+            return $methodArgs;
+        } elseif ($isArray) {
+            $methodArgs .= "[]";
+            return $methodArgs;
+        } else {
+            if ($isStr) {
+                $methodArgs .= "\"";
+            }
+            $methodArgs .= $param->getDefaultValue();
+            if ($isStr) {
+                $methodArgs .= "\"";
+                return $methodArgs;
+            }
+            return $methodArgs;
+        }
+    }
 }

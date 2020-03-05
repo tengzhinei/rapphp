@@ -8,25 +8,28 @@
 
 namespace rap\swoole\web;
 
-
 use rap\storage\File;
 use rap\web\Request;
 
-class SwooleRequest extends Request {
+class SwooleRequest extends Request
+{
 
     private $swooleRequest;
 
-    public function swoole($request) {
+    public function swoole($request)
+    {
         $this->swooleRequest = $request;
     }
 
 
-    public function method() {
+    public function method()
+    {
         return $this->swooleRequest->server[ 'request_method' ];
     }
 
 
-    public function get($name = '', $default = null, $filter = null) {
+    public function get($name = '', $default = null, $filter = null)
+    {
         $value = $this->swooleRequest->get;
         if ($name) {
             $value = $value[ $name ];
@@ -43,7 +46,8 @@ class SwooleRequest extends Request {
      *
      * @return mixed|null
      */
-    public function post($name = '', $default = null, $filter = null) {
+    public function post($name = '', $default = null, $filter = null)
+    {
         $value = $this->swooleRequest->post;
         if ($name) {
             $value = $value[ $name ];
@@ -51,7 +55,8 @@ class SwooleRequest extends Request {
         return $this->value($value, $default, $filter);
     }
 
-    public function body() {
+    public function body()
+    {
         return $this->swooleRequest->rawContent();
     }
 
@@ -64,7 +69,8 @@ class SwooleRequest extends Request {
      *
      * @return mixed|null
      */
-    public function server($name = "", $default = null, $filter = null) {
+    public function server($name = "", $default = null, $filter = null)
+    {
         if (empty($this->server)) {
             $this->server = $this->swooleRequest->server;
         }
@@ -77,7 +83,8 @@ class SwooleRequest extends Request {
     }
 
 
-    public function header($name = '', $default = null, $filter = null) {
+    public function header($name = '', $default = null, $filter = null)
+    {
         if (empty($this->header)) {
             $header = array_change_key_case($this->swooleRequest->header);
             $this->header = array_change_key_case($header);
@@ -92,7 +99,8 @@ class SwooleRequest extends Request {
     }
 
 
-    public function url() {
+    public function url()
+    {
         if (!$this->url) {
             $this->url = $this->swooleRequest->server[ 'request_uri' ];
             $query_string = $this->swooleRequest->server[ 'query_string' ];
@@ -104,17 +112,22 @@ class SwooleRequest extends Request {
     }
 
 
-    public function time($float = false) {
-        return $float ? $this->swooleRequest->server[ 'request_time' ] : $this->swooleRequest->server[ 'request_time_float' ];
+    public function time($float = false)
+    {
+        return $float ?
+                $this->swooleRequest->server[ 'request_time' ]
+                : $this->swooleRequest->server[ 'request_time_float' ];
     }
 
-    public function file($name) {
+    public function file($name)
+    {
         $upload_file = $this->swooleRequest->files[ $name ];
         return File::fromRequest($upload_file);
     }
 
 
-    public function files($name) {
+    public function files($name)
+    {
         $upload_file = $this->swooleRequest->files[ $name ];
         $files = [];
         foreach ($upload_file[ 'name' ] as $index => $name) {
@@ -132,7 +145,8 @@ class SwooleRequest extends Request {
     }
 
 
-    public function cookie($name = "", $default = '') {
+    public function cookie($name = "", $default = '')
+    {
         if (!$name) {
             return $this->swooleRequest->cookie;
         }
@@ -142,7 +156,4 @@ class SwooleRequest extends Request {
         }
         return $value;
     }
-
-
-
 }

@@ -13,8 +13,10 @@ use rap\web\Response;
  * Date: 18/4/11
  * Time: 上午11:28
  */
-class ApiExceptionHandler implements ExceptionHandler {
-    function handler(Request $request, Response $response, \Exception $exception) {
+class ApiExceptionHandler implements ExceptionHandler
+{
+    public function handler(Request $request, Response $response, \Exception $exception)
+    {
 
         if ($exception instanceof ErrorException) {
             $exception = $exception->error;
@@ -22,7 +24,9 @@ class ApiExceptionHandler implements ExceptionHandler {
         $code = '101010';
         $msg = $exception->getMessage();
         if (!($exception instanceof MsgException)) {
-            $msg .= "  |" . str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
+            $msg .= "  |" . str_replace("rap\\exception\\", "", get_class($exception))
+                . " in " . str_replace(ROOT_PATH, "", $exception->getFile())
+                . " line " . $exception->getLine();
             Log::error('http request error handler :' . $exception->getCode() . ' : ' . $msg);
         } else {
             $code = $exception->getCode();
@@ -33,8 +37,5 @@ class ApiExceptionHandler implements ExceptionHandler {
                               'msg' => $msg]);
         $response->setContent($value);
         $response->send();
-
     }
-
-
 }

@@ -8,10 +8,10 @@
 
 namespace rap\db;
 
-
 use rap\swoole\pool\Pool;
 
-class Select extends Where {
+class Select extends Where
+{
 
     use Comment;
 
@@ -47,11 +47,12 @@ class Select extends Where {
      *
      * @return Select
      */
-    public static function table($table, $connection_name = '') {
+    public static function table($table, $connection_name = '')
+    {
         $select = new Select();
         $select->table = $table;
-        $ts =  explode(' ',$table);
-        if(count($ts)==2){
+        $ts =  explode(' ', $table);
+        if (count($ts)==2) {
             $select->as_table=$ts[1];
         }
         if ($connection_name) {
@@ -70,7 +71,8 @@ class Select extends Where {
      *
      * @return $this
      */
-    public function fields($field, $tableName = '', $alias = '') {
+    public function fields($field, $tableName = '', $alias = '')
+    {
         if (empty($field)) {
             return $this;
         }
@@ -98,7 +100,8 @@ class Select extends Where {
      *
      * @return $this
      */
-    public function join($join, $condition = null, $type = 'LEFT') {
+    public function join($join, $condition = null, $type = 'LEFT')
+    {
         $this->joins[] = ['join' => $join,
                           'condition' => $condition,
                           'type' => $type];
@@ -110,7 +113,8 @@ class Select extends Where {
     /**
      * DISTINCT
      */
-    public function distinct() {
+    public function distinct()
+    {
         $this->distinct = " DISTINCT";
         return $this;
     }
@@ -124,7 +128,8 @@ class Select extends Where {
      *
      * @return $this
      */
-    public function having($having) {
+    public function having($having)
+    {
         if ($having instanceof Where) {
             $sql = $having->whereChildSql();
             $this->having_params = $having->whereParams();
@@ -148,7 +153,8 @@ class Select extends Where {
      *
      * @return $this
      */
-    public function group($group) {
+    public function group($group)
+    {
         $this->group = !empty($group) ? ' GROUP BY ' . $group : '';
         return $this;
     }
@@ -159,7 +165,8 @@ class Select extends Where {
      * prepare
      * @return array
      */
-    public function prepare() {
+    public function prepare()
+    {
         $sql = $this->getSql();
         $params = array_merge($this->whereParams(), $this->having_params);
         return [$sql, $params];
@@ -174,7 +181,8 @@ class Select extends Where {
      *
      * @return $this
      */
-    public function allDo($all_do) {
+    public function allDo($all_do)
+    {
         $this->all_do = array_merge($this->all_do, explode(',', $all_do));
         return $this;
     }
@@ -188,7 +196,8 @@ class Select extends Where {
      *
      * @return $this
      */
-    public function each(\Closure $each) {
+    public function each(\Closure $each)
+    {
         $this->each[] = $each;
         return $this;
     }
@@ -198,7 +207,8 @@ class Select extends Where {
      * 渲染Const的数据
      * @return $this
      */
-    public function renderConst() {
+    public function renderConst()
+    {
         $this->allDo("renderConst");
         return $this;
     }
@@ -208,14 +218,15 @@ class Select extends Where {
      * @return array
      * @throws \Error
      */
-    public function findAll() {
+    public function findAll()
+    {
         $sql = $this->getSql();
         $params = array_merge($this->whereParams(), $this->having_params);
         /* @var $connection Connection  */
         $connection = Pool::get($this->connection_name);
         try {
             $data = $connection->query($sql, $params, $this->cache);
-        }  finally {
+        } finally {
             Pool::release($connection);
         }
 
@@ -299,7 +310,8 @@ class Select extends Where {
      *
      * @return $this
      */
-    public function setRecord($class) {
+    public function setRecord($class)
+    {
         $this->clazz = $class;
         return $this;
     }
@@ -316,7 +328,8 @@ class Select extends Where {
      *
      * @return $this
      */
-    public function setSubRecord($field, $pre, $class, \Closure $all_do = null) {
+    public function setSubRecord($field, $pre, $class, \Closure $all_do = null)
+    {
         $this->subRecord[ $pre ] = ['class' => $class,
                                     'field' => $field,
                                     'all_do' => $all_do];
@@ -327,7 +340,8 @@ class Select extends Where {
      * 获取sql
      * @return string
      */
-    private function getSql() {
+    private function getSql()
+    {
         $sql = str_replace(['%TABLE%',
                             '%DISTINCT%',
                             '%FIELD%',
@@ -363,7 +377,8 @@ class Select extends Where {
      *
      * @return $this
      */
-    public function force($index) {
+    public function force($index)
+    {
         $this->force = sprintf(" FORCE INDEX ( %s ) ", $index);
         return $this;
     }
@@ -372,7 +387,8 @@ class Select extends Where {
      * 查找一条
      * @return mixed|null
      */
-    public function find() {
+    public function find()
+    {
         $this->limit(1);
         $list = $this->findAll();
         if ($list) {
@@ -389,7 +405,8 @@ class Select extends Where {
      *
      * @return array
      */
-    public function page($page = 1, $step = 20) {
+    public function page($page = 1, $step = 20)
+    {
         $start = ($page - 1) * $step;
         $this->limit($start, $step);
         $data = $this->findAll();
@@ -404,7 +421,8 @@ class Select extends Where {
      * @return null|string
      * @throws \Error
      */
-    public function value($field) {
+    public function value($field)
+    {
         $this->fields = [];
         $this->order("");
         $this->fields($field);
@@ -412,12 +430,11 @@ class Select extends Where {
 
         $connection = Pool::get($this->connection_name);
         try {
-
             /* @var $connection Connection  */
             $value = $connection->value($this->getSql(), $this->whereParams(), $this->cache);
 
             return $value;
-        }finally {
+        } finally {
             Pool::release($connection);
         }
     }
@@ -430,7 +447,8 @@ class Select extends Where {
      * @return array|null
      * @throws \Error
      */
-    public function values($field) {
+    public function values($field)
+    {
         $this->fields = [];
         $this->order("");
         $this->fields($field);
@@ -438,7 +456,7 @@ class Select extends Where {
         try {
             $values = $connection->values($this->getSql(), $this->whereParams(), $this->cache);
             return $values;
-        } finally{
+        } finally {
             Pool::release($connection);
         }
     }
@@ -449,7 +467,8 @@ class Select extends Where {
      * 开启二级缓存
      * @return $this
      */
-    public function cache() {
+    public function cache()
+    {
         $this->cache = true;
         return $this;
     }
@@ -461,7 +480,8 @@ class Select extends Where {
      *
      * @return int
      */
-    public function count($field = '*') {
+    public function count($field = '*')
+    {
         return (int)$this->value('COUNT(' . $field . ') AS count');
     }
 
@@ -472,7 +492,8 @@ class Select extends Where {
      *
      * @return int
      */
-    public function sum($field) {
+    public function sum($field)
+    {
         return (int)$this->value('SUM(' . $field . ') AS count');
     }
 
@@ -483,7 +504,8 @@ class Select extends Where {
      *
      * @return int
      */
-    public function max($field) {
+    public function max($field)
+    {
         return (int)$this->value('MAX(' . $field . ') AS count');
     }
 
@@ -494,7 +516,8 @@ class Select extends Where {
      *
      * @return int
      */
-    public function min($field) {
+    public function min($field)
+    {
         return (int)$this->value('MIN(' . $field . ') AS count');
     }
 
@@ -505,7 +528,8 @@ class Select extends Where {
      *
      * @return int
      */
-    public function avg($field) {
+    public function avg($field)
+    {
         return (int)$this->value('AVG(' . $field . ') AS count');
     }
 
@@ -513,7 +537,8 @@ class Select extends Where {
      * 解析字段
      * @return string
      */
-    private function parseField() {
+    private function parseField()
+    {
         $fieldsStr = "*";
         if ($this->fields) {
             $fieldsStr = implode(',', $this->fields);
@@ -525,7 +550,8 @@ class Select extends Where {
      * 分析join
      * @return string
      */
-    private function parseJoin() {
+    private function parseJoin()
+    {
         $joinStr = '';
         foreach ($this->joins as $join) {
             $joinStr .= ' ' . $join[ 'type' ] . ' join ' . $join[ 'join' ] . ' on ' . $join[ 'condition' ];
@@ -545,7 +571,8 @@ class Select extends Where {
      *
      * @return Select
      */
-    public function toArray($key, $contain = true) {
+    public function toArray($key, $contain = true)
+    {
         $this->to_array = $key;
         $this->to_array_contain = $contain;
         return $this;
@@ -554,16 +581,17 @@ class Select extends Where {
     /***
      *
      */
-    public function noDeleted(){
-        if($this->clazz){
+    public function noDeleted()
+    {
+        if ($this->clazz) {
             //没有软删除
-            if(!property_exists($this->clazz, 'delete_time')){
+            if (!property_exists($this->clazz, 'delete_time')) {
                 return $this;
             }
         }
-        if($this->as_table){
-            return $this->where($this->as_table.'.delete_time','null') ;
+        if ($this->as_table) {
+            return $this->where($this->as_table.'.delete_time', 'null') ;
         }
-        return $this->where('delete_time','null') ;
+        return $this->where('delete_time', 'null') ;
     }
 }

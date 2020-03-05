@@ -9,12 +9,10 @@
 
 namespace rap\rpc;
 
-
-trait RpcSTATUS {
+trait RpcSTATUS
+{
 
     public $FUSE_STATUS     = 3;
     public $FUSE_FAIL_COUNT = 0;
     public $FUSE_OPEN_TIME;
-
-
 }

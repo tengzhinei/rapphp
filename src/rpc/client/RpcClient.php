@@ -3,7 +3,6 @@ namespace rap\rpc\client;
 
 use rap\swoole\pool\PoolAble;
 
-
 /**
  * User: jinghao@duohuo.net
  * Date: 18/12/7
@@ -11,7 +10,8 @@ use rap\swoole\pool\PoolAble;
  * Link:  http://magapp.cc
  * Copyright:南京灵衍信息科技有限公司
  */
-interface RpcClient extends PoolAble {
+interface RpcClient extends PoolAble
+{
 
 
     /**
@@ -23,8 +23,7 @@ interface RpcClient extends PoolAble {
      * @param $header      array 参数
      * @return mixed
      */
-    public function query($interface, $method, $data,$header=[]);
+    public function query($interface, $method, $data, $header = []);
 
     public function fuseConfig();
-
 }

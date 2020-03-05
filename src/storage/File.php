@@ -8,8 +8,8 @@
 
 namespace rap\storage;
 
-
-class File {
+class File
+{
 
     public $name     = "";
     public $type     = "";
@@ -18,7 +18,8 @@ class File {
     public $error    = "";
     public $ext      = "";
 
-    public static function fromRequest($upload_file) {
+    public static function fromRequest($upload_file)
+    {
         $file = new File();
         $file->name = $upload_file[ 'name' ];
         $file->type = $upload_file[ 'type' ];
@@ -35,7 +36,8 @@ class File {
      * @access public
      * @return string
      */
-    public function getMime() {
+    public function getMime()
+    {
         $f_info = finfo_open(FILEINFO_MIME_TYPE);
         return finfo_file($f_info, $this->path_tmp);
     }
@@ -44,7 +46,8 @@ class File {
      * 检测是否合法的上传文件
      * @return bool
      */
-    public function isValid() {
+    public function isValid()
+    {
         return true;
     }
 }

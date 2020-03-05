@@ -8,7 +8,6 @@
 
 namespace rap\log;
 
-
 use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\RotatingFileHandler;
 use Monolog\Logger;
@@ -21,7 +20,8 @@ use rap\swoole\Context;
  * 日志服务
  * @author: 藤之内
  */
-class Log {
+class Log
+{
 
 
     /**
@@ -29,7 +29,8 @@ class Log {
      *
      * @return LoggerInterface
      */
-    public static function getLog($name = LoggerInterface::class) {
+    public static function getLog($name = LoggerInterface::class)
+    {
         /* @var LoggerInterface */
         $logger = Ioc::getInstance($name);
         if (!$logger) {
@@ -42,7 +43,7 @@ class Log {
             $handler = new RotatingFileHandler(RUNTIME . 'log/log.log', $log_config[ 'max' ], $log_config[ 'level' ]);
             $handler->setFormatter(new JsonFormatter());
             $logger->pushHandler($handler);
-            $handler->pushProcessor(function($record) {
+            $handler->pushProcessor(function ($record) {
                 $record[ 'extra' ][ 'user_id' ] = Context::userId();
                 $request = request();
                 if ($request) {
@@ -64,11 +65,12 @@ class Log {
      * @param string $message 日志内容
      * @param array  $context 上下文
      */
-    public static function debug($message, array $context = array()) {
+    public static function debug($message, array $context = array())
+    {
         if (!is_string($message)) {
             $message = json_encode($message);
-            if(strlen($message)>300){
-                $message=substr($message,0,300);
+            if (strlen($message)>300) {
+                $message=substr($message, 0, 300);
             }
         }
         self::getLog()->debug($message, $context);
@@ -83,11 +85,12 @@ class Log {
      * @param string $message 日志内容
      * @param array  $context 上下文
      */
-    public static function info($message, array $context = array()) {
+    public static function info($message, array $context = array())
+    {
         if (!is_string($message)) {
             $message = json_encode($message);
-            if(strlen($message)>300){
-                $message=substr($message,0,300);
+            if (strlen($message)>300) {
+                $message=substr($message, 0, 300);
             }
         }
         self::getLog()->info($message, $context);
@@ -100,11 +103,12 @@ class Log {
      * @param string $message 日志内容
      * @param array  $context 上下文
      */
-    public static function notice($message, array $context = array()) {
+    public static function notice($message, array $context = array())
+    {
         if (!is_string($message)) {
             $message = json_encode($message);
-            if(strlen($message)>300){
-                $message=substr($message,0,300);
+            if (strlen($message)>300) {
+                $message=substr($message, 0, 300);
             }
         }
         self::getLog()->notice($message, $context);
@@ -119,11 +123,12 @@ class Log {
      * @param string $message 日志内容
      * @param array  $context 上下文
      */
-    public static function warning($message, array $context = array()) {
+    public static function warning($message, array $context = array())
+    {
         if (!is_string($message)) {
             $message = json_encode($message);
-            if(strlen($message)>300){
-                $message=substr($message,0,300);
+            if (strlen($message)>300) {
+                $message=substr($message, 0, 300);
             }
         }
         self::getLog()->warning($message, $context);
@@ -136,11 +141,12 @@ class Log {
      * @param string $message 日志内容
      * @param array  $context 上下文
      */
-    public static function error($message, array $context = array()) {
+    public static function error($message, array $context = array())
+    {
         if (!is_string($message)) {
             $message = json_encode($message);
-            if(strlen($message)>300){
-                $message=substr($message,0,300);
+            if (strlen($message)>300) {
+                $message=substr($message, 0, 300);
             }
         }
         self::getLog()->error($message, $context);
@@ -154,11 +160,12 @@ class Log {
      * @param string $message 日志内容
      * @param array  $context 上下文
      */
-    public static function critical($message, array $context = array()) {
+    public static function critical($message, array $context = array())
+    {
         if (!is_string($message)) {
             $message = json_encode($message);
-            if(strlen($message)>300){
-                $message=substr($message,0,300);
+            if (strlen($message)>300) {
+                $message=substr($message, 0, 300);
             }
         }
         self::getLog()->critical($message, $context);
@@ -173,11 +180,12 @@ class Log {
      * @param string $message 日志内容
      * @param array  $context 上下文
      */
-    public static function alert($message, array $context = array()) {
+    public static function alert($message, array $context = array())
+    {
         if (!is_string($message)) {
             $message = json_encode($message);
-            if(strlen($message)>300){
-                $message=substr($message,0,300);
+            if (strlen($message)>300) {
+                $message=substr($message, 0, 300);
             }
         }
         self::getLog()->alert($message, $context);
@@ -190,14 +198,14 @@ class Log {
      * @param       $message
      * @param array $context 上下文
      */
-    public static function emergency($message, array $context = array()) {
+    public static function emergency($message, array $context = array())
+    {
         if (!is_string($message)) {
             $message = json_encode($message);
-            if(strlen($message)>300){
-                $message=substr($message,0,300);
+            if (strlen($message)>300) {
+                $message=substr($message, 0, 300);
             }
         }
         self::getLog()->emergency($message, $context);
     }
-
 }

@@ -1,12 +1,14 @@
 <?php
 namespace rap\cache;
+
 /**
  * 南京灵衍信息科技有限公司
  * User: jinghao@duohuo.net
  * Date: 17/9/6
  * Time: 上午10:19
  */
-interface CacheInterface {
+interface CacheInterface
+{
     /**
      * 设置缓存
      *
@@ -97,6 +99,5 @@ interface CacheInterface {
      * @param int $ttl 过期时间单位 s
      * @return mixed
      */
-    public function expire($key,$ttl);
-
+    public function expire($key, $ttl);
 }

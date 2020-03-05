@@ -8,6 +8,7 @@ namespace rap\ioc\scope;
  * Interface PrototypeScope
  * @package rap\ioc\scope
  */
-interface PrototypeScope {
+interface PrototypeScope
+{
 
 }

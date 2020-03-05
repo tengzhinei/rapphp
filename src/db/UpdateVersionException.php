@@ -3,9 +3,9 @@
 
 namespace rap\db;
 
-
 use rap\exception\MsgException;
 
-class UpdateVersionException extends MsgException {
+class UpdateVersionException extends MsgException
+{
 
 }

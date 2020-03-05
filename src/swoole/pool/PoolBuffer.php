@@ -9,10 +9,10 @@
 
 namespace rap\swoole\pool;
 
-
 use rap\ioc\Ioc;
 
-class PoolBuffer {
+class PoolBuffer
+{
 
     public $className;
 
@@ -25,11 +25,13 @@ class PoolBuffer {
 
     public $is_use;
 
-    function __construct($className) {
+    public function __construct($className)
+    {
         $this->className = $className;
     }
 
-    public function get() {
+    public function get()
+    {
         if (!$this->bean) {
             $this->bean = Ioc::beanCreate($this->className);
             $this->bean->_poolBuffer_ = $this;
@@ -40,10 +42,9 @@ class PoolBuffer {
         return $this->bean;
     }
 
-    public function active() {
+    public function active()
+    {
         $this->lastActiveTime = time();
         $this->is_use = false;
     }
-
-
 }

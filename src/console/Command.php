@@ -7,20 +7,22 @@
  */
 
 namespace rap\console;
+
 use rap\aop\Event;
 use rap\ServerEvent;
 
 /**
  * 命令
  */
-abstract class Command {
+abstract class Command
+{
     /**
      * @var string
      */
-    var $name   = "";
-    var $asName = "";
-    var $des    = "";
-    var $params = [];
+    public $name   = "";
+    public $asName = "";
+    public $des    = "";
+    public $params = [];
 
     /**
      * 名称
@@ -29,7 +31,8 @@ abstract class Command {
      *
      * @return mixed
      */
-    public function name($name = "") {
+    public function name($name = "")
+    {
         if (!$name) {
             return $this->name;
         }
@@ -44,7 +47,8 @@ abstract class Command {
      *
      * @return $this
      */
-    public function asName($name) {
+    public function asName($name)
+    {
         $this->asName = $name;
         return $this;
     }
@@ -56,7 +60,8 @@ abstract class Command {
      *
      * @return $this
      */
-    public function des($des) {
+    public function des($des)
+    {
         $this->des = $des;
         return $this;
     }
@@ -71,7 +76,8 @@ abstract class Command {
      *
      * @return $this
      */
-    public function param($name, $opt, $des, $default) {
+    public function param($name, $opt, $des, $default)
+    {
         $param = ['name' => $name,
                   'opt' => $opt,
                   'des' => $des,
@@ -84,17 +90,20 @@ abstract class Command {
      * 设置配置信息
      * @return mixed
      */
-    public abstract function configure();
+    abstract public function configure();
 
     /**
      * 打印帮助信息
      */
-    public function help() {
+    public function help()
+    {
         $this->writeln("");
         $this->writeln($this->name . "  " . $this->asName);
         $this->writeln("参数说明");
         foreach ($this->params as $param) {
-            $this->writeln("     -" . $param[ 'name' ] . ' ' . $param[ 'des' ] . ' ' . ($param[ 'opt' ] ? '可选' : '必选') . ($param[ 'default' ] ? (' 默认:' . $param[ 'default' ]) : ''));
+            $this->writeln("     -" . $param[ 'name' ] . ' ' . $param[ 'des' ]
+                . ' ' . ($param[ 'opt' ] ? '可选' : '必选')
+                . ($param[ 'default' ] ? (' 默认:' . $param[ 'default' ]) : ''));
         }
         $this->writeln("描述");
         $this->writeln($this->des);
@@ -107,7 +116,8 @@ abstract class Command {
      *
      * @param $msg
      */
-    protected function writeln($msg) {
+    protected function writeln($msg)
+    {
         echo "  " . $msg;
         echo "\n";
     }
@@ -115,7 +125,8 @@ abstract class Command {
     /**
      * 完成需要在 worker 进程中完成的初始化
      */
-    public function initWork(){
+    public function initWork()
+    {
         Event::trigger(ServerEvent::onServerWorkStart);
     }
 }

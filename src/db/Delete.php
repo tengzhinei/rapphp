@@ -8,10 +8,10 @@
 
 namespace rap\db;
 
-
 use rap\swoole\pool\Pool;
 
-class Delete extends Where {
+class Delete extends Where
+{
     use Comment;
     /**
      * 表
@@ -31,7 +31,8 @@ class Delete extends Where {
      *
      * @return Delete
      */
-    public static function table($table, $connection_name = '') {
+    public static function table($table, $connection_name = '')
+    {
         $delete = new Delete();
         $delete->table = $table;
         if ($connection_name) {
@@ -45,7 +46,8 @@ class Delete extends Where {
      * @return int
      * @throws \Error
      */
-    public function excuse() {
+    public function excuse()
+    {
         $search = ['%TABLE%', '%WHERE%', '%ORDER%', '%LIMIT%', '%LOCK%', '%COMMENT%'];
         $sql = str_replace($search, [$this->table,
                                      $this->whereSql(),
@@ -58,7 +60,7 @@ class Delete extends Where {
             $connection->execute($sql, $this->whereParams());
             $count = $connection->rowCount();
             return $count;
-        }finally{
+        } finally {
             Pool::release($connection);
         }
     }
@@ -72,7 +74,8 @@ class Delete extends Where {
      *
      * @return int
      */
-    public static function delete($table, $where, $connection_name = '') {
+    public static function delete($table, $where, $connection_name = '')
+    {
         $delete = Delete::table($table, $connection_name);
         if (is_array($where)) {
             foreach ($where as $field => $value) {
@@ -83,5 +86,4 @@ class Delete extends Where {
         }
         return $delete->excuse();
     }
-
 }

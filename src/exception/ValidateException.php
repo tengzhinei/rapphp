@@ -8,7 +8,7 @@
 
 namespace rap\exception;
 
-
-class ValidateException extends MsgException{
+class ValidateException extends MsgException
+{
 
 }

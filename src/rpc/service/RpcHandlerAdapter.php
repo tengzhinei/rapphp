@@ -16,7 +16,8 @@ use rap\web\Response;
  * Link:  http://magapp.cc
  * Copyright:南京灵衍信息科技有限公司
  */
-class RpcHandlerAdapter extends HandlerAdapter {
+class RpcHandlerAdapter extends HandlerAdapter
+{
 
 
     private $config = ['path' => '/rpc_____call',
@@ -25,13 +26,15 @@ class RpcHandlerAdapter extends HandlerAdapter {
     /**
      * RpcInterceptor __construct.
      */
-    public function __construct() {
+    public function __construct()
+    {
         $config = Config::getFileConfig()[ 'rpc_service' ];
         $this->config = array_merge($this->config, $config);
     }
 
 
-    public function handle(Request $request, Response $response) {
+    public function handle(Request $request, Response $response)
+    {
         $rpc_interface =$request->header('rpc-interface');
         $rpc_method =$request->header('rpc-method');
         $serialize = $request->header('rpc-serialize');
@@ -55,16 +58,24 @@ class RpcHandlerAdapter extends HandlerAdapter {
             $value = $method->invokeArgs($service, $args);
             $exception=false;
         } catch (RpcServiceException $rpcException) {
-            $value = ['type'=>RpcServiceException::class,'code'=>$rpcException->getCode(),'msg'=>$rpcException->getMessage()];
+            $value = ['type'=>RpcServiceException::class,
+                      'code'=>$rpcException->getCode(),
+                      'msg'=>$rpcException->getMessage()];
         } catch (MsgException $msgException) {
-            $value = ['type'=>MsgException::class,'code'=>$msgException->getCode(),'msg'=>$msgException->getMessage()];
+            $value = ['type'=>MsgException::class,
+                      'code'=>$msgException->getCode(),
+                      'msg'=>$msgException->getMessage()];
         } catch (\RuntimeException $runtimeException) {
             //TODO LOG
-            $value = ['type'=>\RuntimeException::class,'code'=> $runtimeException->getCode(),'msg'=>'rpc call exception '
+            $value = ['type'=>\RuntimeException::class,
+                      'code'=> $runtimeException->getCode(),
+                      'msg'=>'rpc call exception '
                 .$runtimeException->getMessage()];
         } catch (\Error $error) {
             //TODO LOG
-            $value = ['type'=>\Error::class,'code'=> $error->getCode(),'msg'=>'rpc call error '
+            $value = ['type'=>\Error::class,
+                      'code'=> $error->getCode(),
+                      'msg'=>'rpc call error '
                 .$error->getMessage()];
         }
 
@@ -76,7 +87,7 @@ class RpcHandlerAdapter extends HandlerAdapter {
             } else {
                 $response->setContent(serialize($value));
             }
-        } else if ($value && $serialize == 'json') {
+        } elseif ($value && $serialize == 'json') {
             $response->contentType("application/json");
             if ($exception) {
                 $response->header('Rpc-Exception', 'true');
@@ -88,9 +99,8 @@ class RpcHandlerAdapter extends HandlerAdapter {
         return null;
     }
 
-    public function viewBase() {
+    public function viewBase()
+    {
         return '';
     }
-
-
 }

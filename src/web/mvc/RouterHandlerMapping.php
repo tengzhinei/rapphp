@@ -8,11 +8,11 @@
 
 namespace rap\web\mvc;
 
-
 use rap\web\Request;
 use rap\web\Response;
 
-class RouterHandlerMapping implements HandlerMapping{
+class RouterHandlerMapping implements HandlerMapping
+{
 
     /**
      * @var Router
@@ -23,14 +23,16 @@ class RouterHandlerMapping implements HandlerMapping{
      * RouterHandlerMapping constructor.
      * @param Router $router
      */
-    public function __construct(Router $router){
+    public function __construct(Router $router)
+    {
         $this->router = $router;
     }
 
-    public function map(Request $request, Response $response){
+    public function map(Request $request, Response $response)
+    {
             $path=$request->routerPath();
-            $pathArray=explode('/',$path);
+            $pathArray=explode('/', $path);
             array_shift($pathArray);
-            return $this->router->match($request,$pathArray);
+            return $this->router->match($request, $pathArray);
     }
 }

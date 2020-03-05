@@ -8,19 +8,19 @@
 
 namespace rap\exception;
 
-
 /**
  * 希望返回到页面的异常
  * Class MsgException
  * @package rap\exception
  */
-class MsgException extends \Exception{
+class MsgException extends \Exception
+{
 
     public $data;
 
-    public function __construct($message, $code=100000, $data  = null) {
-        parent::__construct($message, $code );
+    public function __construct($message, $code = 100000, $data = null)
+    {
+        parent::__construct($message, $code);
         $this->data=$data;
-        
     }
 }

@@ -1,7 +1,6 @@
 <?php
 namespace rap\swoole\web;
 
-
 use rap\aop\Event;
 use rap\config\Config;
 use rap\console\Command;
@@ -15,7 +14,6 @@ use rap\web\Application;
 use rap\swoole\CoContext;
 use Swoole\Atomic;
 use Swoole\Runtime;
-
 
 /**
  * 南京灵衍信息科技有限公司
@@ -75,7 +73,6 @@ class SwooleHttpServer extends Command
         $this->writeln("http服务启动成功");
         Event::trigger(ServerEvent::onBeforeServerStart, $http);
         $http->start();
-
     }
 
     public function onStart($server)
@@ -138,7 +135,6 @@ class SwooleHttpServer extends Command
 
     public function onFinish()
     {
-
     }
 
     private $worker_version = 0;
@@ -182,12 +178,22 @@ class SwooleHttpServer extends Command
             //释放协程里的变量和
         } catch (\Exception $exception) {
             $response->end($exception->getMessage());
-            $msg = str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
+            $msg = str_replace(
+                "rap\\exception\\",
+                "",
+                get_class($exception)
+            ) . " in " .
+                str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
             Log::error('http request error :' . $exception->getCode() . ' : ' . $msg);
             return;
         } catch (\Error $e) {
             $response->end($e->getMessage());
-            $msg = str_replace("rap\\exception\\", "", get_class($e)) . " in " . str_replace(ROOT_PATH, "", $e->getFile()) . " line " . $e->getLine();
+            $msg = str_replace(
+                "rap\\exception\\",
+                "",
+                get_class($e)
+            ) . " in " .
+                str_replace(ROOT_PATH, "", $e->getFile()) . " line " . $e->getLine();
             Log::error('http request error :' . $e->getCode() . ' : ' . $msg);
             return;
         }
@@ -197,6 +203,4 @@ class SwooleHttpServer extends Command
     {
         $this->name('http')->asName("swoole http服务器")->des("启动swoole http 服务器 需要安装 swoole 拓展");
     }
-
-
 }

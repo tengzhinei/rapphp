@@ -8,7 +8,6 @@
 
 namespace rap\exception\handler;
 
-
 use rap\config\Config;
 use rap\exception\ErrorException;
 use rap\exception\MsgException;
@@ -19,8 +18,10 @@ use rap\web\mvc\view\View;
 use rap\web\Request;
 use rap\web\Response;
 
-class PageExceptionHandler implements  ExceptionHandler{
-    function handler(Request $request, Response $response, \Exception $exception){
+class PageExceptionHandler implements ExceptionHandler
+{
+    public function handler(Request $request, Response $response, \Exception $exception)
+    {
 
         if ($exception instanceof ErrorException) {
             $exception = $exception->error;
@@ -28,21 +29,22 @@ class PageExceptionHandler implements  ExceptionHandler{
         $code='101010';
         $msg = $exception->getMessage();
         if (!($exception instanceof MsgException)) {
-            $msg .= "  |" . str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
+            $msg .= "  |" . str_replace("rap\\exception\\", "", get_class($exception))
+                . " in " . str_replace(ROOT_PATH, "", $exception->getFile())
+                . " line " . $exception->getLine();
             Log::error('http request error handler :' . $exception->getCode() . ' : ' . $msg);
-        }else{
+        } else {
             $code=$exception->getCode();
         }
-        $template_base = Config::get('view','template_base');
+        $template_base = Config::get('view', 'template_base');
         $file=$template_base.'/exception';
-        if(!is_file(ROOT_PATH.$file.'.html')){
-            $file=str_replace(ROOT_PATH,'',__DIR__).'/exception';
+        if (!is_file(ROOT_PATH.$file.'.html')) {
+            $file=str_replace(ROOT_PATH, '', __DIR__).'/exception';
         }
         /* @var $view View  */
         $view=Ioc::get(TwigView::class);
         $view->assign(['msg'=>$msg,'code'=>$code,'exception'=>$exception]);
         $response->setContent($view->fetch($file));
         $response->send();
-
     }
 }

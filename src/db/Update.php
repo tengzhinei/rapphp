@@ -7,10 +7,10 @@
  */
 namespace rap\db;
 
-
 use rap\swoole\pool\Pool;
 
-class Update extends Where {
+class Update extends Where
+{
     use Comment;
 
     private $table;
@@ -35,7 +35,8 @@ class Update extends Where {
      *
      * @return Update
      */
-    public static function table($table, $connection_name = '') {
+    public static function table($table, $connection_name = '')
+    {
         $update = new Update();
         $update->table = $table;
         if ($connection_name) {
@@ -53,7 +54,8 @@ class Update extends Where {
      *
      * @return $this
      */
-    public function set($key, $value) {
+    public function set($key, $value)
+    {
         if (is_array($key)) {
             $this->data = array_merge($this->data, $key);
         } else {
@@ -67,7 +69,8 @@ class Update extends Where {
      * @return int
      * @throws \Error
      */
-    public function excuse() {
+    public function excuse()
+    {
         $fields = [];
         $values = [];
         foreach ($this->data as $field => $value) {
@@ -110,7 +113,8 @@ class Update extends Where {
      * @param array|string|int $where
      * @param string           $connection_name
      */
-    public static function delayUpdate($pk, $table, $data, $where, $connection_name = null) {
+    public static function delayUpdate($pk, $table, $data, $where, $connection_name = null)
+    {
         $update = self::buildUpdate($table, $data, $where, $connection_name);
         $update->hint = "COMMIT_ON_SUCCESS ROLLBACK_ON_FAIL QUEUE_ON_PK $pk";
         $update->excuse();
@@ -127,12 +131,14 @@ class Update extends Where {
      * @throws \Error
      * @return int 更新条数
      */
-    public static function update($table, $data, $where, $connection_name) {
+    public static function update($table, $data, $where, $connection_name)
+    {
         return self::buildUpdate($table, $data, $where, $connection_name)->excuse();
     }
 
 
-    private static function buildUpdate($table, $data, $where, $connection_name) {
+    private static function buildUpdate($table, $data, $where, $connection_name)
+    {
         $update = Update::table($table, $connection_name);
         foreach ($data as $field => $value) {
             $update->set($field, $value);
@@ -146,5 +152,4 @@ class Update extends Where {
         }
         return $update;
     }
-
 }

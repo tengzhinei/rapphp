@@ -1,5 +1,6 @@
 <?php
 namespace rap\exception\handler;
+
 use rap\web\Request;
 use rap\web\Response;
 
@@ -9,6 +10,7 @@ use rap\web\Response;
  * Date: 18/4/11
  * Time: 上午11:28
  */
-interface ExceptionHandler{
-     function handler(Request $request, Response $response, \Exception $exception);
+interface ExceptionHandler
+{
+    public function handler(Request $request, Response $response, \Exception $exception);
 }

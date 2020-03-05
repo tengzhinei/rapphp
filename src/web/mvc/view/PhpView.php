@@ -12,7 +12,8 @@ namespace rap\web\mvc\view;
 /**
  * 不使用模板引擎,直接使用 php 做显示
  */
-class PhpView implements View {
+class PhpView implements View
+{
 
     private $data;
 
@@ -20,15 +21,18 @@ class PhpView implements View {
         "postfix"=>'php'
     ];
 
-    public function config($config) {
+    public function config($config)
+    {
         $this->config = array_merge($this->config, $config);
     }
 
-    public function assign($array) {
+    public function assign($array)
+    {
         $this->data = $array;
     }
 
-    public function fetch($tpl) {
+    public function fetch($tpl)
+    {
 
         ob_start();
         ob_implicit_flush(0);
@@ -36,5 +40,4 @@ class PhpView implements View {
         $content = ob_get_clean();
         return $content;
     }
-
 }

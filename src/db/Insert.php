@@ -8,10 +8,10 @@
 
 namespace rap\db;
 
-
 use rap\swoole\pool\Pool;
 
-class Insert {
+class Insert
+{
     use Comment;
 
     private $table;
@@ -30,10 +30,11 @@ class Insert {
      *
      * @return Insert
      */
-    public static function table($table,$connection_name='') {
+    public static function table($table, $connection_name = '')
+    {
         $insert = new Insert();
         $insert->table = $table;
-        if($connection_name){
+        if ($connection_name) {
             $insert->connection_name=$connection_name;
         }
         return $insert;
@@ -47,7 +48,8 @@ class Insert {
      *
      * @return $this
      */
-    public function set($key, $value) {
+    public function set($key, $value)
+    {
         if (is_array($key)) {
             $this->data = array_merge($this->data, $key);
         } else {
@@ -61,7 +63,8 @@ class Insert {
      * @return string|int
      * @throws \Error
      */
-    public function excuse() {
+    public function excuse()
+    {
         $fields = [];
         $values = [];
         $valuePlace = [];
@@ -86,10 +89,9 @@ class Insert {
             $connection->execute($sql, $values);
             $id = $connection->getLastInsID();
             return $id;
-        } finally{
+        } finally {
             Pool::release($connection);
         }
-
     }
 
     /**
@@ -101,8 +103,9 @@ class Insert {
      *
      * @return int|string
      */
-    public static function insert($table, $data,$connection_name='') {
-        $insert = Insert::table($table,$connection_name);
+    public static function insert($table, $data, $connection_name = '')
+    {
+        $insert = Insert::table($table, $connection_name);
         foreach ($data as $field => $value) {
             $insert->set($field, $value);
         }
@@ -122,10 +125,9 @@ class Insert {
      *
      * @return $this
      */
-    public function replace($replace = true) {
+    public function replace($replace = true)
+    {
         $this->replace = $replace;
         return $this;
     }
-
-
 }

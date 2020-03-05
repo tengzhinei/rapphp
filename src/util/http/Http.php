@@ -14,12 +14,14 @@ use rap\util\http\client\CoroutineHttpClient;
 use rap\util\http\client\RequestHttpClient;
 use Swoole\Coroutine\Http\Client;
 
-class Http {
+class Http
+{
 
     /**
      * @return HttpClient
      */
-    private static function client() {
+    private static function client()
+    {
         if (IS_SWOOLE && \Co::getuid() !== -1) {
             return Ioc::get(CoroutineHttpClient::class);
         } else {
@@ -36,7 +38,8 @@ class Http {
      *
      * @return HttpResponse
      */
-    public static function get($url, $header = [], $timeout = 0.5) {
+    public static function get($url, $header = [], $timeout = 0.5)
+    {
         return self::client()->get($url, $header, $timeout);
     }
 
@@ -51,7 +54,8 @@ class Http {
      *
      * @return HttpResponse
      */
-    public static function post($url, $header = [], $data = [], $timeout = 0.5) {
+    public static function post($url, $header = [], $data = [], $timeout = 0.5)
+    {
         return self::client()->post($url, $header, $data, $timeout);
     }
 
@@ -66,7 +70,8 @@ class Http {
      *
      * @return HttpResponse
      */
-    public static function put($url, $header = [], $data = [], $timeout = 0.5) {
+    public static function put($url, $header = [], $data = [], $timeout = 0.5)
+    {
         return self::client()->put($url, $header, $data, $timeout);
     }
 
@@ -81,8 +86,8 @@ class Http {
      *
      * @return HttpResponse
      */
-    public static function upload($url, $header = [], $data = [], $files = [], $timeout = 5) {
+    public static function upload($url, $header = [], $data = [], $files = [], $timeout = 5)
+    {
         return self::client()->upload($url, $header, $data, $files, $timeout);
     }
-
 }

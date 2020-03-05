@@ -9,10 +9,9 @@
 
 namespace rap\swoole\pool;
 
-
-interface PoolAble {
-    public function poolConfig() ;
+interface PoolAble
+{
+    public function poolConfig();
 
     public function connect();
-
 }

@@ -13,7 +13,7 @@ interface BeanConstructor
      * 返回需要处理的类
      * @return string
      */
-    public  function constructorClass();
+    public function constructorClass();
 
     /**
      * 返回构造器需要的参数
@@ -26,6 +26,4 @@ interface BeanConstructor
      * @param $bean
      */
     public function afterConstructor($bean);
-
-
 }

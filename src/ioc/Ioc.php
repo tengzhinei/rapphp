@@ -1,7 +1,6 @@
 <?php
 namespace rap\ioc;
 
-
 use Psr\Container\ContainerInterface;
 use rap\aop\Aop;
 use rap\cache\Cache;
@@ -19,16 +18,16 @@ class Ioc
 {
 
     //所有对象
-    static private $instances = [];
+    private static $instances = [];
 
     //所有对象
-    static private $workScopeInstances = [];
+    private static $workScopeInstances = [];
 
     //类衍射定义
-    static private $beansConfig = [];
+    private static $beansConfig = [];
 
     //初始化对象时用于存储
-    static private $injectBeans = [];
+    private static $injectBeans = [];
 
     public static $beanConstructors = [];
 
@@ -102,17 +101,30 @@ class Ioc
         if (is_subclass_of($nameClass, RequestScope::class)) {
             return self::contextGet($nameClass);
         }
-
-        if (is_subclass_of($nameClass, WorkerScope::class)) {
-            if (isset(static::$workScopeInstances[$nameClass]) && static::$workScopeInstances[$nameClass]) {
-                return static::$workScopeInstances[$nameClass];
-            }
+        if (isset(static::$workScopeInstances[$nameClass]) && static::$workScopeInstances[$nameClass]) {
+            return static::$workScopeInstances[$nameClass];
         }
+        $bean = null;
         //判断是否有实例
         if (isset(static::$instances[$nameClass]) && static::$instances[$nameClass]) {
-            return static::$instances[$nameClass];
+            $bean = static::$instances[$nameClass];
         }
-        return self::beanCreate($nameClass);
+        $is_new_create = false;
+        if (!$bean) {
+            $bean = self::beanCreate($nameClass);
+            $is_new_create = true;
+        }
+
+        if ($bean instanceof SessionScope) {
+            return self::getBySession($nameClass);
+        }
+        if ($bean instanceof RequestScope) {
+            return self::contextGet($nameClass);
+        }
+        if (!$is_new_create && $bean instanceof PrototypeScope) {
+            return self::beanCreate($nameClass);
+        }
+        return $bean;
     }
 
     /**
@@ -153,17 +165,15 @@ class Ioc
             $beanClassName = $beanDefine->ClassName;
         }
         $bean = Aop::warpBean($beanClassName, $nameClass);
-        if(!$bean){
+        if (!$bean) {
             return null;
         }
         //连接池类型的不需要在容器托管
         if ($instance) {
-            if ($bean instanceof RequestScope) {
-                //备份一份用于注入
-                static::$instances[$nameClass] = $bean;
-            } else if ($bean instanceof WorkerScope) {
+            if ($bean instanceof WorkerScope) {
                 static::$workScopeInstances[$nameClass] = $bean;
             } else {
+                //其他类型的最少需要备份一份
                 static::$instances[$nameClass] = $bean;
             }
         }
@@ -173,7 +183,6 @@ class Ioc
         }
 
         return $bean;
-
     }
 
     public static function constructorParams($bean, \ReflectionMethod $method)
@@ -192,20 +201,23 @@ class Ioc
                 $class = $param->getClass();
                 if (key_exists($name, $constructorParams)) {
                     $args[] = $constructorParams[$name];
-                } else if ($class) {
-                    $className = $class->getName();
-                    $bean = Ioc::get($className);
-                    if (!$bean) {
-                        $args[] = method_exists($className, 'instance') ? $className::instance() : null;
-                    } else {
-                        $args[] = $bean;
-                    }
-                } else if ($param->isDefaultValueAvailable()) {
-                    $args[] = $param->getDefaultValue();
                 } else {
-                    $args[] = null;
+                    if ($class) {
+                        $className = $class->getName();
+                        $bean = Ioc::get($className);
+                        if (!$bean) {
+                            $args[] = method_exists($className, 'instance') ? $className::instance() : null;
+                        } else {
+                            $args[] = $bean;
+                        }
+                    } else {
+                        if ($param->isDefaultValueAvailable()) {
+                            $args[] = $param->getDefaultValue();
+                        } else {
+                            $args[] = null;
+                        }
+                    }
                 }
-
             }
         }
         return $args;
@@ -224,7 +236,6 @@ class Ioc
             $constructor->setAccessible(true);
             $args = self::constructorParams($bean, $constructor);
             $constructor->invokeArgs($bean, $args);
-
         }
         //兼容老版本
         if ($class->hasMethod('_initialize')) {
@@ -361,14 +372,14 @@ class Ioc
                 static::register($item);
             }
         } else {
-            if(is_string($providerClazz)){
+            if (is_string($providerClazz)) {
                 $providerPrepare = Ioc::get($providerClazz);
-            }else{
-                $providerPrepare=$providerClazz;
+            } else {
+                $providerPrepare = $providerClazz;
             }
             if ($providerPrepare instanceof BeanConstrustorMapper) {
                 $providerPrepare->register();
-            } else
+            } else {
                 if ($providerPrepare instanceof BeanConstructor) {
                     Log::error(json_encode($providerPrepare));
                     $clazz = $providerPrepare->constructorClass();
@@ -376,15 +387,14 @@ class Ioc
                         foreach ($clazz as $key) {
                             static::$beanConstructors[$key] = $providerPrepare;
                         }
-                    } else if (is_string($clazz)) {
-
-                        static::$beanConstructors[$clazz] = $providerPrepare;
+                    } else {
+                        if (is_string($clazz)) {
+                            static::$beanConstructors[$clazz] = $providerPrepare;
+                        }
                     }
                 }
-
+            }
         }
-
-
     }
 
     /**

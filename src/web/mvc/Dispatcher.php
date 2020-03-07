@@ -4,10 +4,15 @@ namespace rap\web\mvc;
 use rap\config\Config;
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
+use rap\util\http\Http;
 use rap\web\mvc\view\TwigView;
 use rap\web\Request;
 use rap\web\Response;
 use rap\web\mvc\view\View;
+use rap\web\response\Html;
+use rap\web\response\JSONBody;
+use rap\web\response\PlainBody;
+use rap\web\response\ResponseBody;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -44,51 +49,15 @@ class Dispatcher
         }
         $adapter = $adapters[ 0 ];
         $value = $adapter->handle($request, $response);
-        if (is_string($value)) {
-            if (strpos($value, 'redirect:') === 0) {
-                $value = substr($value, strlen('redirect:'));
-                $response->code(302);
-                if (strpos($value, '/') == 0) {
-                    $base_url = Config::get('app', 'url_base');
-                    $value = $base_url . $value;
-                }
-                $response->header("location", $value);
-                $response->send();
-                $response->redirect($value, 302);
-                return;
-            } elseif (strpos($value, 'downloadFile:') === 0) {
-                $value = substr($value, strlen('downloadFile:'));
-                $response->sendFile($value);
-                return;
-            } elseif (strpos($value, 'body:') === 0) {
-                $value = substr($value, strlen('body:'));
-                $response->setContent($value);
-            } else {
-                if (strpos($value, 'twig:') === 0) {
-                    $value = substr($value, strlen('twig:'));
-                    $view = Ioc::get(TwigView::class);
-                } else {
-                    /* @var View $view */
-                    $view = Ioc::get(View::class);
-                }
-                $view->assign($response->data());
-                $po = strpos($value, '/');
-                if ($po === 0) {
-                    $base = Config::get('view')[ 'template_base' ];
-                    $value = $base . $value;
-                } else {
-                    $value = $adapter->viewBase() . $value;
-                }
-                $value = $view->fetch($value);
-                $response->setContent($value);
-            }
-        } elseif ($value !== null) {
-            $response->contentType("application/json");
-            $value = json_encode($value);
-            $response->setContent($value);
+        if ($value instanceof ResponseBody) {
+            $value->beforeSend($response);
+        } elseif (is_string($value)) {
+            $json = new Html($value);
+            $json->beforeSend($response);
+        } if ($value!=null) {
+            $json = new JSONBody($value);
+            $json->beforeSend($response);
         }
-        $start_time = $request->server('request_time_float');
-        $response->header('rap-time', getMillisecond() - (int)($start_time * 1000));
         $response->send();
     }
 }

@@ -30,8 +30,9 @@ function fail($msg = "") {
  * @return string
  */
 function redirect($url) {
-    return 'redirect:' . $url;
+    return new \rap\web\response\Redirect($url);
 }
+
 
 /**
  * 内容直接输出
@@ -41,16 +42,22 @@ function redirect($url) {
  * @return string
  */
 function body($body) {
-    return 'body:' . $body;
+    return new \rap\web\response\PlainBody($body);
 }
 
 function twig($body) {
     return 'twig:' . $body;
 }
 
-function downloadFile($file) {
-    return 'downloadFile:' . $file;
+function downloadFile($file,$file_name) {
+    return new \rap\web\response\Download($file,$file_name);
 }
+
+
+function download($file,$file_name) {
+    return new \rap\web\response\Download($file,$file_name);
+}
+
 
 /**
  * 缓存快捷方法

@@ -311,7 +311,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      */
     public function insert()
     {
-        Event::trigger(RecordEvent::record_before_insert, $this);
+        Event::trigger(RecordEvent::RECORD_BEFORE_INSERT, $this);
         $pk = $this->getPkField();
         $data = $this->getDBData();
         $create_time = 'create_time';
@@ -379,7 +379,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      */
     public function update($check_version = true, $error_msg = "数据更新失败,请重试")
     {
-        Event::trigger(RecordEvent::record_before_update, $this);
+        Event::trigger(RecordEvent::RECORD_BEFORE_UPDATE, $this);
         $pk = $this->getPkField();
         $where[ $pk ] = $this->$pk;
         $data[ $pk ] = $this->$pk;
@@ -432,7 +432,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      */
     public function delete($force = false)
     {
-        Event::trigger(RecordEvent::record_before_delete, $this);
+        Event::trigger(RecordEvent::RECORD_BEFORE_DELETE, $this);
         $model = get_called_class();
         $pk = $this->getPkField();
         $id = $this->$pk;
@@ -477,7 +477,7 @@ class Record implements \ArrayAccess, \JsonSerializable
         }
         /* @var $data Record */
         $select = DB::select($t->getTable(), $t->connectionName())->where($where)->setRecord($model);
-        Event::trigger(RecordEvent::record_before_select, $t, $select);
+        Event::trigger(RecordEvent::RECORD_BEFORE_SELECT, $t, $select);
         $data = $select->find();
         $db_cache->recordWhereCacheSave($model, $where, $data->_db_data);
         return $data;
@@ -578,7 +578,7 @@ class Record implements \ArrayAccess, \JsonSerializable
                     ->where($t->getPkField(), $id)
                     ->lock()
                     ->setRecord($model);
-        Event::trigger(RecordEvent::record_before_select, $t, $select);
+        Event::trigger(RecordEvent::RECORD_BEFORE_SELECT, $t, $select);
         $data = $select->find();
         return $data;
     }
@@ -632,7 +632,7 @@ class Record implements \ArrayAccess, \JsonSerializable
         } elseif (property_exists(get_called_class(), 'create_time')) {
             $select->order($as . '.create_time desc');
         }
-        Event::trigger(RecordEvent::record_before_select, $model, $select);
+        Event::trigger(RecordEvent::RECORD_BEFORE_SELECT, $model, $select);
         if ($fields) {
             if (!$contain) {
                 $fieldAll = $model->getFields();

@@ -24,6 +24,8 @@ use rap\web\mvc\AutoFindHandlerMapping;
 use rap\web\mvc\Dispatcher;
 use rap\web\mvc\Router;
 use rap\web\mvc\RouterHandlerMapping;
+use rap\web\response\JSONBody;
+use rap\web\response\ResponseBody;
 
 abstract class Application
 {
@@ -83,7 +85,6 @@ abstract class Application
         $routerMapping = new RouterHandlerMapping($router);
         $this->dispatcher->addHandlerMapping($routerMapping);
         $this->init($autoMapping, $router);
-
         asort($this->interceptors);
     }
 
@@ -98,19 +99,22 @@ abstract class Application
             Lang::loadLand($request);
             if ($this->interceptors) {
                 /* @var $interceptor Interceptor */
-                $url = $request->url();
-                $is_interceptor = true;
-                foreach ($this->interceptors_except as $item) {
-                    if (strpos($url, $item) === 0) {
-                        $is_interceptor = false;
-                        break;
-                    }
-                }
-                if ($is_interceptor) {
+                if ($this->needInterceptor($request)) {
                     foreach ($this->interceptors as $interceptor => $priority) {
                         $interceptor = Ioc::get($interceptor);
                         $value = $interceptor->handler($request, $response);
-                        if ($value) {
+                        if(!$value){
+                            continue;
+                        }elseif ($value instanceof ResponseBody) {
+                            $value->beforeSend($response);
+                            $response->send();
+                            return;
+                        } else if(is_bool($value)){
+                            return;
+                        } else {
+                            $json = new JSONBody($value);
+                            $json->beforeSend($response);
+                            $response->send();
                             return;
                         }
                     }
@@ -122,6 +126,17 @@ abstract class Application
         } catch (\Error $error) {
             $this->handlerException($request, $response, new ErrorException($error));
         }
+    }
+
+    private function needInterceptor(Request $request){
+        $url = $request->url();
+        foreach ($this->interceptors_except as $item) {
+            if (strpos($url, $item) === 0) {
+                return false;
+            }
+        }
+        return true;
+
     }
 
     public function handlerException(Request $request, Response $response, \Exception $exception)

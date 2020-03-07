@@ -69,7 +69,7 @@ class Where
      *
      * @return $this
      */
-    public function orSql($sql, array $condition)
+    public function sqlOr($sql, array $condition)
     {
         $this->addWhere("OR", $sql, 'sql', $condition);
         return $this;

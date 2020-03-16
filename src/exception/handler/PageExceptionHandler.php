@@ -28,8 +28,8 @@ class PageExceptionHandler implements ExceptionHandler {
      */
     public function __construct() {
         $file = ROOT_PATH . 'template/exception.html';
-        if (!is_file(ROOT_PATH . 'template/exception.html')) {
-            $file = str_replace(ROOT_PATH, '', __DIR__) . '/exception.html';
+        if (!is_file($file)) {
+            $file = __DIR__ . '/exception.html';
         }
         $this->content = file_get_contents($file);
     }

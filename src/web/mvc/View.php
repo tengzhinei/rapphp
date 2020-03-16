@@ -1,5 +1,5 @@
 <?php
-namespace rap\web\mvc\view;
+namespace rap\web\mvc;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -9,10 +9,6 @@ namespace rap\web\mvc\view;
  */
 interface View
 {
+    public function fetch($tpl,$data);
 
-    public function config($config);
-
-    public function assign($array);
-
-    public function fetch($tpl);
 }

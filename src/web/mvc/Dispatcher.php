@@ -49,15 +49,16 @@ class Dispatcher
         }
         $adapter = $adapters[ 0 ];
         $value = $adapter->handle($request, $response);
-        if ($value instanceof ResponseBody) {
-            $value->beforeSend($response);
-        } elseif (is_string($value)) {
-            $json = new Html($value);
-            $json->beforeSend($response);
-        } if ($value!=null) {
-            $json = new JSONBody($value);
-            $json->beforeSend($response);
+        if (is_string($value)) {
+            /* @var $html Html  */
+            $value =  new  Html($value);
+        } else if ($value!=null&&!($value instanceof ResponseBody)) {
+            $value = new JSONBody($value);
         }
-        $response->send();
+        if($value instanceof ResponseBody){
+            $value->beforeSend($response);
+            $response->send();
+        }
+
     }
 }

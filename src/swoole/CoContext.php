@@ -107,6 +107,18 @@ class CoContext
         }
     }
 
+    /**
+     * 获取所有数据
+     * @return array
+     */
+    public function data(){
+        if (IS_SWOOLE && version_compare(swoole_version(), '4.3.0') >= 0) {
+            return \Co::getContext();
+        } else {
+            return $this->instances;
+        }
+    }
+
     public function get($name)
     {
         if (IS_SWOOLE && version_compare(swoole_version(), '4.3.0') >= 0) {

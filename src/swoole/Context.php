@@ -12,53 +12,44 @@ namespace rap\swoole;
 use rap\cache\CacheInterface;
 use rap\db\Connection;
 
-class Context
-{
+class Context {
 
 
     /**
      * 获取当前id
      * @return int
      */
-    public static function id()
-    {
+    public static function id() {
         return CoContext::id();
     }
 
-    public static function request()
-    {
+    public static function request() {
         return CoContext::getContext()->getRequest();
     }
 
-    public static function response()
-    {
+    public static function response() {
         return CoContext::getContext()->getResponse();
     }
 
-    public static function set($name, $bean = null)
-    {
+    public static function set($name, $bean = null) {
         CoContext::getContext()->set($name, $bean);
     }
 
-    public static function requestParams()
-    {
+    public static function requestParams() {
         return self::get('request_params');
     }
 
-    public static function get($name)
-    {
+    public static function get($name) {
         $context = CoContext::getContext();
 
         return $context->get($name);
     }
 
-    public static function remove($name)
-    {
+    public static function remove($name) {
         CoContext::getContext()->remove($name);
     }
 
-    public static function release()
-    {
+    public static function release() {
         CoContext::getContext()->release();
     }
 
@@ -69,8 +60,7 @@ class Context
      * @param      $connection_name
      * @param null $db
      */
-    public static function useConnection($connection_name = '', $db = null)
-    {
+    public static function useConnection($connection_name = '', $db = null) {
         if (!$connection_name) {
             $connection_name = Connection::class;
         }
@@ -85,8 +75,7 @@ class Context
      *
      * @param $scheme
      */
-    public static function useConnectionScheme($scheme)
-    {
+    public static function useConnectionScheme($scheme) {
         CoContext::getContext()->set(CoContext::CONNECTION_SCHEME, $scheme);
     }
 
@@ -96,13 +85,12 @@ class Context
      * @param      $redis_name
      * @param null $select
      */
-    public static function useRedis($redis_name = '', $select = null)
-    {
+    public static function useRedis($redis_name = '', $select = null) {
         if (!$redis_name) {
             $redis_name = CacheInterface::class;
         }
         CoContext::getContext()->set(CoContext::REDIS_NAME, $redis_name);
-        if ($select) {
+        if ($select !== null) {
             CoContext::getContext()->set(CoContext::REDIS_SELECT, $select);
         }
     }
@@ -112,11 +100,18 @@ class Context
      *
      * @param $select
      */
-    public static function useRedisSelect($select)
-    {
-        if ($select) {
+    public static function useRedisSelect($select) {
+        if ($select !== null) {
             CoContext::getContext()->set(CoContext::REDIS_SELECT, $select);
         }
+    }
+
+    /**
+     * 获取所有数据
+     * @return array
+     */
+    public static function data() {
+        return CoContext::getContext()->data();
     }
 
 
@@ -127,8 +122,7 @@ class Context
      *
      * @return mixed|null
      */
-    public static function userId($user_id = null)
-    {
+    public static function userId($user_id = null) {
         if ($user_id) {
             self::set(CoContext::LOGIN_USER, $user_id);
             return $user_id;

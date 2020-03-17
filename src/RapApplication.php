@@ -19,9 +19,6 @@ use rap\swoole\pool\ResourcePool;
 use rap\web\Application;
 use rap\web\mvc\AutoFindHandlerMapping;
 use rap\web\mvc\Router;
-use rap\web\mvc\view\PhpView;
-use rap\web\mvc\view\TwigView;
-use rap\web\mvc\view\View;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -41,25 +38,11 @@ class RapApplication extends Application
                 $autoMapping->prefix($key, $value);
             }
         }
-        $item = $config[ "view" ];
-        if ($item) {
-            if ($item[ 'type' ] == 'php') {
-                unset($item[ 'type' ]);
-                Ioc::bind(View::class, PhpView::class, function (PhpView $view) use ($item) {
-                    $view->config($item);
-                });
-            } elseif ($item[ 'type' ] == 'twig') {
-                unset($item[ 'type' ]);
-                Ioc::bind(View::class, TwigView::class, function (TwigView $view) use ($item) {
-                    $view->config($item);
-                });
-            }
-        }
 
         $app = $config[ 'app' ];
         $init = null;
-        Event::add(ServerEvent::onServerWorkStart, Application::class, 'onServerWorkStart');
-        Event::trigger(ServerEvent::onAppInit, $autoMapping, $router);
+        Event::add(ServerEvent::ON_SERVER_WORK_START, Application::class, 'onServerWorkStart');
+        Event::trigger(ServerEvent::ON_APP_INIT, $autoMapping, $router);
         if ($app[ 'init' ]) {
             Ioc::bind(Init::class, $app[ 'init' ]);
             /* @var $init Init */

@@ -35,7 +35,7 @@ class Rpc
         $rpc = Ioc::get(Rpc::class);
         $rpc->init();
         if (IS_SWOOLE) {
-            Event::add(ServerEvent::onServerWorkStart, Rpc::class, 'onServerWorkStart');
+            Event::add(ServerEvent::ON_SERVER_WORK_START, Rpc::class, 'onServerWorkStart');
         }
         /* @var $dispatcher Dispatcher */
         $dispatcher = Ioc::get(Dispatcher::class);
@@ -94,7 +94,7 @@ class Rpc
     public static function registerRpc($rpcName, $registerClazz)
     {
         $rpcName=$rpcName.'__rpc';
-        Event::add(ServerEvent::onAppInit, function (
+        Event::add(ServerEvent::ON_APP_INIT, function (
             AutoFindHandlerMapping $autoMapping,
             Router $router
         ) use (
@@ -108,7 +108,7 @@ class Rpc
             $config = self::loadConfig($rpcName);
             $rpc->initRpcClient($rpcName, $registerClazz, $config);
         });
-        Event::add(ServerEvent::onServerWorkStart, function () use ($rpcName) {
+        Event::add(ServerEvent::ON_SERVER_WORK_START, function () use ($rpcName) {
             if (IS_SWOOLE) {
                 ResourcePool::instance()->preparePool($rpcName);
             }

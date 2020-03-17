@@ -96,7 +96,7 @@ class LocalFileStorage implements StorageInterface
         $width = 0,
         $height = 0,
         $water = false,
-        $crop = self::resize_rect_in,
+        $crop = self::RESIZE_RECT_IN,
         $blur = -1
     ) {
         $path=$this->config['base_path'].DIRECTORY_SEPARATOR.$file_id;

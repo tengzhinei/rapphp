@@ -77,7 +77,7 @@ class WebSocketServer extends Command
             //mysql redis 协程化
             Runtime::enableCoroutine();
         }
-        Event::trigger(ServerEvent::onBeforeServerStart, $this->server);
+        Event::trigger(ServerEvent::ON_BEFORE_SERVER_START, $this->server);
         $this->server->start();
     }
 
@@ -86,7 +86,7 @@ class WebSocketServer extends Command
         Log::notice('swoole webSocket start: webSocket服务启动');
         $application = Ioc::get(Application::class);
         $application->server = $server;
-        Event::trigger(ServerEvent::onServerStart, $server);
+        Event::trigger(ServerEvent::ON_SERVER_START, $server);
         if ($this->config[ 'auto_reload' ] && Config::get('app')[ 'debug' ]) {
             $this->writeln("自动加载");
             $reload = new ServerWatch();
@@ -96,7 +96,7 @@ class WebSocketServer extends Command
     public function onShutdown($server)
     {
         Log::notice('swoole webSocket shutdown : webSocket服务停止');
-        Event::trigger(ServerEvent::onServerShutdown, $server);
+        Event::trigger(ServerEvent::ON_SERVER_SHUTDOWN, $server);
     }
 
 
@@ -148,7 +148,7 @@ class WebSocketServer extends Command
             //swoole  4.2.9
             defer(function () use ($req) {
                 try {
-                    Event::trigger(ServerEvent::onRequestDefer);
+                    Event::trigger(ServerEvent::ON_REQUEST_DEFER);
                 } catch (\Throwable $throwable) {
                     Log::error('http request error', ['message' => $throwable->getMessage()]);
                 } catch (\Error $throwable) {
@@ -184,7 +184,7 @@ class WebSocketServer extends Command
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger(ServerEvent::onServerWorkStart, $server, $id);
+        Event::trigger(ServerEvent::ON_SERVER_WORK_START, $server, $id);
         CoContext::getContext()->release();
     }
 
@@ -193,7 +193,7 @@ class WebSocketServer extends Command
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger(ServerEvent::onServerWorkerStop, $server, $id);
+        Event::trigger(ServerEvent::ON_SERVER_WORKER_STOP, $server, $id);
         CoContext::getContext()->release();
     }
 

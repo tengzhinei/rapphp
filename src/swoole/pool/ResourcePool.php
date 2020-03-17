@@ -9,7 +9,6 @@
 
 namespace rap\swoole\pool;
 
-use rap\cache\RedisCache;
 use rap\ioc\Ioc;
 use rap\swoole\CoContext;
 use Swoole\Coroutine\Channel;

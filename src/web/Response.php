@@ -63,7 +63,7 @@ class Response
             fastcgi_finish_request();
         }
         if (!IS_SWOOLE) {
-            Event::trigger(ServerEvent::onRequestDefer);
+            Event::trigger(ServerEvent::ON_REQUEST_DEFER);
             Context::release();
         }
     }
@@ -220,7 +220,7 @@ class Response
             echo $data;//传数据给浏览器端
         }
 
-        Event::trigger(ServerEvent::onRequestDefer);
+        Event::trigger(ServerEvent::ON_REQUEST_DEFER);
         die;
     }
 

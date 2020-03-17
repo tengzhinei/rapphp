@@ -79,7 +79,7 @@ class OssStorage implements StorageInterface
         $width = 0,
         $height = 0,
         $water = false,
-        $crop = self::resize_rect_in,
+        $crop = self::RESIZE_RECT_IN,
         $blur = -1
     ) {
         $url=$this->getUrl($file_id).'?x-oss-process=image';

@@ -1,17 +1,11 @@
 <?php
 namespace rap\web\mvc;
 
-use rap\config\Config;
 use rap\exception\MsgException;
-use rap\ioc\Ioc;
-use rap\util\http\Http;
-use rap\web\mvc\view\TwigView;
 use rap\web\Request;
 use rap\web\Response;
-use rap\web\mvc\view\View;
 use rap\web\response\Html;
 use rap\web\response\JSONBody;
-use rap\web\response\PlainBody;
 use rap\web\response\ResponseBody;
 
 /**

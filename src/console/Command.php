@@ -127,6 +127,6 @@ abstract class Command
      */
     public function initWork()
     {
-        Event::trigger(ServerEvent::onServerWorkStart);
+        Event::trigger(ServerEvent::ON_SERVER_WORK_START);
     }
 }

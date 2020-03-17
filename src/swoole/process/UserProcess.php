@@ -19,7 +19,7 @@ abstract class UserProcess
 
     public static function start()
     {
-        Event::add(ServerEvent::onBeforeServerStart, get_called_class(), 'register');
+        Event::add(ServerEvent::ON_BEFORE_SERVER_START, get_called_class(), 'register');
     }
 
     public function register($server)
@@ -32,7 +32,7 @@ abstract class UserProcess
                     //释放下
                     CoContext::getContext()->release();
                 });
-                Event::trigger(ServerEvent::onServerWorkStart);
+                Event::trigger(ServerEvent::ON_SERVER_WORK_START);
                 Log::error('onProcessStarted');
                 $this->onProcessStarted();
             });

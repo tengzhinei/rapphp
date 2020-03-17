@@ -71,7 +71,7 @@ class SwooleHttpServer extends Command
         $http->on('finish', [$this, 'onFinish']);
         $http->on('request', [$this, 'onRequest']);
         $this->writeln("http服务启动成功");
-        Event::trigger(ServerEvent::onBeforeServerStart, $http);
+        Event::trigger(ServerEvent::ON_BEFORE_SERVER_START, $http);
         $http->start();
     }
 
@@ -81,7 +81,7 @@ class SwooleHttpServer extends Command
         $application = Ioc::get(Application::class);
         $application->server = $server;
 
-        Event::trigger(ServerEvent::onServerStart, $server);
+        Event::trigger(ServerEvent::ON_SERVER_START, $server);
         if ($this->config['auto_reload'] && Config::get('app')['debug']) {
             $this->writeln("自动加载");
             $reload = new ServerWatch();
@@ -92,7 +92,7 @@ class SwooleHttpServer extends Command
     public function onShutdown($server)
     {
         Log::notice('swoole http shutdown : http服务停止');
-        Event::trigger(ServerEvent::onServerShutdown, $server);
+        Event::trigger(ServerEvent::ON_SERVER_SHUTDOWN, $server);
         if ($this->config['enable_static_handler']) {
             FileUtil::delete(ROOT_PATH . '.rap_static_file');
         }
@@ -105,7 +105,7 @@ class SwooleHttpServer extends Command
         $application->server = $server;
         $application->task_id = $id;
         $application->workerAtomic = $this->workerAtomic;
-        Event::trigger(ServerEvent::onServerWorkStart, $server, $id);
+        Event::trigger(ServerEvent::ON_SERVER_WORK_START, $server, $id);
     }
 
     public function onWorkerStop($server, $id)
@@ -114,7 +114,7 @@ class SwooleHttpServer extends Command
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
-        Event::trigger(ServerEvent::onServerWorkerStop, $server, $id);
+        Event::trigger(ServerEvent::ON_SERVER_WORKER_STOP, $server, $id);
     }
 
     public function onTask($serv, $task_id, $from_id, $data)
@@ -164,7 +164,7 @@ class SwooleHttpServer extends Command
             //swoole  4.2.9
             defer(function () use ($req) {
                 try {
-                    Event::trigger(ServerEvent::onRequestDefer);
+                    Event::trigger(ServerEvent::ON_REQUEST_DEFER);
                 } catch (\Throwable $throwable) {
                     Log::error('http request error', ['message' => $throwable->getMessage()]);
                 } catch (\Error $throwable) {

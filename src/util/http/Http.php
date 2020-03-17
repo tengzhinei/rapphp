@@ -12,7 +12,6 @@ namespace rap\util\http;
 use rap\ioc\Ioc;
 use rap\util\http\client\CoroutineHttpClient;
 use rap\util\http\client\RequestHttpClient;
-use Swoole\Coroutine\Http\Client;
 
 class Http
 {

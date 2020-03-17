@@ -93,7 +93,7 @@ abstract class Application
     {
         try {
             if (!IS_SWOOLE) {
-                Event::trigger(ServerEvent::onServerWorkStart, null, 0);
+                Event::trigger(ServerEvent::ON_SERVER_WORK_START, null, 0);
             }
             //加载语言包
             Lang::loadLand($request);

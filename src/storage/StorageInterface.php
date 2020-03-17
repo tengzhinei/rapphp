@@ -15,11 +15,11 @@ namespace rap\storage;
  */
 interface StorageInterface
 {
-    const resize_rect_out= 1; //常量，标识缩略图等比例缩放类型
-    const resize_rect_in=2;  //常量，标识缩略图缩放后填充类型
-    const resize_fix_w=3;  //固定框
-    const resize_fix_h=4;   //固定高
-    const resize_fix=6; //常量，标识缩略图固定尺寸缩放类型
+    const RESIZE_RECT_OUT = 1; //常量，标识缩略图等比例缩放类型
+    const RESIZE_RECT_IN  =2;  //常量，标识缩略图缩放后填充类型
+    const RESIZE_FIX_W    =3;  //固定框
+    const RESIZE_FIX_H    =4;   //固定高
+    const RESIZE_FIX      =6; //常量，标识缩略图固定尺寸缩放类型
     /**
      * 上传文件
      * @param File $file 文件地址
@@ -48,7 +48,7 @@ interface StorageInterface
      * @param int $blur    模糊程度
      * @return string
      */
-    public function getPicUrl($name, $width = 0, $height = 0, $water = false, $crop = self::resize_rect_in, $blur = -1);
+    public function getPicUrl($name, $width = 0, $height = 0, $water = false, $crop = self::RESIZE_RECT_IN, $blur = -1);
 
 
     /**

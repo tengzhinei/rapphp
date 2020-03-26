@@ -49,12 +49,12 @@ function twig($body) {
     return 'twig:' . $body;
 }
 
-function downloadFile($file,$file_name) {
+function downloadFile($file,$file_name='') {
     return new \rap\web\response\Download($file,$file_name);
 }
 
 
-function download($file,$file_name) {
+function download($file,$file_name='') {
     return new \rap\web\response\Download($file,$file_name);
 }
 

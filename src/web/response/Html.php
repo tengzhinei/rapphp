@@ -5,7 +5,7 @@ namespace rap\web\response;
 
 
 use rap\ioc\Ioc;
-use rap\web\mvc\view\View;
+use rap\web\mvc\View;
 use rap\web\Response;
 
 class Html implements ResponseBody {

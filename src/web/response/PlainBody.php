@@ -12,7 +12,7 @@ class PlainBody implements ResponseBody {
      *
      * @param $content
      */
-    public function _initialize($content) {
+    public function __construct($content) {
         $this->content = $content;
     }
 

@@ -501,12 +501,12 @@ EOF;
                         throw \$val;
                     }
                     if (\$val) {
-                        return Aop::NuLL==\$val?null:\$val;
+                        return Aop::AOP_NULL==\$val?null:\$val;
                     }
                 }
                 \$pointArgs=\$point->getArgs();
                 \$val=$call_parent;
-                 return Aop::NuLL==\$val?null:\$val;
+                 return Aop::AOP_NULL==\$val?null:\$val;
             }catch (\Throwable \$e){
                 \$val=\$e;
                  throw \$e;
@@ -545,7 +545,7 @@ EOF;
                         throw \$value;
                     }
                     if(\$value){
-                       return Aop::NuLL==\$value?null:\$value;
+                       return Aop::AOP_NULL==\$value?null:\$value;
                     }
                 }
             }

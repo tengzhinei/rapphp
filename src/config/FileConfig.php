@@ -6,31 +6,48 @@
 
 namespace rap\config;
 
+
 use rap\util\FileUtil;
 
-class FileConfig
-{
+class FileConfig {
 
     private $fileDate;
 
     private $provides=[];
 
-    public function __construct()
-    {
+    public function __construct() {
         if (is_file(APP_PATH . 'config.php')) {
             $this->fileDate = include APP_PATH . 'config.php';
-        } elseif (is_file(APP_PATH . 'config/config.php')) {
+        }else if(is_file(APP_PATH . 'config/config.php')) {
             $this->fileDate = include APP_PATH . 'config/config.php';
-            FileUtil::eachAll(APP_PATH . 'config', function ($path, $name) {
-                if ($name != 'config.php') {
-                    $name = str_replace('.php', '', $name);
-                    $data = include $path;
-                    $this->fileDate[ $name ] = $data;
-                }
-            });
-        } else {
-            exception("请在config.php 或者config/config.php配置文件必须存在");
+
         }
+        if (!is_dir(APP_PATH . 'config')) {
+            return;
+        }
+        FileUtil::eachAll(APP_PATH . 'config', function($path, $name) {
+            if ($name == 'config.php') {
+                return;
+            }
+            if(strpos($name,'.php')>0){
+                $name = str_replace('.php', '', $name);
+                $data = include $path;
+            }else if(strpos($name,'.json')>0){
+                $name = str_replace('.json', '', $name);
+                $content=file_get_contents($path);
+                $data=json_decode($content,true);
+            }else{
+                return;
+            }
+
+            if (!$this->fileDate[ $name ]) {
+                $this->fileDate[ $name ] = $data;
+            } else {
+                foreach ($data as $k => $v) {
+                    $this->fileDate[ $name ][ $k ] = $v;
+                }
+            }
+        });
     }
 
     /**
@@ -39,8 +56,7 @@ class FileConfig
      *
      * @return mixed
      */
-    public function get($module)
-    {
+    public function get($module) {
         $data = $this->fileDate[ $module ];
         return $data;
     }
@@ -49,16 +65,14 @@ class FileConfig
      * 获取所有配置
      * @return mixed
      */
-    public function getAll()
-    {
+    public function getAll(){
         return $this->fileDate;
     }
 
     /**
      * 合并模块
      */
-    public function mergeProvide()
-    {
+    public function mergeProvide(){
         /* @var $provide FileConfigProvide  */
         foreach ($this->provides as $provide) {
             $config = $provide->load();
@@ -71,6 +85,7 @@ class FileConfig
                     }
                 }
             }
+
         }
     }
 
@@ -78,8 +93,8 @@ class FileConfig
      * 注册配置提供器
      * @param FileConfigProvide $provide
      */
-    public function registerProvide(FileConfigProvide $provide)
-    {
+    public function registerProvide(FileConfigProvide $provide){
         $this->provides[]=$provide;
     }
+
 }

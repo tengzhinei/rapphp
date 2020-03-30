@@ -51,8 +51,7 @@ class Dispatcher
         }
         if($value instanceof ResponseBody){
             $value->beforeSend($response);
-            $response->send();
         }
-
+        $response->send();
     }
 }

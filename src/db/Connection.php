@@ -327,8 +327,14 @@ abstract class Connection implements PoolAble
             //2006和2013表示表示连接失败,需要重连接
             if ($error[1] == 2006 || $error[1] == 2013) {
                 $this->pdo = null;
-                $this->connect();
+                try{
+                    $this->connect();
+                }catch (\PDOException $pdo){
+                    $this->db='';
+                    throw $pdo;
+                }
             } else {
+                $this->db='';
                 throw $e;
             }
         }

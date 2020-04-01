@@ -119,7 +119,16 @@ class Record implements \ArrayAccess, \JsonSerializable
             } else {
                 $type = $type_p;
             }
-            if ($type == 'json') {
+            if ($type == 'const_s') {
+                $value_temp = [];
+                $tmp=2;
+                while ($value-$tmp>=0){
+                    $value_temp[]=$tmp;
+                    $value=$value-$tmp;
+                    $tmp=$tmp*2;
+                }
+                $value=$value_temp;
+            }elseif ($type == 'json') {
                 $value = json_decode($value, true);
             } elseif ($type == 'int') {
                 if ($value !== null) {
@@ -243,6 +252,12 @@ class Record implements \ArrayAccess, \JsonSerializable
             if ($value === 'null') {
                 $value = null;
                 $this->$field = null;
+            }elseif ($type === 'const_s') {
+                $cs=0;
+                foreach ($value as $item) {
+                    $cs+=(int)$item;
+                }
+                $value=$cs;
             } elseif ($type == 'int') {
                 $value = (int)$value;
             } elseif ($type == 'float') {
@@ -747,13 +762,23 @@ class Record implements \ArrayAccess, \JsonSerializable
     {
         $fields = $this->getFields();
         foreach ($fields as $field => $type) {
-            if (is_array($type)) {
-                $con = $type[ 'const' ];
-                $value = $this->$field;
-                if (is_int($value)) {
+            if (!is_array($type)) {
+                continue;
+            }
+            $con = $type[ 'const' ];
+            $type = $type[ 'type' ];
+            $value = $this->$field;
+            $field_show = $field . "_show";
+            if($type=='const_s'){
+                $temps=[];
+                foreach ($value as $item) {
+                    $temps[]= $con[ $item ];
+                }
+                $this->$field_show = $temps;
+            }else{
+                if(array_values($con) === $con){
                     $value -= 1;
                 }
-                $field_show = $field . "_show";
                 $this->$field_show = $con[ $value ];
             }
         }

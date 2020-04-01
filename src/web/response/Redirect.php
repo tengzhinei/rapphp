@@ -24,14 +24,8 @@ class Redirect implements ResponseBody {
     }
 
     public function beforeSend(Response $response) {
-        if (strpos($this->url, '/') == 0) {
-            $base_url = Config::get('app', 'url_base');
-            $this->url = $base_url . $this->url;
-        }
         $response->code($this->code);
         $response->header("location", $this->url);
         $response->send();
-
-
     }
 }

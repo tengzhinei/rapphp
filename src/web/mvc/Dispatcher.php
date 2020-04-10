@@ -46,7 +46,7 @@ class Dispatcher
         if (is_string($value)) {
             /* @var $html Html  */
             $value =  new  Html($value);
-        } else if ($value!=null&&!($value instanceof ResponseBody)) {
+        } else if ($value!==null&&!($value instanceof ResponseBody)) {
             $value = new JSONBody($value);
         }
         if($value instanceof ResponseBody){

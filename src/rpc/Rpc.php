@@ -14,6 +14,7 @@ use rap\aop\Event;
 use rap\config\Config;
 use rap\ioc\Ioc;
 use rap\rpc\client\RpcClient;
+use rap\rpc\client\RpcHeader;
 use rap\rpc\client\RpcHttp2Client;
 use rap\rpc\client\RpcHttpClient;
 use rap\rpc\service\RpcHandlerMapping;
@@ -147,4 +148,7 @@ class Rpc
         }
         return [];
     }
+
+
+
 }

@@ -19,16 +19,21 @@ class RpcHandlerMapping implements HandlerMapping
 {
 
     private $config = ['path' => '/rpc_____call',
+                       'auth'=>""
                        ];
+
+
 
     public function __construct()
     {
         $config = Config::getFileConfig()[ 'rpc_service' ];
         $this->config = array_merge($this->config, $config);
+
     }
 
     public function map(Request $request, Response $response)
     {
+
         $path = $request->routerPath();
 
         if ($path !== $this->config[ 'path' ]) {

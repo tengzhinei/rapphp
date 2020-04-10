@@ -11,16 +11,22 @@ namespace rap\rpc;
 
 use rap\aop\Aop;
 use rap\aop\JoinPoint;
+use rap\ioc\ScopeProperty;
 use rap\log\Log;
 use rap\rpc\client\RpcClient;
 use rap\rpc\client\RpcClientException;
+use rap\rpc\client\RpcHeader;
 use rap\swoole\pool\Pool;
 
 /**
  * 主要实现了 RCP 远程调用和熔断器的功能
+ *
+ * @property  RpcHeader $rpcHeader 获取需要传递的请求头
+ *
  */
 class RpcWave
 {
+    use ScopeProperty;
 
     const FUSE_STATUS_OPEN      = 1;
     const FUSE_STATUS_HALF_OPEN = 2;
@@ -31,14 +37,18 @@ class RpcWave
      */
     private $rpc;
 
+
+
     /**
      * RpcWave __construct.
      *
      * @param Rpc $rpc
+     * @param RpcHeader $rpcHeader
      */
-    public function __construct(Rpc $rpc)
+    public function __construct(Rpc $rpc,RpcHeader $rpcHeader)
     {
         $this->rpc = $rpc;
+        $this->rpcHeader=$rpcHeader;
     }
 
     public function before(JoinPoint $point)
@@ -46,12 +56,11 @@ class RpcWave
         $method = $point->getMethod();//对应的反射方法
         /* @var $obj RpcSTATUS */
         $obj = $point->getObj();//对应包装对象
-        $header=$this->header();
+        $header=$this->rpcHeader->header();
         $context = ['clazz' => $point->getOriginalClass(),
                     'name' => $method->getName(),
                     'args' => $point->getArgs(),
                     'header' => $header];
-
         /* @var $client RpcClient */
         $client = $this->rpc->getRpcClient($point->getOriginalClass());
         try {
@@ -112,27 +121,5 @@ class RpcWave
         return null;
     }
 
-    private function header()
-    {
-        $header = [];
-        $request = request();
-        if ($request) {
-            $header = $request->header();
-            unset($header['host']);
-            unset($header['content-type']);
-            unset($header['content-length']);
-            unset($header['connection']);
-            unset($header['pragma']);
-            unset($header['cache-control']);
-            unset($header['upgrade-insecure-requests']);
-            unset($header['sec-fetch-mode']);
-            unset($header['sec-fetch-user']);
-            unset($header['accept']);
-            unset($header['sec-fetch-site']);
-            unset($header['accept-encoding']);
-            unset($header['accept-language']);
-            $header[ 'x-session-id' ] = $request->session()->sessionId();
-        }
-        return $header;
-    }
+
 }

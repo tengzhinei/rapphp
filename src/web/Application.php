@@ -103,7 +103,7 @@ abstract class Application
                     foreach ($this->interceptors as $interceptor => $priority) {
                         $interceptor = Ioc::get($interceptor);
                         $value = $interceptor->handler($request, $response);
-                        if(!$value){
+                        if(!$value&&!is_array($value)){
                             continue;
                         }elseif ($value instanceof ResponseBody) {
                             $value->beforeSend($response);

@@ -27,6 +27,7 @@ class RpcHttpClient implements RpcClient
     public $FUSE_OPEN_TIME;
 
     private $config = ['host' => '',
+                       'auth'=>'',
                        'port' => 9501,
                        'base_path' => '',
                        'path' => '/rpc_____call',
@@ -65,6 +66,9 @@ class RpcHttpClient implements RpcClient
      */
     public function query($interface, $method, $data, $header = [])
     {
+        if($this->config['auth']){
+            $headers['Rpc-Auth']= md5($this->config['auth'] . $interface . $method);;
+        }
         $authorization = $header[ 'authorization' ];
         $headers = array_merge($header, ['Rpc-Client-Name' => Config::get('app')[ 'name' ],
                                          'Authorization' => $this->config[ 'authorization' ],
@@ -159,4 +163,5 @@ class RpcHttpClient implements RpcClient
                 'fuse_fail_count' => $this->config[ 'fuse_fail_count' ],//连续失败多少次开启熔断
         ];
     }
+
 }

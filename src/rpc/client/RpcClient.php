@@ -14,6 +14,7 @@ interface RpcClient extends PoolAble
 {
 
 
+
     /**
      * 发起请求
      *
@@ -26,4 +27,5 @@ interface RpcClient extends PoolAble
     public function query($interface, $method, $data, $header = []);
 
     public function fuseConfig();
+
 }

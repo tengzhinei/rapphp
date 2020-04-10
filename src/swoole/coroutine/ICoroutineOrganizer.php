@@ -31,7 +31,7 @@ interface ICoroutineOrganizer {
 
     /**
      * 产生一个分组
-     * 下面所有本类创建的协程都会在同一分组,博能
+     * 下面所有本类创建的协程都会在同一分组
      * @return $this
      */
     public function group();

@@ -65,7 +65,9 @@ class RpcHttp2Client implements RpcClient
      */
     public function query($interface, $method, $data, $header = [])
     {
-        //
+        if($this->config['auth']){
+            $headers['Rpc-Auth']= md5($this->config['auth'] . $interface . $method);;
+        }
         if (!$this->cli) {
             $this->connect();
         }
@@ -131,4 +133,6 @@ class RpcHttp2Client implements RpcClient
         $this->cli->set(['timeout' => $this->config[ 'timeout' ]]);
         $this->cli->connect();
     }
+
+
 }

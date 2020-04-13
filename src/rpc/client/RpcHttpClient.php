@@ -10,6 +10,9 @@
 namespace rap\rpc\client;
 
 use rap\config\Config;
+use rap\ioc\Ioc;
+use rap\rpc\DefaultHeaderPrepare;
+use rap\rpc\HeaderPrepare;
 use rap\swoole\pool\PoolTrait;
 use rap\util\http\Http;
 use Swoole\Coroutine\Http\Client;
@@ -38,6 +41,10 @@ class RpcHttpClient implements RpcClient
                        'fuse_fail_count' => 20,//连续失败多少次开启熔断
                        'pool' => ['min' => 1, 'max' => 10]];
 
+    /**
+     * @var HeaderPrepare
+     */
+    private $headerPrepare;
 
     public function config($config)
     {
@@ -46,6 +53,10 @@ class RpcHttpClient implements RpcClient
         if (!$this->config[ 'name' ]) {
             $this->config[ 'name' ] = 'rap_rpc_client';
         }
+        if (!$config[ 'header' ]) {
+            $config[ 'header' ] = DefaultHeaderPrepare::class;
+        }
+        $this->headerPrepare = Ioc::get($config[ 'header' ]);
     }
 
     public function poolConfig()
@@ -66,8 +77,9 @@ class RpcHttpClient implements RpcClient
      */
     public function query($interface, $method, $data, $header = [])
     {
-        if($this->config['auth']){
-            $headers['Rpc-Auth']= md5($this->config['auth'] . $interface . $method);;
+        $header = $this->headerPrepare->header($interface, $method, $data);
+        if ($this->config['auth']) {
+            $headers['Rpc-Auth']= md5($this->config['auth'] . $interface . $method);
         }
         $authorization = $header[ 'authorization' ];
         $headers = array_merge($header, ['Rpc-Client-Name' => Config::get('app')[ 'name' ],
@@ -163,5 +175,4 @@ class RpcHttpClient implements RpcClient
                 'fuse_fail_count' => $this->config[ 'fuse_fail_count' ],//连续失败多少次开启熔断
         ];
     }
-
 }

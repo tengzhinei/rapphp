@@ -4,7 +4,7 @@ namespace rap\rpc;
 
 use \RuntimeException;
 
-class RpcRunErrorExcetpion extends RuntimeException
+class RpcRunErrorException extends RuntimeException
 {
 
 }

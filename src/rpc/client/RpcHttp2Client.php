@@ -10,6 +10,9 @@
 namespace rap\rpc\client;
 
 use rap\config\Config;
+use rap\ioc\Ioc;
+use rap\rpc\DefaultHeaderPrepare;
+use rap\rpc\HeaderPrepare;
 use rap\swoole\pool\PoolTrait;
 use Swoole\Coroutine\Http2\Client;
 
@@ -31,6 +34,10 @@ class RpcHttp2Client implements RpcClient
                        'fuse_fail_count' => 20,//连续失败多少次开启熔断
                        'pool' => ['min' => 1, 'max' => 10]];
 
+    /**
+     * @var HeaderPrepare
+     */
+    private $headerPrepare;
 
     /**
      * @var Client
@@ -44,6 +51,10 @@ class RpcHttp2Client implements RpcClient
         if (!$this->config[ 'name' ]) {
             $this->config[ 'name' ] = 'rap_rpc_client';
         }
+        if (!$config[ 'header' ]) {
+            $config[ 'header' ] = DefaultHeaderPrepare::class;
+        }
+        $this->headerPrepare = Ioc::get($config[ 'header' ]);
     }
 
 
@@ -65,8 +76,9 @@ class RpcHttp2Client implements RpcClient
      */
     public function query($interface, $method, $data, $header = [])
     {
-        if($this->config['auth']){
-            $headers['Rpc-Auth']= md5($this->config['auth'] . $interface . $method);;
+        $header = $this->headerPrepare->header($interface, $method, $data);
+        if ($this->config[ 'auth' ]) {
+            $headers[ 'Rpc-Auth' ] = md5($this->config[ 'auth' ] . $interface . $method);
         }
         if (!$this->cli) {
             $this->connect();
@@ -133,6 +145,4 @@ class RpcHttp2Client implements RpcClient
         $this->cli->set(['timeout' => $this->config[ 'timeout' ]]);
         $this->cli->connect();
     }
-
-
 }

@@ -5,7 +5,7 @@ use rap\config\Config;
 use rap\exception\MsgException;
 use rap\ioc\Ioc;
 use rap\rpc\RpcAuthException;
-use rap\rpc\RpcRunErrorExcetpion;
+use rap\rpc\RpcRunErrorException;
 use rap\web\mvc\HandlerAdapter;
 use rap\web\Request;
 use rap\web\Response;
@@ -48,19 +48,19 @@ class RpcHandlerAdapter extends HandlerAdapter
         try {
             $service = Ioc::get($rpc_interface);
             if (!($service instanceof RPCable)) {
-                throw new RpcRunErrorExcetpion("服务方该接口没有继承RPCable", 102);
+                throw new RpcRunErrorException("服务方该接口没有继承RPCable", 102);
             }
             $args = $request->body();
             $args =$serialize == 'serialize'? unserialize($args):json_decode($args, true);
             try {
                 $method = new \ReflectionMethod(get_class($service), $rpc_method);
             } catch (\Exception $e) {
-                throw new RpcRunErrorExcetpion("该接口没有对应的方法", 103);
+                throw new RpcRunErrorException("该接口没有对应的方法", 103);
             }
             $value = $method->invokeArgs($service, $args);
             $exception = false;
-        } catch (RpcRunErrorExcetpion $rpcException) {
-            $value = ['type' => RpcRunErrorExcetpion::class,
+        } catch (RpcRunErrorException $rpcException) {
+            $value = ['type' => RpcRunErrorException::class,
                       'code' => $rpcException->getCode(),
                       'msg' => $rpcException->getMessage()];
         } catch (MsgException $msgException) {

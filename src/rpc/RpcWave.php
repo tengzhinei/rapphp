@@ -15,13 +15,11 @@ use rap\ioc\ScopeProperty;
 use rap\log\Log;
 use rap\rpc\client\RpcClient;
 use rap\rpc\client\RpcClientException;
-use rap\rpc\client\RpcHeader;
 use rap\swoole\pool\Pool;
 
 /**
  * 主要实现了 RCP 远程调用和熔断器的功能
  *
- * @property  RpcHeader $rpcHeader 获取需要传递的请求头
  *
  */
 class RpcWave
@@ -43,12 +41,10 @@ class RpcWave
      * RpcWave __construct.
      *
      * @param Rpc $rpc
-     * @param RpcHeader $rpcHeader
      */
-    public function __construct(Rpc $rpc,RpcHeader $rpcHeader)
+    public function __construct(Rpc $rpc)
     {
         $this->rpc = $rpc;
-        $this->rpcHeader=$rpcHeader;
     }
 
     public function before(JoinPoint $point)
@@ -56,7 +52,7 @@ class RpcWave
         $method = $point->getMethod();//对应的反射方法
         /* @var $obj RpcSTATUS */
         $obj = $point->getObj();//对应包装对象
-        $header=$this->rpcHeader->header();
+        $header = [];
         $context = ['clazz' => $point->getOriginalClass(),
                     'name' => $method->getName(),
                     'args' => $point->getArgs(),
@@ -120,6 +116,4 @@ class RpcWave
         }
         return null;
     }
-
-
 }

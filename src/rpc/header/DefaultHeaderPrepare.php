@@ -1,43 +1,10 @@
 <?php
 
+namespace rap\rpc;
 
-namespace rap\rpc\client;
+class DefaultHeaderPrepare implements HeaderPrepare {
 
-use rap\ioc\scope\RequestScope;
-
-/**
- * 可以为Rpc添加请求头
- * @author: 藤之内
- */
-class RpcHeader implements RequestScope
-{
-
-    private $headers = [];
-
-
-
-
-    /**
-     * 添加请求头
-     *
-     * @param string $key key
-     * @param string $value 内容
-     */
-    public function add($key, $value)
-    {
-        if ($key === null || $value === null) {
-            return;
-        }
-        $this->headers[ $key ] = $value;
-    }
-
-
-    /**
-     * 获取需要向后传递的请求头
-     * @return array
-     */
-    public function header()
-    {
+    public function header($interface, $method, $data) {
         $header = [];
         $request = request();
         if ($request) {
@@ -57,8 +24,6 @@ class RpcHeader implements RequestScope
             unset($header[ 'accept-language' ]);
             $header[ 'x-session-id' ] = $request->session()->sessionId();
         }
-        return array_merge($header, $this->headers);
+        return $header;
     }
-
-
 }

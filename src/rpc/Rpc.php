@@ -14,7 +14,6 @@ use rap\aop\Event;
 use rap\config\Config;
 use rap\ioc\Ioc;
 use rap\rpc\client\RpcClient;
-use rap\rpc\client\RpcHeader;
 use rap\rpc\client\RpcHttp2Client;
 use rap\rpc\client\RpcHttpClient;
 use rap\rpc\service\RpcHandlerMapping;
@@ -65,6 +64,7 @@ class Rpc
 
     private function initRpcClient($name, RpcRegister $register, $config)
     {
+        $name.='_RpcClient';
         $client = $config[ 'client' ];
         if (!$client) {
             $client = 'http';
@@ -150,5 +150,8 @@ class Rpc
     }
 
 
+    public function header($header){
+
+    }
 
 }

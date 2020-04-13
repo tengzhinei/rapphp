@@ -12,11 +12,28 @@ namespace rap\util;
 /**
  * 数组工具类
  */
-class ArrayUtil
-{
+class ArrayUtil {
 
-    public static function groupBy($list, $parent_field = 'parent_id')
-    {
+    /**
+     * 检查数组是否是 list 类型的
+     *
+     * @param  array $value
+     * @return  bool
+     */
+    public static function isList($value): bool {
+        return is_array($value) && (!$value || array_keys($value) === range(0, count($value) - 1));
+    }
+
+
+    /**
+     * 分组
+     *
+     * @param array  $list         数组
+     * @param string $parent_field 按某个字段分组
+     *
+     * @return array
+     */
+    public static function groupBy($list, $parent_field = 'parent_id') {
         $map = [];
         foreach ($list as $item) {
             $parent_id = null;
@@ -29,8 +46,15 @@ class ArrayUtil
         return $map;
     }
 
-    public static function indexBy($list, $parent_field = 'parent_id')
-    {
+    /**
+     * 唯一分组
+     *
+     * @param  array $list         数组
+     * @param string $parent_field 某个字段
+     *
+     * @return array
+     */
+    public static function indexBy($list, $parent_field = 'parent_id') {
         $map = [];
         foreach ($list as $item) {
             $parent_id = null;
@@ -44,23 +68,24 @@ class ArrayUtil
     }
 
     /**
-     * @param        $list
-     * @param string $parent_field
-     * @param string $id_field
-     * @param string $children_field
+     * 转化为树形
+     *
+     * @param array  $list           数组
+     * @param string $parent_field   父字段
+     * @param string $id_field       主键字段
+     * @param string $children_field 子字段
      *
      * @return array
      */
-    public static function toTree($list, $parent_field = 'parent_id', $id_field = 'id', $children_field = 'children')
-    {
+    public static function toTree($list, $parent_field = 'parent_id', $id_field = 'id', $children_field = 'children') {
         $map = self::groupBy($list);
-        $data=[];
+        $data = [];
         foreach ($list as $item) {
-            $item->text=$item->name;
+            $item->text = $item->name;
             if (is_object($item)) {
                 if (!$item->$parent_field) {
-                    $item->$children_field=$map[$item->$id_field];
-                    $data[]=$item;
+                    $item->$children_field = $map[ $item->$id_field ];
+                    $data[] = $item;
                 }
             }
         }
@@ -68,13 +93,14 @@ class ArrayUtil
     }
 
     /**
-     * @param array          $list
-     * @param \Closure|array $where
+     * 查找一个
+     *
+     * @param array          $list  数组
+     * @param \Closure|array $where 条件数组或方法
      *
      * @return null
      */
-    public static function find($list, $where)
-    {
+    public static function find($list, $where) {
         if (is_array($where)) {
             foreach ($list as $item) {
                 $is_ok = true;
@@ -99,8 +125,15 @@ class ArrayUtil
     }
 
 
-    public static function where($list, $where)
-    {
+    /**
+     * where 查找符合条件的
+     *
+     * @param array          $list  数组
+     * @param \Closure|array $where $where 条件数组或方法
+     *
+     * @return array
+     */
+    public static function where($list, $where) {
         $items = [];
         if (is_array($where)) {
             foreach ($list as $item) {
@@ -125,8 +158,15 @@ class ArrayUtil
         return $items;
     }
 
-    public static function pluck($list, $name)
-    {
+    /**
+     * 摘取某个字段的值,返回为数组
+     *
+     * @param array  $list 数组
+     * @param string $name 需要摘取的字段
+     *
+     * @return array
+     */
+    public static function pluck($list, $name) {
         $values = [];
         foreach ($list as $item) {
             $values[] = $item[ $name ];

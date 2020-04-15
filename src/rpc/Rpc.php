@@ -64,7 +64,6 @@ class Rpc
 
     private function initRpcClient($name, RpcRegister $register, $config)
     {
-        $name.='_RpcClient';
         $client = $config[ 'client' ];
         if (!$client) {
             $client = 'http';
@@ -94,7 +93,6 @@ class Rpc
 
     public static function registerRpc($rpcName, $registerClazz)
     {
-        $rpcName=$rpcName.'__rpc';
         Event::add(ServerEvent::ON_APP_INIT, function (
             AutoFindHandlerMapping $autoMapping,
             Router $router

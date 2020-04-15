@@ -11,8 +11,8 @@ namespace rap\rpc\client;
 
 use rap\config\Config;
 use rap\ioc\Ioc;
-use rap\rpc\DefaultHeaderPrepare;
-use rap\rpc\HeaderPrepare;
+use rap\rpc\header\DefaultHeaderPrepare;
+use rap\rpc\header\HeaderPrepare;
 use rap\swoole\pool\PoolTrait;
 use Swoole\Coroutine\Http2\Client;
 

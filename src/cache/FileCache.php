@@ -217,7 +217,10 @@ class FileCache implements CacheInterface, PoolAble
 
     public function poolConfig()
     {
-        // TODO: Implement poolConfig() method.
+        return ['min' => 1,        //连接池
+                'max' => 2,
+                'check' => 30,
+                'idle' => 30];
     }
 
     public function connect()

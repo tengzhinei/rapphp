@@ -13,6 +13,7 @@ defined('RUNTIME') or define('RUNTIME', ROOT_PATH ."runtime".DS);
 defined('IS_CLI') or define('IS_CLI', PHP_SAPI == 'cli' ? true : false);
 defined('IS_WIN') or define('IS_WIN', strpos(PHP_OS, 'WIN') !== false);
 defined('IS_SWOOLE') or define('IS_SWOOLE', IS_CLI&&$argv[1]=='http'||$argv[1]=='websocket');
+defined('IS_AOP_BUILD') or define('IS_AOP_BUILD', $argv[1]=='aop');
 $loader = require ROOT_PATH . '/vendor/autoload.php';
 $loader->setPsr4(APP_DIR."\\", ROOT_PATH.APP_DIR);
 $loader->setPsr4("rap\\aop\\build\\", ROOT_PATH.'aop');

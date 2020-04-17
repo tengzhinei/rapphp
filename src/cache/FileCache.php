@@ -225,7 +225,7 @@ class FileCache implements CacheInterface, PoolAble
 
     public function connect()
     {
-        // TODO: Implement connect() method.
+
     }
 
     public function expire($key, $ttl)

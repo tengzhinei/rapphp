@@ -385,7 +385,7 @@ abstract class Connection implements PoolAble
             }
         }
         $this->queryStr = rtrim($sql);
-        Log::info($this->queryStr, $bind);
+        Log::info('sql query', ['sql'=> $this->queryStr,'args'=>$bind]);
         return;
     }
 

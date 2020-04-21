@@ -100,7 +100,7 @@ class SwooleHttpServer extends Command
 
     public function onWorkStart($server, $id)
     {
-        Log::info('swoole worker start:' . $id);
+        Log::info('swoole worker start' , ['id'=>$id]);
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
@@ -110,7 +110,7 @@ class SwooleHttpServer extends Command
 
     public function onWorkerStop($server, $id)
     {
-        Log::info('swoole worker stop:' . $id);
+        Log::info('swoole worker stop',['id'=>$id] );
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;
@@ -119,7 +119,7 @@ class SwooleHttpServer extends Command
 
     public function onTask($serv, $task_id, $from_id, $data)
     {
-        Log::info('swoole task start:' . $task_id);
+        Log::info('swoole task start' ,['task_id'=>$task_id]);
         $clazz = $data['clazz'];
         $method = $data['method'];
         $params = $data['params'];
@@ -184,7 +184,9 @@ class SwooleHttpServer extends Command
                 get_class($exception)
             ) . " in " .
                 str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
-            Log::error('http request error :' . $exception->getCode() . ' : ' . $msg);
+            Log::error('http request error handler ,' ,['code'=>$exception->getCode(),
+                                                        'msg'=>$msg,
+                                                        'trace'=>$exception->getTraceAsString()]);
             return;
         } catch (\Error $e) {
             $response->end($e->getMessage());
@@ -194,7 +196,9 @@ class SwooleHttpServer extends Command
                 get_class($e)
             ) . " in " .
                 str_replace(ROOT_PATH, "", $e->getFile()) . " line " . $e->getLine();
-            Log::error('http request error :' . $e->getCode() . ' : ' . $msg);
+            Log::error('http request error handler ,' ,['code'=>$e->getCode(),
+                                                        'msg'=>$msg,
+                                                        'trace'=>$e->getTraceAsString()]);
             return;
         }
     }

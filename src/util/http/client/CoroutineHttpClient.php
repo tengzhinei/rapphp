@@ -130,4 +130,28 @@ class CoroutineHttpClient implements HttpClient
         $cli->close();
         return $response;
     }
+
+    public function delete($url, $header = [], $data = [], $timeout = 0.5){
+        $hostPath = self::parseUrl($url);
+        if (!$hostPath[0]) {
+            return new HttpResponse(-1, [], '');
+        }
+        $cli = new Client($hostPath[0], $hostPath[2], $hostPath[2] == 443);
+        $cli->set(['timeout' => $timeout]);
+        if ($header) {
+            $cli->setHeaders($header);
+        }
+        $cli->setMethod('DELETE');
+        $cli->setData($data);
+        $cli->execute($hostPath[1]);
+        $code = $cli->statusCode;
+        $body = $cli->body;
+        if ($cli->statusCode <0) {
+            $code = $code = $cli->errCode;
+            $body = socket_strerror($code);
+        }
+        $response = new HttpResponse($code, $cli->headers, $body);
+        $cli->close();
+        return $response;
+    }
 }

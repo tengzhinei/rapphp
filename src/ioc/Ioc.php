@@ -381,7 +381,6 @@ class Ioc
                 $providerPrepare->register();
             } else {
                 if ($providerPrepare instanceof BeanConstructor) {
-                    Log::error(json_encode($providerPrepare));
                     $clazz = $providerPrepare->constructorClass();
                     if (is_array($clazz)) {
                         foreach ($clazz as $key) {

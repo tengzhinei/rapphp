@@ -48,7 +48,7 @@ class DBCache
             return 'null';
         }
         if ($data) {
-            Log::info("命中缓存" . $model . " " . $id);
+            Log::info("model_cache get success",['model'=>$model,'id'=>$id]);
             $record->fromDbData($data);
             return $record;
         }
@@ -107,7 +107,7 @@ class DBCache
                 $cache_key = "record_" . $t->getTable() . "_" . $key . "_" . implode(",", array_values($where));
                 $data = Cache::get($cache_key);
                 if ($data) {
-                    Log::info("命中缓存 " . $model, $where);
+                    Log::info("where_cache get success " ,['model'=>$model,'where'=>$where]);
                     $t->fromDbData($data);
                     return $t;
                 }
@@ -193,7 +193,7 @@ class DBCache
         $cache_name = $this->cacheName($sql);
         $result = Cache::hashGet($cache_name, $key);
         if ($result) {
-            Log::info("命中缓存" . $sql, $bind);
+            Log::info("second_cache get success" ,['sql'=>$sql,'args'=>$bind]);
         }
         return $result;
     }

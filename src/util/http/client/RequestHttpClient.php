@@ -42,4 +42,11 @@ class RequestHttpClient implements HttpClient
         $response = Request::post($url, $header, $body);
         return new HttpResponse($response->code, $response->headers, $response->raw_body);
     }
+
+    public function delete($url, $header = [], $data = [], $timeout = 0.5){
+        Request::timeout($timeout);
+        $response = Request::delete($url, $header, $data);
+        return new HttpResponse($response->code, $response->headers, $response->raw_body);
+    }
+
 }

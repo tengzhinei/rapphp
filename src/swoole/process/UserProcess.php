@@ -33,7 +33,7 @@ abstract class UserProcess
                     CoContext::getContext()->release();
                 });
                 Event::trigger(ServerEvent::ON_SERVER_WORK_START);
-                Log::error('onProcessStarted');
+                Log::notice('onProcessStarted');
                 $this->onProcessStarted();
             });
         });

@@ -164,13 +164,17 @@ class WebSocketServer extends Command
             $response->end($exception->getMessage());
             $msg = str_replace("rap\\exception\\", "", get_class($exception))
                 . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
-            Log::error('http request error :' . $exception->getCode() . ' : ' . $msg);
+            Log::error('http request error handler ,' ,['code'=>$exception->getCode(),
+                                                        'msg'=>$msg,
+                                                        'trace'=>$exception->getTraceAsString()]);
             return;
         } catch (\Error $e) {
             $response->end($e->getMessage());
             $msg = str_replace("rap\\exception\\", "", get_class($e))
                 . " in " . str_replace(ROOT_PATH, "", $e->getFile()) . " line " . $e->getLine();
-            Log::error('http request error :' . $e->getCode() . ' : ' . $msg);
+            Log::error('http request error handler ,' ,['code'=>$e->getCode(),
+                                                        'msg'=>$msg,
+                                                        'trace'=>$e->getTraceAsString()]);
             return;
         }
     }
@@ -180,7 +184,7 @@ class WebSocketServer extends Command
         /* @var $service WebSocketService */
         $service = Ioc::get($this->config[ 'service' ]);
         $service->server = $this;
-        Log::info('swoole worker start:' . $id);
+        Log::info('swoole worker start' ,['id'=>$id] );
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->task_id = $id;

@@ -148,8 +148,5 @@ class Rpc
     }
 
 
-    public function header($header){
-
-    }
 
 }

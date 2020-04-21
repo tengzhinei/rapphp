@@ -27,7 +27,9 @@ class ApiExceptionHandler implements ExceptionHandler
             $msg .= "  |" . str_replace("rap\\exception\\", "", get_class($exception))
                 . " in " . str_replace(ROOT_PATH, "", $exception->getFile())
                 . " line " . $exception->getLine();
-            Log::error('http request error handler :' . $exception->getCode() . ' : ' . $msg);
+            Log::error('http request error handler ,' ,['code'=>$exception->getCode(),
+                                                        'msg'=>$msg,
+                                                        'trace'=>$exception->getTraceAsString()]);
         } else {
             $code = $exception->getCode();
         }

@@ -55,8 +55,8 @@ class CoroutineHttpClient implements HttpClient
         return $response;
     }
 
-    public function post($url, $header = [], $data = [], $timeout = 0.5)
-    {
+
+    public function form($url, $header = [], $data = [], $timeout = 0.5){
         $hostPath = self::parseUrl($url);
         if (!$hostPath[0]) {
             return new HttpResponse(-1, [], '');
@@ -78,7 +78,8 @@ class CoroutineHttpClient implements HttpClient
         return $response;
     }
 
-    public function put($url, $header = [], $data = [], $timeout = 0.5)
+
+    public function post($url, $header = [], $data = [], $timeout = 0.5)
     {
         $hostPath = self::parseUrl($url);
         if (!$hostPath[0]) {
@@ -94,6 +95,38 @@ class CoroutineHttpClient implements HttpClient
         } else {
             $cli->post($hostPath[1], json_encode($data));
         };
+        $code = $cli->statusCode;
+        $body = $cli->body;
+        if ($cli->statusCode <0) {
+            $code = $code = $cli->errCode;
+            $body = socket_strerror($code);
+        }
+        $response = new HttpResponse($code, $cli->headers, $body);
+        $cli->close();
+        return $response;
+    }
+
+
+
+
+    public function put($url, $header = [], $data = [], $timeout = 0.5)
+    {
+        $hostPath = self::parseUrl($url);
+        if (!$hostPath[0]) {
+            return new HttpResponse(-1, [], '');
+        }
+        $cli = new Client($hostPath[0], $hostPath[2], $hostPath[2] == 443);
+        $cli->set(['timeout' => $timeout]);
+        if ($header) {
+            $cli->setHeaders($header);
+        }
+        if ($data && is_string($data)) {
+            $cli->setData($data);
+        } else {
+            $cli->setData(json_encode($data));
+        };
+        $cli->setMethod('PUT');
+        $cli->execute($hostPath[1]);
         $code = $cli->statusCode;
         $body = $cli->body;
         if ($cli->statusCode <0) {
@@ -142,7 +175,9 @@ class CoroutineHttpClient implements HttpClient
             $cli->setHeaders($header);
         }
         $cli->setMethod('DELETE');
-        $cli->setData($data);
+        if($data){
+            $cli->setData($data);
+        }
         $cli->execute($hostPath[1]);
         $code = $cli->statusCode;
         $body = $cli->body;

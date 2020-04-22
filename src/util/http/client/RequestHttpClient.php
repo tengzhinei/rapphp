@@ -17,7 +17,8 @@ class RequestHttpClient implements HttpClient
         return new HttpResponse($response->code, $response->headers, $response->raw_body);
     }
 
-    public function post($url, $header = [], $data = [], $timeout = 0.5)
+
+    public function form($url, $header = [], $data = [], $timeout = 0.5)
     {
         $data = Body::Form($data);
         Request::timeout($timeout);
@@ -25,13 +26,24 @@ class RequestHttpClient implements HttpClient
         return new HttpResponse($response->code, $response->headers, $response->raw_body);
     }
 
+    public function post($url, $header = [], $data = [], $timeout = 0.5)
+    {
+        Request::timeout($timeout);
+        if ($data && !is_string($data)) {
+            $data=json_encode($data);
+        }
+        $response = Request::post($url, $header, $data);
+        return new HttpResponse($response->code, $response->headers, $response->raw_body);
+    }
+
+
     public function put($url, $header = [], $data = [], $timeout = 0.5)
     {
         if (!is_string($data)) {
             $data = json_encode($data);
         }
         Request::timeout($timeout);
-        $response = Request::post($url, $header, $data);
+        $response = Request::put($url, $header, $data);
         return new HttpResponse($response->code, $response->headers, $response->raw_body);
     }
 

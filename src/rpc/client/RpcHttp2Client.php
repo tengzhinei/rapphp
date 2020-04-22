@@ -77,7 +77,7 @@ class RpcHttp2Client implements RpcClient
     public function query($interface, $method, $data, $header = [])
     {
         $x_header = $this->headerPrepare->header($interface, $method, $data);
-        $header = array_merge($header,$x_header);
+        $header = array_merge($x_header,$header);
         if ($this->config[ 'auth' ]) {
             $headers[ 'Rpc-Auth' ] = md5($this->config[ 'auth' ] . $interface . $method);
         }

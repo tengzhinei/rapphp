@@ -51,7 +51,7 @@ class Http
      * @param array  $data    数据
      * @param float  $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public function form($url, $header = [], $data = [], $timeout = 0.5){
         return self::client()->form($url, $header, $data, $timeout);
@@ -65,7 +65,7 @@ class Http
      * @param array|string $data    数据
      * @param float        $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public static function post($url, $header = [], $data = [], $timeout = 0.5)
     {
@@ -81,7 +81,7 @@ class Http
      * @param array|string $data    数据
      * @param float        $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public static function put($url, $header = [], $data = [], $timeout = 0.5)
     {
@@ -112,7 +112,7 @@ class Http
      * @param array|string $data    数据
      * @param float        $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public static function delete($url, $header, $data, $timeout){
         return self::client()->delete($url, $header, $data, $timeout);

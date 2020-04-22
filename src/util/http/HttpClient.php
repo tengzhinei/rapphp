@@ -25,7 +25,7 @@ interface HttpClient {
      * @param array  $data    数据
      * @param float  $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public function form($url, $header = [], $data = [], $timeout = 0.5);
 
@@ -38,7 +38,7 @@ interface HttpClient {
      * @param array|string $data    数据
      * @param float        $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public function post($url, $header = [], $data = [], $timeout = 0.5);
 
@@ -52,7 +52,7 @@ interface HttpClient {
      * @param array|string $data    数据
      * @param float        $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public function put($url, $header = [], $data = [], $timeout = 0.5);
 
@@ -65,7 +65,7 @@ interface HttpClient {
      * @param array        $files   文件
      * @param int          $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public function upload($url, $header = [], $data = [], $files = [], $timeout = 5);
 
@@ -78,7 +78,7 @@ interface HttpClient {
      * @param array|string $data    数据
      * @param float        $timeout 过期时间
      *
-     * @return mixed
+     * @return HttpResponse
      */
     public function delete($url, $header = [], $data = [], $timeout = 0.5);
 

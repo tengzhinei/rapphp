@@ -11,23 +11,11 @@ namespace rap\db;
 use rap\cache\Cache;
 use rap\log\Log;
 
-class DBCache
-{
+class DBCache {
 
-    public static $second_prefix       = "db_second_cache_";
-    public static $second_table_prefix = "db_second_table_cache_";
+    const FIRST_CACHE_KEY="first_cache_";
 
-    // UPDATE 正则条件
-    private static $updateExpression = '/UPDATE[\\s`]+?(\\w+)[\\s`]+?/is';
-
-    // INSERT 正则条件
-    private static $insertExpression = '/INSERT\\s+?INTO[\\s`]+?(\\w+)[\\s`]+?/is';
-
-    // DELETE 正则条件
-    private static $deleteExpression = '/DELETE\\s+?FROM[\\s`]+?(\\w+)[\\s`]+?/is';
-
-    // SELECT 正则条件
-    private static $selectExpression = '/((SELECT.+?FROM)|(LEFT\\s+JOIN|JOIN|LEFT))[\\s`]+?(\\w+)[\\s`]+?/is';
+    const SECOND_CACHE_KEY="second_cache_";
 
     /**
      * 一级缓存 id
@@ -38,17 +26,16 @@ class DBCache
      *
      * @return mixed
      */
-    public function recordCache($model, $id)
-    {
+    public function firstCacheGet($model, $id) {
         /* @var $record Record */
         $record = new $model;
-        $cache_key = "record_" . $record->getTable() . $id;
-        $data = Cache::get($cache_key);
-        if ($data=='null') {
+        $cache_key =self::FIRST_CACHE_KEY . $record->getTable() ;
+        $data = Cache::hashGet($cache_key,$id);
+        if ($data == 'null') {
             return 'null';
         }
         if ($data) {
-            Log::info("model_cache get success",['model'=>$model,'id'=>$id]);
+            Log::info("命中缓存" . $model . " " . $id);
             $record->fromDbData($data);
             return $record;
         }
@@ -62,10 +49,9 @@ class DBCache
      * @param string|int $id    主键
      * @param array      $value
      */
-    public function recordCacheSave($table, $id, $value)
-    {
-        $cache_key = "record_" . $table . $id;
-        Cache::set($cache_key, $value);
+    public function firstCacheSave($table, $id, $value) {
+        $cache_key = self::FIRST_CACHE_KEY  . $table;
+        Cache::hashSet($cache_key,$id, $value);
     }
 
     /**
@@ -74,23 +60,31 @@ class DBCache
      * @param string     $table 表名
      * @param string|int $id    主键
      */
-    public function recordCacheDel($table, $id)
-    {
-        $cache_key = "record_" . $table . $id;
+    public function firstCacheRemove($table, $id) {
+        $cache_key = self::FIRST_CACHE_KEY  . $table ;
+        Cache::hashRemove($cache_key,$id);
+    }
+
+    /**
+     * 按表删除全部一级缓存
+     *
+     * @param $table
+     */
+    public function firstCacheRemoveAll($table){
+        $cache_key = self::FIRST_CACHE_KEY  . $table ;
         Cache::remove($cache_key);
     }
 
 
     /**
-     * 一级缓存 where
+     * cacheKeys 二级缓存获取
      *
      * @param string $model 类名
      * @param array  $where 条件
      *
      * @return null|Record
      */
-    public function recordWhereCache($model, $where)
-    {
+    public function secondCacheGet($model, $where) {
         /* @var $t Record */
         $t = new $model;
         $cacheKeys = $t->cacheKeys();
@@ -104,10 +98,14 @@ class DBCache
             sort($m);
             $cacheKey = implode(",", $m);
             if ($key == $cacheKey) {
-                $cache_key = "record_" . $t->getTable() . "_" . $key . "_" . implode(",", array_values($where));
-                $data = Cache::get($cache_key);
+                $keys=[];
+                foreach ($where as $key=>$value) {
+                    $keys[].=$key.':'.$value;
+                }
+                $cache_key = implode("|", $keys);
+                $data = Cache::hashGet(self::SECOND_CACHE_KEY.$t->getTable(),$cache_key);
                 if ($data) {
-                    Log::info("where_cache get success " ,['model'=>$model,'where'=>$where]);
+                    Log::info("命中缓存 " . $model, $where);
                     $t->fromDbData($data);
                     return $t;
                 }
@@ -118,7 +116,7 @@ class DBCache
     }
 
     /**
-     * 一级缓存 where 保存
+     * cacheKeys 二级缓存保存
      *
      * @param string $model 类名
      * @param array  $where 条件
@@ -126,8 +124,7 @@ class DBCache
      *
      * @return null
      */
-    public function recordWhereCacheSave($model, $where, $value)
-    {
+    public function secondCacheSave($model, $where, $value) {
         /* @var $t Record */
         $t = new $model;
         $cacheKeys = $t->cacheKeys();
@@ -142,75 +139,89 @@ class DBCache
             sort($m);
             $cacheKey = implode(",", $m);
             if ($key == $cacheKey) {
-                $cache_key = "record_" . $t->getTable() . "_" . $key . "_" . implode(",", array_values($where));
+                $keys=[];
+                foreach ($where as $key=>$v) {
+                    $keys[].=$key.':'.$v;
+                }
+                $cache_key = implode("|", $keys);
                 break;
             }
         }
         if ($cache_key) {
-            Cache::set($cache_key, $value);
+            Cache::hashSet(self::SECOND_CACHE_KEY.$t->getTable(),$cache_key, $value);
         }
         return null;
     }
 
     /**
-     * 一级缓存 where 删除
+     * cacheKeys 二级缓存删除
      *
-     * @param string $model     类名
+     * @param string $model 类名
      */
-    public function recordWhereCacheDel($model)
-    {
+    public function secondCacheRemove($model) {
         /* @var $model Record */
         $cacheKeys = $model->cacheKeys();
         $_db_data = $model->getOldDbData();
-        if ($cacheKeys) {
-            foreach ($cacheKeys as $cacheKey) {
-                $cks = explode(',', $cacheKey);
-                sort($cks);
-                $oldV = [];
-                foreach ($cks as $ck) {
-                    $oldV[] = $_db_data[ $ck ];
-                }
-                $cacheKey = implode(",", $cks);
-                $cache_key = "record_" . $model->getTable() . "_" . $cacheKey . "_" . implode(",", $oldV);
-                Cache::remove($cache_key);
+        if (!$cacheKeys) {
+            return;
+        }
+        if (!$_db_data) {
+            $_db_data = $model::get($model->getPk())->toArray('', false);
+        }
+        foreach ($cacheKeys as $cacheKey) {
+            $m = explode(',', $cacheKey);
+            sort($m);
+            $oldV = [];
+            $new_value = [];
+            foreach ($m as $ck) {
+                $oldV[$ck] = $_db_data[ $ck ];
+                $new_value[$ck] = $model[ $ck ];
             }
+
+            $keys=[];
+            foreach ($oldV as $key=>$value) {
+                $keys[].=$key.':'.$value;
+            }
+            $cache_key = implode("|", $keys);
+            Cache::hashRemove(self::SECOND_CACHE_KEY.$model->getTable(),$cache_key);
+            $keys=[];
+            foreach ($new_value as $key=>$value) {
+                $keys[].=$key.':'.$value;
+            }
+            $cache_key = implode("|", $keys);
+            Cache::hashRemove(self::SECOND_CACHE_KEY.$model->getTable(),$cache_key);
         }
     }
 
 
     /**
-     * 查询二级缓存
-     *
-     * @param string $sql  sql
-     * @param array  $bind 绑定的数据
-     *
-     * @return null
+     * 删除所有的二级缓存
+     * @param $table
      */
-    public function queryCache($sql, $bind = [])
-    {
+    public function secondCacheRemoveAll($table){
+        Cache::remove(self::SECOND_CACHE_KEY.$table);
+    }
 
-        $key = $this->cacheKey($sql, $bind);
-        $cache_name = $this->cacheName($sql);
-        $result = Cache::hashGet($cache_name, $key);
+    /**
+     * 查询三级缓存
+     *
+     * @param string $sql          sql
+     * @param array  $bind         绑定的数据
+     * @param string $cacheHashKey 缓存需要存储的hash的key
+     *
+     * @return mixed
+     */
+    public function thirdCacheGet($sql, $bind = [], $cacheHashKey = '') {
+        if(!$cacheHashKey)return null;
+        $key = $this->thirdCacheKey($sql, $bind);
+        $result = Cache::hashGet($cacheHashKey, $key);
         if ($result) {
-            Log::info("second_cache get success" ,['sql'=>$sql,'args'=>$bind]);
+            Log::info("命中缓存" . $sql, $bind);
         }
         return $result;
     }
 
-    /**
-     * 获取相关表的缓存名称
-     *
-     * @param string $sql
-     *
-     * @return string
-     */
-    public function cacheName($sql)
-    {
-        $ts = $this->getTableNames($sql);
-        $t = static::$second_prefix . implode('|', $ts);
-        return $t;
-    }
+
 
     /**
      * 计算缓存的key
@@ -220,100 +231,29 @@ class DBCache
      *
      * @return string
      */
-    public function cacheKey($sql, $params)
-    {
+    private function thirdCacheKey($sql, $params) {
         $params[] = $sql;
+        sort($params);
         return md5(serialize($params));
     }
 
     /**
-     * 保存二级缓存
+     * 保存三级缓存
      *
-     * @param  string $sql
-     * @param array   $bind
-     * @param   array $value
+     * @param   string  $sql
+     * @param   array    $bind
+     * @param   array  $value
+     * @param   string $cacheHashKey
      */
-    public function saveCache($sql, $bind, $value)
-    {
+    public function thirdCacheSave($sql, $bind, $value, $cacheHashKey = '') {
+        if(!$cacheHashKey)return;
         if (!$bind) {
-            $bind=[];
+            $bind = [];
         }
-
-        $key = $this->cacheKey($sql, $bind);
-        $cache_name = $this->cacheName($sql);
-        Cache::hashSet($cache_name, $key, $value);
-        $tables = $this->getTableNames($sql);
-        $redis = Cache::redis();
-        try {
-            foreach ($tables as $t) {
-                $redis->sAdd(static::$second_table_prefix . $t, $cache_name);
-            }
-        } finally {
-            Cache::release();
-        }
+        $key = $this->thirdCacheKey($sql, $bind);
+        Cache::hashSet($cacheHashKey, $key, $value);
     }
 
-    /**
-     * 清除表关联的二级缓存
-     *
-     * @param string $sql
-     */
-    public function deleteCache($sql)
-    {
-        if (strpos($sql, 'SELECT') == 0) {
-            return;
-        }
-        $tables = $this->getTableNames($sql);
-        foreach ($tables as $table) {
-            $caches=[];
-            try {
-                $redis = Cache::redis();
-                if ($redis) {
-                    $caches = $redis->sMembers(static::$second_table_prefix . $table);
-                }
-            } finally {
-                Cache::release();
-            }
-            foreach ($caches as $cache) {
-                Cache::remove($cache);
-            }
-        }
-    }
 
-    /**
-     * 获取 sql关联的表
-     *
-     * @param string $sql
-     *
-     * @return array
-     */
-    public function getTableNames($sql)
-    {
-        $sql = trim(strtoupper($sql));
 
-        if (strpos($sql, 'SELECT') === 0) {
-            return $this->express($sql, static::$selectExpression);
-        } elseif (strpos($sql, 'UPDATE') === 0) {
-            return $this->express($sql, static::$updateExpression);
-        } elseif (strpos($sql, 'INSERT') === 0) {
-            return $this->express($sql, static::$insertExpression);
-        } elseif (strpos($sql, 'DELETE') === 0) {
-            return $this->express($sql, static::$deleteExpression);
-        }
-        return [];
-    }
-
-    /**
-     * 正则出 sql 的表
-     *
-     * @param string $sql        sql
-     * @param string $expression 表达式
-     *
-     * @return array
-     */
-    private function express($sql, $expression)
-    {
-        preg_match_all($expression, $sql, $matches);
-        return array_unique(array_pop($matches));
-    }
 }

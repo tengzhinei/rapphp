@@ -15,8 +15,7 @@ use rap\web\Request;
  * Date: 17/9/22
  * Time: 上午10:28
  */
-class Record implements \ArrayAccess, \JsonSerializable
-{
+class Record implements \ArrayAccess, \JsonSerializable {
 
     /**
      * 获取表名,包含 as 时会添加上as  如 User::table('u') 返回user u
@@ -25,8 +24,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @return string
      */
-    public static function table($as = "")
-    {
+    public static function table($as = "") {
         $model = get_called_class();
         /* @var $model Record */
         $model = new $model;
@@ -37,13 +35,42 @@ class Record implements \ArrayAccess, \JsonSerializable
         return $table;
     }
 
+
+    /**
+     * 删除一级缓存
+     */
+    public static function firstCacheRemove() {
+        $model = get_called_class();
+        /* @var $model Record */
+        $model = new $model;
+        $table = $model->getTable();
+        /* @var $db_cache DBCache */
+        $db_cache = Ioc::get(DBCache::class);
+        $db_cache->firstCacheRemoveAll($table);
+    }
+
+
+    /**
+     * 删除二级缓存
+     */
+    public static function secondCacheRemove() {
+        $model = get_called_class();
+        /* @var $model Record */
+        $model = new $model;
+        $table = $model->getTable();
+        /* @var $db_cache DBCache */
+        $db_cache = Ioc::get(DBCache::class);
+        $db_cache->secondCacheRemoveAll($table);
+
+    }
+
+
     /**
      * 获取数据库所有字段名
      * @return array
      * @throws \Error
      */
-    public static function fields()
-    {
+    public static function fields() {
         $model = get_called_class();
         /* @var $model Record */
         $model = new $model;
@@ -55,8 +82,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 是否延迟更新
      * @return bool
      */
-    public function delayUpdate()
-    {
+    public function delayUpdate() {
         return false;
     }
 
@@ -67,8 +93,7 @@ class Record implements \ArrayAccess, \JsonSerializable
     private $_db_data = [];
 
 
-    public function getOldDbData()
-    {
+    public function getOldDbData() {
         return $this->_db_data;
     }
 
@@ -77,8 +102,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 同一组用,隔开 整体是数组
      * @return array
      */
-    public function cacheKeys()
-    {
+    public function cacheKeys() {
         return [];
     }
 
@@ -94,8 +118,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @param bool $update
      */
-    public function isUpdate($update = true)
-    {
+    public function isUpdate($update = true) {
         $this->to_update = $update;
     }
 
@@ -107,8 +130,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * @throws \Error
      * @throws \rap\exception\SystemException
      */
-    public function fromDbData($items)
-    {
+    public function fromDbData($items) {
         $this->to_update = true;
         $_fields = $this->getFields();
         $this->_db_data = $items;
@@ -121,14 +143,14 @@ class Record implements \ArrayAccess, \JsonSerializable
             }
             if ($type == 'const_s') {
                 $value_temp = [];
-                $tmp=2;
-                while ($value-$tmp>=0){
-                    $value_temp[]=$tmp;
-                    $value=$value-$tmp;
-                    $tmp=$tmp*2;
+                $tmp = 2;
+                while ($value - $tmp >= 0) {
+                    $value_temp[] = $tmp;
+                    $value = $value - $tmp;
+                    $tmp = $tmp * 2;
                 }
-                $value=$value_temp;
-            }elseif ($type == 'json') {
+                $value = $value_temp;
+            } elseif ($type == 'json') {
                 $value = json_decode($value, true);
             } elseif ($type == 'int') {
                 if ($value !== null) {
@@ -204,8 +226,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 保存 如果主键存在就更新,否则插入
      * 如果数据库中没有设置自增主键的话也会进行判定
      */
-    public function save()
-    {
+    public function save() {
         $pk = $this->getPkField();
         //主键是id
         if (($pk == 'id' && $this->$pk) || $this->to_update) {
@@ -228,8 +249,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * @return array
      * @throws
      */
-    public function getDBData()
-    {
+    public function getDBData() {
         $data = [];
         $fields = $this->getFields();
         foreach ($fields as $field => $type) {
@@ -252,12 +272,12 @@ class Record implements \ArrayAccess, \JsonSerializable
             if ($value === 'null') {
                 $value = null;
                 $this->$field = null;
-            }elseif ($type === 'const_s') {
-                $cs=0;
+            } elseif ($type === 'const_s') {
+                $cs = 0;
                 foreach ($value as $item) {
-                    $cs+=(int)$item;
+                    $cs += (int)$item;
                 }
-                $value=$cs;
+                $value = $cs;
             } elseif ($type == 'int') {
                 $value = (int)$value;
             } elseif ($type == 'float') {
@@ -324,8 +344,7 @@ class Record implements \ArrayAccess, \JsonSerializable
     /**
      * 插入
      */
-    public function insert()
-    {
+    public function insert() {
         Event::trigger(RecordEvent::RECORD_BEFORE_INSERT, $this);
         $pk = $this->getPkField();
         $data = $this->getDBData();
@@ -346,7 +365,7 @@ class Record implements \ArrayAccess, \JsonSerializable
         if (!($this instanceof NoAutoCache)) {
             /* @var $db_cache DBCache */
             $db_cache = Ioc::get(DBCache::class);
-            $db_cache->recordCacheSave($this->getTable(), $this->$pk, $data);
+            $db_cache->firstCacheSave($this->getTable(), $this->$pk, $data);
             foreach ($data as $field => $value) {
                 $this->_db_data[ $field ] = $value;
             }
@@ -363,8 +382,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 检查是否是插入
      * @return bool
      */
-    public function isInsert()
-    {
+    public function isInsert() {
         if ($this->is_insert) {
             return true;
         }
@@ -392,8 +410,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @throws UpdateVersionException
      */
-    public function update($check_version = true, $error_msg = "数据更新失败,请重试")
-    {
+    public function update($check_version = true, $error_msg = "数据更新失败,请重试") {
         Event::trigger(RecordEvent::RECORD_BEFORE_UPDATE, $this);
         $pk = $this->getPkField();
         $where[ $pk ] = $this->$pk;
@@ -427,9 +444,9 @@ class Record implements \ArrayAccess, \JsonSerializable
         //删除缓存
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
-        $db_cache->recordWhereCacheDel($this);
+        $db_cache->secondCacheRemove($this);
         if (!($this instanceof NoAutoCache)) {
-            $db_cache->recordCacheDel($this->getTable(), $this->$pk);
+            $db_cache->firstCacheRemove($this->getTable(), $this->$pk);
         }
         foreach ($data as $field => $value) {
             $this->_db_data[ $field ] = $value;
@@ -445,8 +462,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @throws
      */
-    public function delete($force = false)
-    {
+    public function delete($force = false) {
         Event::trigger(RecordEvent::RECORD_BEFORE_DELETE, $this);
         $model = get_called_class();
         $pk = $this->getPkField();
@@ -466,9 +482,9 @@ class Record implements \ArrayAccess, \JsonSerializable
         //删除缓存
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
-        $db_cache->recordWhereCacheDel($this);
+        $db_cache->secondCacheRemove($this);
         if (!($this instanceof NoAutoCache)) {
-            $db_cache->recordCacheDel($this->getTable(), $id);
+            $db_cache->firstCacheRemove($this->getTable(), $id);
         }
     }
 
@@ -479,14 +495,13 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @return $this;
      */
-    public static function find(array $where)
-    {
+    public static function find(array $where) {
         $model = get_called_class();
         /* @var $t Record */
         $t = new $model;
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
-        $data = $db_cache->recordWhereCache($model, $where);
+        $data = $db_cache->secondCacheGet($model, $where);
         if ($data) {
             return $data;
         }
@@ -494,7 +509,7 @@ class Record implements \ArrayAccess, \JsonSerializable
         $select = DB::select($t->getTable(), $t->connectionName())->where($where)->setRecord($model);
         Event::trigger(RecordEvent::RECORD_BEFORE_SELECT, $t, $select);
         $data = $select->find();
-        $db_cache->recordWhereCacheSave($model, $where, $data->_db_data);
+        $db_cache->secondCacheSave($model, $where, $data->_db_data);
         return $data;
     }
 
@@ -505,8 +520,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @return $this
      */
-    public static function findCreate(array $where)
-    {
+    public static function findCreate(array $where) {
         $item = self::find($where);
         if (!$item) {
             $model = get_called_class();
@@ -525,8 +539,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @throws
      */
-    public static function destroy($id)
-    {
+    public static function destroy($id) {
         $model = get_called_class();
         /* @var $model Record */
         $model = new $model;
@@ -543,8 +556,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @return $this;
      */
-    public static function get($id, $cache = true)
-    {
+    public static function get($id, $cache = true) {
         if (!$id) {
             return null;
         }
@@ -555,9 +567,9 @@ class Record implements \ArrayAccess, \JsonSerializable
         if ($cache && !($bean instanceof NoAutoCache)) {
             /* @var $db_cache DBCache */
             $db_cache = Ioc::get(DBCache::class);
-            $data = $db_cache->recordCache($model, $id);
+            $data = $db_cache->firstCacheGet($model, $id);
             if ($data) {
-                if ($data=='null') {
+                if ($data == 'null') {
                     return null;
                 }
                 return $data;
@@ -568,9 +580,9 @@ class Record implements \ArrayAccess, \JsonSerializable
         $data = $bean::find($where);
         if ($cache) {
             if ($data) {
-                $db_cache->recordCacheSave($bean->getTable(), $id, $data->_db_data);
+                $db_cache->firstCacheSave($bean->getTable(), $id, $data->_db_data);
             } else {
-                $db_cache->recordCacheSave($bean->getTable(), $id, 'null');
+                $db_cache->firstCacheSave($bean->getTable(), $id, 'null');
             }
         }
         return $data;
@@ -583,8 +595,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @return $this
      */
-    public static function getLock($id)
-    {
+    public static function getLock($id) {
 
         $model = get_called_class();
         /* @var $t Record */
@@ -607,8 +618,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * @return Select
      * @throws
      */
-    public static function select($fields = '', $contain = true)
-    {
+    public static function select($fields = '', $contain = true) {
         $model = get_called_class();
         preg_match_all('/([A-Z]{1})/', substr($model, strrpos($model, '\\') + 1), $matches);
         $as = strtolower(implode("", $matches[ 0 ]));
@@ -633,8 +643,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @return Select
      */
-    public static function selectAs($fields = '', $as = '', $contain = true)
-    {
+    public static function selectAs($fields = '', $as = '', $contain = true) {
         $model = get_called_class();
 
         /* @var $model Record */
@@ -672,8 +681,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * @return mixed
      * @throws \Error
      */
-    public function getFields()
-    {
+    public function getFields() {
         $connection = Pool::get(Connection::class);
         try {
             $fields = $connection->getFields($this->getTable());
@@ -687,8 +695,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 获取主键 默认
      * @return mixed
      */
-    public function getPkField()
-    {
+    public function getPkField() {
         return "id";
     }
 
@@ -696,8 +703,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 获取数据版本号字段
      * @return string
      */
-    public function getVersionField()
-    {
+    public function getVersionField() {
         return "";
     }
 
@@ -705,8 +711,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 获取表
      * @return string
      */
-    public function getTable()
-    {
+    public function getTable() {
         $table = get_called_class();
         return $table;
     }
@@ -716,8 +721,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @param $str
      */
-    public function fromString($str)
-    {
+    public function fromString($str) {
         $array = json_decode($str, true);
         $this::fromArray($array);
     }
@@ -727,8 +731,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @param $array
      */
-    public function fromArray($array)
-    {
+    public function fromArray($array) {
         if ($array instanceof Record) {
             $array = $array->toArray('', false);
         }
@@ -750,16 +753,14 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @return array|mixed|string
      */
-    public function toArray($fields = '', $contain = true)
-    {
+    public function toArray($fields = '', $contain = true) {
         return RecordArray::toArray($this, $fields, $contain);
     }
 
     /**
      * 常量类型替换
      */
-    public function renderConst()
-    {
+    public function renderConst() {
         $fields = $this->getFields();
         foreach ($fields as $field => $type) {
             if (!is_array($type)) {
@@ -769,14 +770,14 @@ class Record implements \ArrayAccess, \JsonSerializable
             $type = $type[ 'type' ];
             $value = $this->$field;
             $field_show = $field . "_show";
-            if($type=='const_s'){
-                $temps=[];
+            if ($type == 'const_s') {
+                $temps = [];
                 foreach ($value as $item) {
-                    $temps[]= $con[ $item ];
+                    $temps[] = $con[ $item ];
                 }
                 $this->$field_show = $temps;
-            }else{
-                if(array_values($con) === $con){
+            } else {
+                if (array_values($con) === $con) {
                     $value -= 1;
                 }
                 $this->$field_show = $con[ $value ];
@@ -787,8 +788,7 @@ class Record implements \ArrayAccess, \JsonSerializable
     /**
      * 同时删除对象关联的附件
      */
-    public function deleteAttach()
-    {
+    public function deleteAttach() {
         $model = get_called_class();
         /* @var $model Record */
         $model = new $model;
@@ -817,8 +817,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 获取主键的值
      * @return string|int
      */
-    public function getPk()
-    {
+    public function getPk() {
         $pk = $this->getPkField();
         return $this->$pk;
     }
@@ -827,8 +826,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 检查数据库是否有
      * @return bool
      */
-    public function checkHas()
-    {
+    public function checkHas() {
         /* @var $model Record */
         $model = get_called_class();
         $model = $model::get($this->getPk());
@@ -841,31 +839,26 @@ class Record implements \ArrayAccess, \JsonSerializable
 
 
     //准许已数组访问
-    public function offsetExists($offset)
-    {
+    public function offsetExists($offset) {
         return $this->$offset;
     }
 
-    public function offsetGet($offset)
-    {
+    public function offsetGet($offset) {
         return $this->$offset;
     }
 
-    public function offsetSet($offset, $value)
-    {
+    public function offsetSet($offset, $value) {
         $this->$offset = $value;
     }
 
-    public function offsetUnset($offset)
-    {
+    public function offsetUnset($offset) {
         $this->$offset = null;
     }
 
     /**
      * 从数据库中加载数据并覆盖当前对象,只覆盖空的属性
      */
-    public function load()
-    {
+    public function load() {
         $pk = $this->getPk();
         if (!$pk) {
             return;
@@ -883,8 +876,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 从 request 中获取 不建议使用
      * @return $this
      */
-    public static function buildRequest()
-    {
+    public static function buildRequest() {
         $model = get_called_class();
         /* @var $model Record */
         $model = new $model;
@@ -902,8 +894,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 返回连接名称多连接池可覆盖
      * @return mixed
      */
-    public function connectionName()
-    {
+    public function connectionName() {
         return Connection::class;
     }
 
@@ -911,8 +902,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * 转化为 json/数组 可以覆盖
      * @return array|mixed|string
      */
-    public function jsonSerialize()
-    {
+    public function jsonSerialize() {
         $fb = $this->toJsonField();
         if (is_array($fb)) {
             return $this->toArray($fb[ 0 ], $fb[ 1 ]);
@@ -926,8 +916,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      *
      * @param Request $request
      */
-    public function parseRequest(Request $request)
-    {
+    public function parseRequest(Request $request) {
         $fb = $this->requestField();
         if (!is_array($fb)) {
             $fb = [$fb, trim($fb) != ''];
@@ -955,8 +944,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * return '字段1,字段2' 或return ['字段1,字段2',false]//反向字段
      * @return string|array
      */
-    public function requestField()
-    {
+    public function requestField() {
         return $this->toJsonField();
     }
 
@@ -967,8 +955,7 @@ class Record implements \ArrayAccess, \JsonSerializable
      * return '字段1,字段2' 或return ['字段1,字段2',false]//反向字段
      * @return string|array
      */
-    public function toJsonField()
-    {
+    public function toJsonField() {
         return "";
     }
 }

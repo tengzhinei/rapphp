@@ -8,6 +8,7 @@
 
 namespace rap\db;
 
+use rap\cache\Cache;
 use rap\swoole\pool\Pool;
 use rap\swoole\RapCo;
 
@@ -226,7 +227,7 @@ class Select extends Where {
         /* @var $connection Connection */
         $connection = Pool::get($this->connection_name);
         try {
-            $data = $connection->query($sql, $params, $this->cache);
+            $data = $connection->query($sql, $params,$this->cacheHashKey);
         } finally {
             Pool::release($connection);
         }
@@ -438,8 +439,7 @@ class Select extends Where {
         $connection = Pool::get($this->connection_name);
         try {
             /* @var $connection Connection */
-            $value = $connection->value($this->getSql(), $this->whereParams(), $this->cache);
-
+            $value = $connection->value($this->getSql(), $this->whereParams(), $this->cacheHashKey);
             return $value;
         } finally {
             Pool::release($connection);
@@ -460,21 +460,28 @@ class Select extends Where {
         $this->fields($field);
         $connection = Pool::get($this->connection_name);
         try {
-            $values = $connection->values($this->getSql(), $this->whereParams(), $this->cache);
+            $values = $connection->values($this->getSql(), $this->whereParams(), $this->cacheHashKey);
             return $values;
         } finally {
             Pool::release($connection);
         }
     }
 
-    private $cache = false;
+
+    private $cacheHashKey='';
 
     /**
      * 开启二级缓存
+     * 缓存会自动sql语句和参数分析出缓存的key,存储名为cacheHashKey的hash内,
+     * 缓存只能通过 删除对应的 hash 缓存清除
+     * 清除方式 Cache::remove($cacheHashKey)
+     * 
+     * @param string $cacheHashKey 缓存需要放入的hash
+     *
      * @return $this
      */
-    public function cache() {
-        $this->cache = true;
+    public function cache($cacheHashKey='') {
+        $this->cacheHashKey = $cacheHashKey;
         return $this;
     }
 

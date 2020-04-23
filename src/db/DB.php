@@ -133,17 +133,16 @@ class DB
      *
      * @param string $sql   sql
      * @param array  $bind  数据绑定
-     * @param bool   $cache 是否使用缓存
-     *
+     * @param string $cacheHashKey 缓存使用的hash的键
      * @return array
      * @throws \Error
      */
-    public static function query($sql, $bind = [], $cache = false)
+    public static function query($sql, $bind = [], $cacheHashKey = '')
     {
         /* @var $connection Connection */
         $connection = Pool::get(Connection::class);
         try {
-            $items = $connection->query($sql, $bind, $cache);
+            $items = $connection->query($sql, $bind,$cacheHashKey);
             return $items;
         } finally {
             Pool::release($connection);

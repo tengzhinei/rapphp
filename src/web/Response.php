@@ -74,6 +74,11 @@ class Response
     }
 
 
+    public function getContent(){
+        return $this->content;
+    }
+
+
     public function redirect($url, $code = 302)
     {
         $this->code($code);
@@ -99,13 +104,16 @@ class Response
      * @param string $contentType 输出类型
      * @param string $charset     输出编码
      *
-     * @return $this
+     * @return string|null
      */
-    public function contentType($contentType, $charset = 'utf-8')
+    public function contentType($contentType='', $charset = 'utf-8')
     {
+        if(!$contentType){
+            return $this->contentType;
+        }
         $this->contentType = $contentType;
         $this->charset = $charset;
-        return $this;
+        return null;
     }
 
 

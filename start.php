@@ -17,6 +17,7 @@ defined('IS_AOP_BUILD') or define('IS_AOP_BUILD', $argv[1]=='aop');
 $loader = require ROOT_PATH . '/vendor/autoload.php';
 $loader->setPsr4(APP_DIR."\\", ROOT_PATH.APP_DIR);
 $loader->setPsr4("rap\\aop\\build\\", ROOT_PATH.'aop');
+
 //swoole 模式
 if(IS_CLI){
     \rap\ioc\Ioc::bind(\rap\web\Application::class,\rap\RapApplication::class);

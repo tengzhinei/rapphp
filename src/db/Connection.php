@@ -2,7 +2,6 @@
 namespace rap\db;
 
 use \PDO;
-use rap\config\Config;
 use rap\ioc\Ioc;
 use rap\log\Log;
 use rap\swoole\pool\PoolAble;
@@ -89,11 +88,7 @@ abstract class Connection implements PoolAble {
      * @var int
      */
     protected $transTimes = 0;
-    /**
-     * 当前SQL指令
-     * @var string
-     */
-    private $queryStr;
+
 
     /**
      * 连接数据库
@@ -121,7 +116,6 @@ abstract class Connection implements PoolAble {
      *
      * @param string $sql
      * @param array  $bind
-     * @param bool   $cache
      * @param string $cacheHashKey
      *
      * @return array
@@ -265,7 +259,6 @@ abstract class Connection implements PoolAble {
      *
      * @param  string $sql
      * @param  array  $bind
-     * @param  bool   $clear_cache 清除缓存
      *
      * @throws \Exception
      */
@@ -352,28 +345,7 @@ abstract class Connection implements PoolAble {
      * @return string
      */
     private function logSql($sql, array $bind = []) {
-        if (!Config::get('app', 'debug')) {
-            return;
-        }
-        if ($bind) {
-            foreach ($bind as $key => $val) {
-                $value = is_array($val) ? $val[ 0 ] : $val;
-                $type = is_array($val) ? $val[ 1 ] : PDO::PARAM_STR;
-                if (PDO::PARAM_STR == $type) {
-                    $value = $this->quote($value);
-                } elseif (PDO::PARAM_INT == $type && '' === $value) {
-                    $value = 0;
-                }
-                // 判断占位符
-                $sql = is_numeric($key) ? substr_replace($sql, $value, strpos($sql, '?'), 1) : str_replace([':' . $key . ')',
-                                                                                                            ':' . $key . ',',
-                                                                                                            ':' . $key . ' '], [$value . ')',
-                                                                                                                                $value . ',',
-                                                                                                                                $value . ' '], $sql . ' ');
-            }
-        }
-        $this->queryStr = rtrim($sql);
-        Log::info('sql', ['sql' => $this->queryStr, 'args' => $bind]);
+        Log::info('sql', ['sql' =>$sql, 'args' => $bind]);
         return;
     }
 
@@ -506,7 +478,7 @@ abstract class Connection implements PoolAble {
      * @return string
      */
     public function getLastSql() {
-        return $this->queryStr;
+        return "";
     }
 
     /**
@@ -530,9 +502,6 @@ abstract class Connection implements PoolAble {
             $error = $error[ 1 ] . ':' . $error[ 2 ];
         } else {
             $error = '';
-        }
-        if ('' != $this->queryStr) {
-            $error .= "\n [ SQL语句 ] : " . $this->queryStr;
         }
         return $error;
     }

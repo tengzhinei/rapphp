@@ -36,33 +36,6 @@ class Record implements \ArrayAccess, \JsonSerializable {
     }
 
 
-    /**
-     * 删除一级缓存
-     */
-    public static function firstCacheRemove() {
-        $model = get_called_class();
-        /* @var $model Record */
-        $model = new $model;
-        $table = $model->getTable();
-        /* @var $db_cache DBCache */
-        $db_cache = Ioc::get(DBCache::class);
-        $db_cache->firstCacheRemoveAll($table);
-    }
-
-
-    /**
-     * 删除二级缓存
-     */
-    public static function secondCacheRemove() {
-        $model = get_called_class();
-        /* @var $model Record */
-        $model = new $model;
-        $table = $model->getTable();
-        /* @var $db_cache DBCache */
-        $db_cache = Ioc::get(DBCache::class);
-        $db_cache->secondCacheRemoveAll($table);
-
-    }
 
 
     /**
@@ -123,6 +96,14 @@ class Record implements \ArrayAccess, \JsonSerializable {
     }
 
     /**
+     * 判定是否来自数据库
+     *
+     * @var bool
+     */
+    private $from_db=false;
+
+    /**
+     *
      * 数据库字段组装对象
      *
      * @param $items
@@ -132,6 +113,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
      */
     public function fromDbData($items) {
         $this->to_update = true;
+        $this->from_db=true;
         $_fields = $this->getFields();
         $this->_db_data = $items;
         foreach ($items as $item => $value) {
@@ -429,28 +411,35 @@ class Record implements \ArrayAccess, \JsonSerializable {
             $data[ $version_field ] = $this->$version_field + 1;
             $where[ $version_field ] = $this->$version_field;
         }
+
+        /* @var $db_cache DBCache */
+        $db_cache = Ioc::get(DBCache::class);
+        //先删除二级缓存
+        $db_cache->secondCacheRemove($this);
+
         if ($this->delayUpdate()) {
             $row_count = Update::delayUpdate($this->$pk, $this->getTable(), $data, $where, $this->connectionName());
         } else {
             $row_count = Update::update($this->getTable(), $data, $where, $this->connectionName());
         }
-
         //需要检查版本号
         if ($check_version && $version_field && $this->$version_field && !$row_count) {
             //数据被变更,更新失败
             throw new UpdateVersionException($error_msg);
         }
 
-        //删除缓存
-        /* @var $db_cache DBCache */
-        $db_cache = Ioc::get(DBCache::class);
-        $db_cache->secondCacheRemove($this);
-        if (!($this instanceof NoAutoCache)) {
-            $db_cache->firstCacheRemove($this->getTable(), $this->$pk);
-        }
         foreach ($data as $field => $value) {
             $this->_db_data[ $field ] = $value;
         }
+        if (!($this instanceof NoAutoCache)) {
+            if($this->from_db){
+                //来自数据库是全字段可以直接替换数据
+                $db_cache->firstCacheSave($this->getTable(), $this->$pk, $this->_db_data);
+            }else{
+                $db_cache->firstCacheRemove($this->getTable(), $this->$pk);
+            }
+        }
+
     }
 
 
@@ -856,7 +845,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
     }
 
     /**
-     * 从数据库中加载数据并覆盖当前对象,只覆盖空的属性
+     * 从数据库中加载数据并覆盖当前对象,只覆盖null属性
      */
     public function load() {
         $pk = $this->getPk();
@@ -865,8 +854,9 @@ class Record implements \ArrayAccess, \JsonSerializable {
         }
         $data = self::get($pk);
         $data = $data->toArray('', false);
+        $this->from_db=true;
         foreach ($data as $key => $value) {
-            if (empty($this->$key)) {
+            if ($this->$key===null&&$value!==null) {
                 $this->$key = $value;
             }
         }

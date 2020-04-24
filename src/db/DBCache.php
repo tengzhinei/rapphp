@@ -29,13 +29,13 @@ class DBCache {
     public function firstCacheGet($model, $id) {
         /* @var $record Record */
         $record = new $model;
-        $cache_key =self::FIRST_CACHE_KEY . $record->getTable() ;
-        $data = Cache::hashGet($cache_key,$id);
+        $cache_key =self::FIRST_CACHE_KEY . $record->getTable().":".$id ;
+        $data = Cache::get($cache_key);
         if ($data == 'null') {
             return 'null';
         }
         if ($data) {
-            Log::info("命中缓存" . $model . " " . $id);
+            Log::debug("命中缓存" . $model . " " . $id);
             $record->fromDbData($data);
             return $record;
         }
@@ -50,8 +50,8 @@ class DBCache {
      * @param array      $value
      */
     public function firstCacheSave($table, $id, $value) {
-        $cache_key = self::FIRST_CACHE_KEY  . $table;
-        Cache::hashSet($cache_key,$id, $value);
+        $cache_key = self::FIRST_CACHE_KEY  . $table.":".$id ;
+        Cache::set($cache_key,$value);
     }
 
     /**
@@ -61,17 +61,7 @@ class DBCache {
      * @param string|int $id    主键
      */
     public function firstCacheRemove($table, $id) {
-        $cache_key = self::FIRST_CACHE_KEY  . $table ;
-        Cache::hashRemove($cache_key,$id);
-    }
-
-    /**
-     * 按表删除全部一级缓存
-     *
-     * @param $table
-     */
-    public function firstCacheRemoveAll($table){
-        $cache_key = self::FIRST_CACHE_KEY  . $table ;
+        $cache_key = self::FIRST_CACHE_KEY  . $table .":".$id ;
         Cache::remove($cache_key);
     }
 
@@ -100,12 +90,12 @@ class DBCache {
             if ($key == $cacheKey) {
                 $keys=[];
                 foreach ($where as $key=>$value) {
-                    $keys[].=$key.':'.$value;
+                    $keys[].=$key.'#'.$value;
                 }
-                $cache_key = implode("|", $keys);
-                $data = Cache::hashGet(self::SECOND_CACHE_KEY.$t->getTable(),$cache_key);
+                $cache_key = implode(":", $keys);
+                $data = Cache::get(self::SECOND_CACHE_KEY.$t->getTable().':'.$cache_key);
                 if ($data) {
-                    Log::info("命中缓存 " . $model, $where);
+                    Log::debug("命中缓存 " . $model, $where);
                     $t->fromDbData($data);
                     return $t;
                 }
@@ -141,14 +131,14 @@ class DBCache {
             if ($key == $cacheKey) {
                 $keys=[];
                 foreach ($where as $key=>$v) {
-                    $keys[].=$key.':'.$v;
+                    $keys[].=$key.'#'.$v;
                 }
-                $cache_key = implode("|", $keys);
+                $cache_key = implode(":", $keys);
                 break;
             }
         }
         if ($cache_key) {
-            Cache::hashSet(self::SECOND_CACHE_KEY.$t->getTable(),$cache_key, $value);
+            Cache::set(self::SECOND_CACHE_KEY.$t->getTable().':'.$cache_key, $value);
         }
         return null;
     }
@@ -162,9 +152,11 @@ class DBCache {
         /* @var $model Record */
         $cacheKeys = $model->cacheKeys();
         $_db_data = $model->getOldDbData();
+
         if (!$cacheKeys) {
             return;
         }
+
         if (!$_db_data) {
             $_db_data = $model::get($model->getPk())->toArray('', false);
         }
@@ -180,27 +172,21 @@ class DBCache {
 
             $keys=[];
             foreach ($oldV as $key=>$value) {
-                $keys[].=$key.':'.$value;
+                $keys[].=$key.'#'.$value;
             }
-            $cache_key = implode("|", $keys);
-            Cache::hashRemove(self::SECOND_CACHE_KEY.$model->getTable(),$cache_key);
+            $cache_key = implode(":", $keys);
+
+            Cache::remove(self::SECOND_CACHE_KEY.$model->getTable().':'.$cache_key);
             $keys=[];
             foreach ($new_value as $key=>$value) {
-                $keys[].=$key.':'.$value;
+                $keys[].=$key.'#'.$value;
             }
-            $cache_key = implode("|", $keys);
-            Cache::hashRemove(self::SECOND_CACHE_KEY.$model->getTable(),$cache_key);
+            $cache_key = implode(":", $keys);
+            Cache::remove(self::SECOND_CACHE_KEY.$model->getTable().':'.$cache_key);
         }
     }
 
 
-    /**
-     * 删除所有的二级缓存
-     * @param $table
-     */
-    public function secondCacheRemoveAll($table){
-        Cache::remove(self::SECOND_CACHE_KEY.$table);
-    }
 
     /**
      * 查询三级缓存
@@ -216,7 +202,7 @@ class DBCache {
         $key = $this->thirdCacheKey($sql, $bind);
         $result = Cache::hashGet($cacheHashKey, $key);
         if ($result) {
-            Log::info("命中缓存" . $sql, $bind);
+            Log::debug("命中缓存" . $sql, $bind);
         }
         return $result;
     }

@@ -19,6 +19,7 @@ use rap\ioc\Ioc;
 use rap\rpc\Rpc;
 use rap\ServerEvent;
 use rap\util\Lang;
+use rap\web\interceptor\AfterInterceptor;
 use rap\web\interceptor\Interceptor;
 use rap\web\mvc\AutoFindHandlerMapping;
 use rap\web\mvc\Dispatcher;
@@ -34,6 +35,9 @@ abstract class Application
      * swoole_server_http
      */
     public $server;
+
+    public $worker_id=-1;
+
     /**
      * @var Dispatcher
      */
@@ -86,6 +90,8 @@ abstract class Application
         $this->dispatcher->addHandlerMapping($routerMapping);
         $this->init($autoMapping, $router);
         asort($this->interceptors);
+
+
     }
 
 
@@ -97,36 +103,70 @@ abstract class Application
             }
             //加载语言包
             Lang::loadLand($request);
-            if ($this->interceptors) {
-                /* @var $interceptor Interceptor */
-                if ($this->needInterceptor($request)) {
-                    foreach ($this->interceptors as $interceptor => $priority) {
-                        $interceptor = Ioc::get($interceptor);
-                        $value = $interceptor->handler($request, $response);
-                        if(!$value&&!is_array($value)){
-                            continue;
-                        }elseif ($value instanceof ResponseBody) {
-                            $value->beforeSend($response);
-                            $response->send();
-                            return;
-                        } else if(is_bool($value)){
-                            return;
-                        } else {
-                            $json = new JSONBody($value);
-                            $json->beforeSend($response);
-                            $response->send();
-                            return;
-                        }
-                    }
-                }
+            $need_interceptors=$this->interceptors&&$this->needInterceptor($request);
+            /* @var $interceptor Interceptor */
+            if ($need_interceptors) {
+                $this->beforeInterceptors($request,$response);
+            }
+            if($response->hasSend){
+               return;
             }
             $this->dispatcher->doDispatch($request, $response);
+            if ($need_interceptors) {
+                $this->afterInterceptors($request,$response);
+            }
+            $response->send();
         } catch (\Exception $exception) {
             $this->handlerException($request, $response, $exception);
         } catch (\Error $error) {
             $this->handlerException($request, $response, new ErrorException($error));
         }
     }
+
+    /**
+     * 运行前置烂机器
+     * @param Request  $request
+     * @param Response $response
+     */
+    private function beforeInterceptors(Request $request, Response $response){
+        foreach ($this->interceptors as $interceptor => $priority) {
+            $interceptor = Ioc::get($interceptor);
+            if(!($interceptor instanceof Interceptor)){
+                continue;
+            }
+            $value = $interceptor->handler($request, $response);
+            if(!$value&&!is_array($value)){
+                continue;
+            }elseif ($value instanceof ResponseBody) {
+                $value->beforeSend($response);
+                $response->send();
+                return;
+            } else if(is_bool($value)){
+                return;
+            } else {
+                $json = new JSONBody($value);
+                $json->beforeSend($response);
+                $response->send();
+                return;
+            }
+        }
+    }
+
+    /**
+     * 运行后置拦截器
+     * @param Request  $request
+     * @param Response $response
+     */
+    private function afterInterceptors(Request $request, Response $response){
+        foreach ($this->interceptors as $interceptor => $priority) {
+            $interceptor = Ioc::get($interceptor);
+            if(!($interceptor instanceof AfterInterceptor)){
+                continue;
+            }
+            $interceptor->afterDispatcher($request,$response);
+        }
+    }
+
 
     private function needInterceptor(Request $request){
         $url = $request->url();

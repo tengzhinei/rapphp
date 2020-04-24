@@ -11,17 +11,23 @@ namespace rap\swoole;
 
 use rap\cache\CacheInterface;
 use rap\db\Connection;
+use rap\ioc\Ioc;
+use rap\web\Application;
 
 class Context {
 
 
     /**
      * 获取当前id
+     * swoole 环境返回协程 id,其他环境为随机数,并在同一请求内相同
      * @return int
      */
     public static function id() {
         return CoContext::id();
     }
+
+
+
 
     public static function request() {
         return CoContext::getContext()->getRequest();

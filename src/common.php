@@ -69,7 +69,7 @@ function download($file,$file_name='') {
  * @return mixed
  */
 function cache($key, $value = '', $expire = 0) {
-    if ($value == '') {
+    if ($value === '') {
         return \rap\cache\Cache::getCache()->get($key, '');
     } elseif (is_null($value)) {
         // 删除缓存
@@ -195,6 +195,9 @@ function response() {
     return \rap\swoole\CoContext::getContext()->getResponse();
 }
 
+/**
+ * worker进程内的容器重新加载
+ */
 function worker_scope_change()
 {
     $application = \rap\ioc\Ioc::get(\rap\web\Application::class);

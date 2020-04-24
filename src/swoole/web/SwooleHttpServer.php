@@ -101,9 +101,10 @@ class SwooleHttpServer extends Command
     public function onWorkStart($server, $id)
     {
         Log::info('swoole worker start' , ['id'=>$id]);
+        /* @var $application Application  */
         $application = Ioc::get(Application::class);
         $application->server = $server;
-        $application->task_id = $id;
+        $application->worker_id = $id;
         $application->workerAtomic = $this->workerAtomic;
         Event::trigger(ServerEvent::ON_SERVER_WORK_START, $server, $id);
     }
@@ -113,7 +114,6 @@ class SwooleHttpServer extends Command
         Log::info('swoole worker stop',['id'=>$id] );
         $application = Ioc::get(Application::class);
         $application->server = $server;
-        $application->task_id = $id;
         Event::trigger(ServerEvent::ON_SERVER_WORKER_STOP, $server, $id);
     }
 

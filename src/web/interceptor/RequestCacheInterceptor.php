@@ -23,7 +23,7 @@ class RequestCacheInterceptor implements Interceptor, AfterInterceptor {
 
     const CACHE_PRE = "request_cache:";
 
-    public function addUrl($url, $time=60) {
+    public function cache($url, $time=60) {
         $this->cache_urls[ $url ] = $time;
     }
 

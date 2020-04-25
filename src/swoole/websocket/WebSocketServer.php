@@ -144,7 +144,6 @@ class WebSocketServer extends Command
             //生成 session
             $rep->session()->sessionId();
             CoContext::getContext()->setRequest($req);
-            Log::info('http request start', ['url' => $req->url(), 'session_id' => $req->session()->sessionId()]);
             //swoole  4.2.9
             defer(function () use ($req) {
                 try {

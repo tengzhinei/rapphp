@@ -16,6 +16,7 @@ use rap\exception\handler\ApiExceptionHandler;
 use rap\exception\handler\ExceptionHandler;
 use rap\exception\handler\PageExceptionHandler;
 use rap\ioc\Ioc;
+use rap\log\Log;
 use rap\rpc\Rpc;
 use rap\ServerEvent;
 use rap\util\Lang;
@@ -101,6 +102,8 @@ abstract class Application
             if (!IS_SWOOLE) {
                 Event::trigger(ServerEvent::ON_SERVER_WORK_START, null, 0);
             }
+            Event::trigger(ServerEvent::ON_REQUEST_START);
+            Log::info('http request start', ['url' => $request->url()]);
             //加载语言包
             Lang::loadLand($request);
             $need_interceptors=$this->interceptors&&$this->needInterceptor($request);

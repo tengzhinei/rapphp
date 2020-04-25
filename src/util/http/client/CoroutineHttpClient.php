@@ -32,7 +32,7 @@ class CoroutineHttpClient implements HttpClient
         return [$host, $path, $port];
     }
 
-    public function get($url, $header = [], $timeout = 0.5)
+    public function get($url, $header = [], $timeout = 5)
     {
         $hostPath = self::parseUrl($url);
         if (!$hostPath[0]) {
@@ -56,7 +56,7 @@ class CoroutineHttpClient implements HttpClient
     }
 
 
-    public function form($url, $header = [], $data = [], $timeout = 0.5){
+    public function form($url, $header = [], $data = [], $timeout = 5){
         $hostPath = self::parseUrl($url);
         if (!$hostPath[0]) {
             return new HttpResponse(-1, [], '');
@@ -79,7 +79,7 @@ class CoroutineHttpClient implements HttpClient
     }
 
 
-    public function post($url, $header = [], $data = [], $timeout = 0.5)
+    public function post($url, $header = [], $data = [], $timeout = 5)
     {
         $hostPath = self::parseUrl($url);
         if (!$hostPath[0]) {
@@ -109,7 +109,7 @@ class CoroutineHttpClient implements HttpClient
 
 
 
-    public function put($url, $header = [], $data = [], $timeout = 0.5)
+    public function put($url, $header = [], $data = [], $timeout = 5)
     {
         $hostPath = self::parseUrl($url);
         if (!$hostPath[0]) {
@@ -164,7 +164,7 @@ class CoroutineHttpClient implements HttpClient
         return $response;
     }
 
-    public function delete($url, $header = [], $data = [], $timeout = 0.5){
+    public function delete($url, $header = [], $data = [], $timeout = 5){
         $hostPath = self::parseUrl($url);
         if (!$hostPath[0]) {
             return new HttpResponse(-1, [], '');

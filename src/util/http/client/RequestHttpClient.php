@@ -10,7 +10,7 @@ use Unirest\Request\Body;
 
 class RequestHttpClient implements HttpClient
 {
-    public function get($url, $header = [], $timeout = 0.5)
+    public function get($url, $header = [], $timeout = 5)
     {
         Request::timeout($timeout);
         $response = Request::get($url, $header);
@@ -18,7 +18,7 @@ class RequestHttpClient implements HttpClient
     }
 
 
-    public function form($url, $header = [], $data = [], $timeout = 0.5)
+    public function form($url, $header = [], $data = [], $timeout = 5)
     {
         $data = Body::Form($data);
         Request::timeout($timeout);
@@ -26,7 +26,7 @@ class RequestHttpClient implements HttpClient
         return new HttpResponse($response->code, $response->headers, $response->raw_body);
     }
 
-    public function post($url, $header = [], $data = [], $timeout = 0.5)
+    public function post($url, $header = [], $data = [], $timeout = 5)
     {
         Request::timeout($timeout);
         if ($data && !is_string($data)) {
@@ -37,7 +37,7 @@ class RequestHttpClient implements HttpClient
     }
 
 
-    public function put($url, $header = [], $data = [], $timeout = 0.5)
+    public function put($url, $header = [], $data = [], $timeout = 5)
     {
         if (!is_string($data)) {
             $data = json_encode($data);
@@ -47,7 +47,7 @@ class RequestHttpClient implements HttpClient
         return new HttpResponse($response->code, $response->headers, $response->raw_body);
     }
 
-    public function upload($url, $header = [], $data = [], $files = [], $timeout = 5)
+    public function upload($url, $header = [], $data = [], $files = [], $timeout = 60)
     {
         $body = Body::Multipart($data, $files);
         Request::timeout($timeout);
@@ -55,7 +55,7 @@ class RequestHttpClient implements HttpClient
         return new HttpResponse($response->code, $response->headers, $response->raw_body);
     }
 
-    public function delete($url, $header = [], $data = [], $timeout = 0.5){
+    public function delete($url, $header = [], $data = [], $timeout = 5){
         Request::timeout($timeout);
         $response = Request::delete($url, $header, $data);
         return new HttpResponse($response->code, $response->headers, $response->raw_body);

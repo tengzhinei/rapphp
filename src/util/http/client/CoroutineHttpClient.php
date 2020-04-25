@@ -138,7 +138,7 @@ class CoroutineHttpClient implements HttpClient
         return $response;
     }
 
-    public function upload($url, $header = [], $data = [], $files = [], $timeout = 5)
+    public function upload($url, $header = [], $data = [], $files = [], $timeout = 60)
     {
         $hostPath = self::parseUrl($url);
         if (!$hostPath[0]) {

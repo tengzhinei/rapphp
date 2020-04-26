@@ -20,7 +20,8 @@ use rap\swoole\pool\Pool;
 /**
  * 主要实现了 RCP 远程调用和熔断器的功能
  */
-class RpcWave {
+class RpcWave
+{
     use ScopeProperty;
 
     const FUSE_STATUS_OPEN      = 1;
@@ -31,18 +32,26 @@ class RpcWave {
      * @var Rpc
      */
     private $rpc;
+    /**
+     * @var RpcConfigProvide
+     */
+    private $configProvide;
 
 
     /**
      * RpcWave __construct.
      *
-     * @param Rpc $rpc
+     * @param Rpc              $rpc
+     * @param RpcConfigProvide $configProvide
      */
-    public function __construct(Rpc $rpc) {
+    public function __construct(Rpc $rpc,RpcConfigProvide $configProvide)
+    {
         $this->rpc = $rpc;
+        $this->configProvide = $configProvide;
     }
 
-    public function before(JoinPoint $point) {
+    public function before(JoinPoint $point)
+    {
         $method = $point->getMethod();//对应的反射方法
         /* @var $obj RpcSTATUS */
         $obj = $point->getObj();//对应包装对象
@@ -70,7 +79,7 @@ class RpcWave {
                 $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_OPEN;
                 try {
                     $args = $point->getArgs();
-                    $value = $client->query($point->getOriginalClass(), $method->getName(), $args, $header);
+                    $value = $this->query($client,$point->getOriginalClass(), $method->getName(), $args);
                     $obj->FUSE_STATUS = RpcWave::FUSE_STATUS_CLOSE;
                     Log::alert('RPC FUSE_STATUS_CLOSE :关闭熔断', $context);
                     if ($value == null) {
@@ -85,7 +94,7 @@ class RpcWave {
                 try {
                     $args = $point->getArgs();
                     Log::debug('RPC query :调用', $context);
-                    $value = $client->query($point->getOriginalClass(), $method->getName(), $args, $header);
+                    $value = $this->query($client,$point->getOriginalClass(), $method->getName(), $args);
                     if ($obj->FUSE_FAIL_COUNT) {
                         $obj->FUSE_FAIL_COUNT = 0;
                     }
@@ -119,25 +128,29 @@ class RpcWave {
      * @param RpcClient $client
      * @param string    $clazz
      * @param string    $name
-     * @param  array    $args
-     * @param  array    $header
+     * @param array     $args
      *
      * @return mixed|null
      */
-    public function query(RpcClient $client, $clazz, $name, $args, $header) {
-        $retry = 1;
-        $timeout = -1;
+    public function query(RpcClient $client, $clazz, $name, $args)
+    {
+        $retry = $this->configProvide->retryCount($clazz, $name, $args);
+        $timeout = $this->configProvide->timeout($clazz, $name, $args);
+        $header = $this->configProvide->header($clazz, $name, $args);
         $value = null;
         for ($i = 0; $i < $retry; $i++) {
             try {
-                $value = $client->query($clazz, $name, $args, $header, $timeout);
-            } catch (RpcClientException $exception) {
-                throw $exception;
+                $client->query($clazz, $name, $args, $header, $timeout);
+            } catch (\RuntimeException $exception) {
+                //除非是调用失败的异常继续尝试,其他异常正常抛
+                if(!($exception instanceof RpcClientException)){
+                    throw $exception;
+                }
             }
         }
         return $value;
-
-
     }
+
+
 
 }

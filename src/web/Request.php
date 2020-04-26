@@ -593,7 +593,7 @@ class Request
      *
      * @param null $user_id
      *
-     * @return null|Session
+     * @return int|string|null
      */
     public function userId($user_id = null)
     {

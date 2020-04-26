@@ -126,7 +126,7 @@ class Context {
      *
      * @param null $user_id
      *
-     * @return mixed|null
+     * @return int|string|null
      */
     public static function userId($user_id = null) {
         if ($user_id) {

@@ -70,11 +70,12 @@ class RpcHttp2Client implements RpcClient
      * @param $method      string 方法名
      * @param $data        array 参数
      * @param $header      array 参数
+     * @param $timeout      int|float 超时时间
      *
      * @return mixed
      * @return mixed   返回结果
      */
-    public function query($interface, $method, $data, $header = [])
+    public function query($interface, $method, $data, $header = [], $timeout = -1)
     {
         $x_header = $this->headerPrepare->header($interface, $method, $data);
         $header = array_merge($x_header,$header);
@@ -110,7 +111,11 @@ class RpcHttp2Client implements RpcClient
         }
         $req->data = $data;
         $this->cli->send($req);
-        $response = $this->cli->recv();
+
+        if($timeout==-1){
+          $timeout=$this->config[ 'timeout' ];
+        }
+        $response = $this->cli->read($timeout);
         if (!$this->cli->errCode && $response->statusCode == 200) {
             $type = $response->headers[ 'content-type' ];
             $data = $response->data;

@@ -21,8 +21,7 @@ use Swoole\Coroutine\Http\Client;
  * 通过 http 实现的 Rpc 客户端
  * swoole环境下用协程客户端,否者自动降级
  */
-class RpcHttpClient implements RpcClient
-{
+class RpcHttpClient implements RpcClient {
     use PoolTrait;
 
     public $FUSE_STATUS     = 3;
@@ -30,7 +29,7 @@ class RpcHttpClient implements RpcClient
     public $FUSE_OPEN_TIME;
 
     private $config = ['host' => '',
-                       'auth'=>'',
+                       'auth' => '',
                        'port' => 9501,
                        'base_path' => '',
                        'path' => '/rpc_____call',
@@ -46,8 +45,7 @@ class RpcHttpClient implements RpcClient
      */
     private $headerPrepare;
 
-    public function config($config)
-    {
+    public function config($config) {
         $this->config = array_merge($this->config, $config);
         $this->config[ 'name' ] = Config::getFileConfig()[ 'app' ][ 'name' ];
         if (!$this->config[ 'name' ]) {
@@ -59,28 +57,27 @@ class RpcHttpClient implements RpcClient
         $this->headerPrepare = Ioc::get($config[ 'header' ]);
     }
 
-    public function poolConfig()
-    {
+    public function poolConfig() {
         return $this->config[ 'pool' ];
     }
 
     /**
      * 发起请求
      *
-     * @param $interface   string 接口
-     * @param $method      string 方法名
-     * @param $data        array 参数
-     * @param $header      array 参数
+     * @param $interface    string 接口
+     * @param $method       string 方法名
+     * @param $data         array 参数
+     * @param $header       array 参数
+     * @param $timeout      int|float 超时时间
      *
      * @return mixed
      * @return mixed   返回结果
      */
-    public function query($interface, $method, $data, $header = [])
-    {
+    public function query($interface, $method, $data, $header = [], $timeout = -1) {
         $x_header = $this->headerPrepare->header($interface, $method, $data);
-        $header = array_merge($x_header,$header);
-        if ($this->config['auth']) {
-            $headers['Rpc-Auth']= md5($this->config['auth'] . $interface . $method);
+        $header = array_merge($x_header, $header);
+        if ($this->config[ 'auth' ]) {
+            $headers[ 'Rpc-Auth' ] = md5($this->config[ 'auth' ] . $interface . $method);
         }
         $authorization = $header[ 'authorization' ];
         $headers = array_merge($header, ['Rpc-Client-Name' => Config::get('app')[ 'name' ],
@@ -90,15 +87,14 @@ class RpcHttpClient implements RpcClient
                                          'Rpc-Interface' => $interface,
                                          'Rpc-Method' => $method]);
         if (IS_SWOOLE && \Co::getuid() !== -1) {
-            return $this->queryCoroutine($headers, $data);
+            return $this->queryCoroutine($headers, $data, $timeout );
         } else {
-            return $this->queryByRequest($headers, $data);
+            return $this->queryByRequest($headers, $data, $timeout );
         }
     }
 
 
-    public function queryByRequest($headers, $data)
-    {
+    public function queryByRequest($headers, $data, $timeout = -1) {
         $scheme = 'http://';
         if ($this->config[ 'port' ] == 443) {
             $scheme = 'https://';
@@ -108,9 +104,12 @@ class RpcHttpClient implements RpcClient
         } else {
             $data = json_encode($data);
         }
-        $response = Http::put($scheme . $this->config[ 'host' ]
-            . ':' . $this->config[ 'port' ] . $this->config[ 'base_path' ]
-            . $this->config[ 'path' ], $headers, $data, $this->config[ 'timeout' ]);
+        if($timeout==-1){
+            $timeout=$this->config[ 'timeout' ];
+        }
+        $url=$scheme . $this->config[ 'host' ] . ':' . $this->config[ 'port' ] . $this->config[ 'base_path' ] .
+            $this->config[ 'path' ];
+        $response = Http::put($url, $headers, $data, $timeout);
         if ($response->status_code == 200) {
             $type = $response->headers[ 'content-type' ];
             $data = $response->body;
@@ -132,10 +131,12 @@ class RpcHttpClient implements RpcClient
         }
     }
 
-    public function queryCoroutine($headers, $data)
-    {
+    public function queryCoroutine($headers, $data, $timeout = -1) {
         $cli = new Client($this->config[ 'host' ], $this->config[ 'port' ]);
-        $cli->set(['timeout' => $this->config[ 'timeout' ]]);
+        if($timeout==-1){
+            $timeout=$this->config[ 'timeout' ];
+        }
+        $cli->set(['timeout' => $timeout]);
         $cli->setHeaders($headers);
         if ($this->config[ 'serialize' ] == 'serialize') {
             $data = serialize($data);
@@ -166,12 +167,10 @@ class RpcHttpClient implements RpcClient
     }
 
 
-    public function connect()
-    {
+    public function connect() {
     }
 
-    public function fuseConfig()
-    {
+    public function fuseConfig() {
         return ['fuse_time' => $this->config[ 'fuse_time' ],//熔断器熔断后多久进入半开状态
                 'fuse_fail_count' => $this->config[ 'fuse_fail_count' ],//连续失败多少次开启熔断
         ];

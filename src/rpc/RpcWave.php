@@ -19,11 +19,8 @@ use rap\swoole\pool\Pool;
 
 /**
  * 主要实现了 RCP 远程调用和熔断器的功能
- *
- *
  */
-class RpcWave
-{
+class RpcWave {
     use ScopeProperty;
 
     const FUSE_STATUS_OPEN      = 1;
@@ -36,19 +33,16 @@ class RpcWave
     private $rpc;
 
 
-
     /**
      * RpcWave __construct.
      *
      * @param Rpc $rpc
      */
-    public function __construct(Rpc $rpc)
-    {
+    public function __construct(Rpc $rpc) {
         $this->rpc = $rpc;
     }
 
-    public function before(JoinPoint $point)
-    {
+    public function before(JoinPoint $point) {
         $method = $point->getMethod();//对应的反射方法
         /* @var $obj RpcSTATUS */
         $obj = $point->getObj();//对应包装对象
@@ -116,4 +110,34 @@ class RpcWave
         }
         return null;
     }
+
+
+    /**
+     * 网络请求
+     * 拥有重试机制和超时机制
+     *
+     * @param RpcClient $client
+     * @param string    $clazz
+     * @param string    $name
+     * @param  array    $args
+     * @param  array    $header
+     *
+     * @return mixed|null
+     */
+    public function query(RpcClient $client, $clazz, $name, $args, $header) {
+        $retry = 1;
+        $timeout = -1;
+        $value = null;
+        for ($i = 0; $i < $retry; $i++) {
+            try {
+                $value = $client->query($clazz, $name, $args, $header, $timeout);
+            } catch (RpcClientException $exception) {
+                throw $exception;
+            }
+        }
+        return $value;
+
+
+    }
+
 }

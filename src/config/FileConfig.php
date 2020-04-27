@@ -16,38 +16,7 @@ class FileConfig {
     private $provides=[];
 
     public function __construct() {
-        if (is_file(APP_PATH . 'config.php')) {
-            $this->fileDate = include APP_PATH . 'config.php';
-        }else if(is_file(APP_PATH . 'config/config.php')) {
-            $this->fileDate = include APP_PATH . 'config/config.php';
-
-        }
-        if (!is_dir(APP_PATH . 'config')) {
-            return;
-        }
-        FileUtil::eachAll(APP_PATH . 'config', function($path, $name) {
-            if ($name == 'config.php') {
-                return;
-            }
-            if(strpos($name,'.php')>0){
-                $name = str_replace('.php', '', $name);
-                $data = include $path;
-            }else if(strpos($name,'.json')>0){
-                $name = str_replace('.json', '', $name);
-                $content=file_get_contents($path);
-                $data=json_decode($content,true);
-            }else{
-                return;
-            }
-
-            if (!$this->fileDate[ $name ]) {
-                $this->fileDate[ $name ] = $data;
-            } else {
-                foreach ($data as $k => $v) {
-                    $this->fileDate[ $name ][ $k ] = $v;
-                }
-            }
-        });
+        $this->reload();
     }
 
     /**
@@ -97,4 +66,45 @@ class FileConfig {
         $this->provides[]=$provide;
     }
 
+
+    /**
+     * 重新加载配置项
+     */
+    public function reload(){
+        $file_data=[];
+        if (is_file(APP_PATH . 'config.php')) {
+            $file_data = include APP_PATH . 'config.php';
+        }else if(is_file(APP_PATH . 'config/config.php')) {
+            $file_data = include APP_PATH . 'config/config.php';
+
+        }
+        if (!is_dir(APP_PATH . 'config')) {
+            $this->fileDate=$file_data;
+            return;
+        }
+        FileUtil::eachAll(APP_PATH . 'config', function($path, $name)use(&$file_data) {
+            if ($name == 'config.php') {
+                return;
+            }
+            if(strpos($name,'.php')>0){
+                $name = str_replace('.php', '', $name);
+                $data = include $path;
+            }else if(strpos($name,'.json')>0){
+                $name = str_replace('.json', '', $name);
+                $content=file_get_contents($path);
+                $data=json_decode($content,true);
+            }else{
+                return;
+            }
+
+            if (!$file_data[ $name ]) {
+                $file_data[ $name ] = $data;
+            } else {
+                foreach ($data as $k => $v) {
+                    $file_data[ $name ][ $k ] = $v;
+                }
+            }
+        });
+        $this->fileDate=$file_data;
+    }
 }

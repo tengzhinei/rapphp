@@ -44,7 +44,7 @@ class RequestCacheInterceptor implements Interceptor, AfterInterceptor {
     }
 
     public function handler(Request $request, Response $response) {
-        $path = $request->routerPath();
+        $path = $request->path();
         if (!key_exists($path, $this->cache_urls)) {
             return null;
         }
@@ -73,7 +73,7 @@ class RequestCacheInterceptor implements Interceptor, AfterInterceptor {
     }
 
     public function afterDispatcher(Request $request, Response $response) {
-        $path = $request->routerPath();
+        $path = $request->path();
         if (!key_exists($path, $this->cache_urls)) {
             return null;
         }

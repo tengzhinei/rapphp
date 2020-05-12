@@ -6,6 +6,7 @@ namespace rap\util\rate_limit;
 use Psr\Log\InvalidArgumentException;
 
 use rap\cache\Cache;
+use rap\ioc\ScopeProperty;
 
 /**
  * 二级限速器

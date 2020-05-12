@@ -7,6 +7,7 @@
 namespace rap\config;
 
 use rap\cache\Cache;
+use rap\db\Insert;
 use rap\db\Select;
 use rap\db\Update;
 use rap\log\Log;
@@ -64,10 +65,18 @@ class DbConfig
             $data[ $key ] = $value;
         }
         $data = json_encode($data);
-        Update::table($this->config[ 'db_table' ])
-              ->set($this->config[ 'content_field' ], $data)
-              ->where($this->config[ 'module_field' ], $module)
-              ->excuse();
+        $old = Select::table($this->config[ 'db_table' ])->where($this->config[ 'module_field' ], $module)->find();
+        if($old){
+            Update::table($this->config[ 'db_table' ])
+                  ->set($this->config[ 'content_field' ], $data)
+                  ->where($this->config[ 'module_field' ], $module)
+                  ->excuse();
+        }else{
+            Insert::table($this->config[ 'db_table' ])
+                  ->set($this->config[ 'content_field' ], $data)
+                  ->set($this->config[ 'module_field' ], $module)
+                  ->excuse();
+        }
         Cache::remove(md5("config_" . $module));
     }
 
@@ -81,10 +90,18 @@ class DbConfig
     public function setAll($module, $data)
     {
         $data = json_encode($data);
-        Update::table($this->config[ 'db_table' ])
-              ->set($this->config[ 'content_field' ], $data)
-              ->where($this->config[ 'module_field' ], $module)
-              ->excuse();
+        $old = Select::table($this->config[ 'db_table' ])->where($this->config[ 'module_field' ], $module)->find();
+        if($old){
+            Update::table($this->config[ 'db_table' ])
+                  ->set($this->config[ 'content_field' ], $data)
+                  ->where($this->config[ 'module_field' ], $module)
+                  ->excuse();
+        }else{
+            Insert::table($this->config[ 'db_table' ])
+                  ->set($this->config[ 'content_field' ], $data)
+                  ->set($this->config[ 'module_field' ], $module)
+                  ->excuse();
+        }
         Cache::remove(md5("config_" . $module));
     }
 

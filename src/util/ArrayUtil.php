@@ -78,7 +78,7 @@ class ArrayUtil {
      * @return array
      */
     public static function toTree($list, $parent_field = 'parent_id', $id_field = 'id', $children_field = 'children') {
-        $map = self::groupBy($list);
+        $map = self::groupBy($list,$parent_field);
         $data = [];
         foreach ($list as $item) {
             $item->text = $item->name;

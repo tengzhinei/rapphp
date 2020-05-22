@@ -145,7 +145,7 @@ class Where
         if (!$field) {
             return;
         }
-        if ($op == null) {
+        if ($op === null) {
             $op = 'null';
         }
         if ($field instanceof \Closure) {

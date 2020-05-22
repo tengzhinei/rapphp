@@ -10,7 +10,11 @@
 namespace rap\rpc\client;
 
 use rap\config\Config;
+use rap\ioc\Ioc;
 use rap\swoole\pool\PoolTrait;
+use rap\util\http\client\CoroutineHttpClient;
+use rap\util\http\client\RequestHttpClient;
+use rap\util\http\hmac\HmacHttp;
 use rap\util\http\Http;
 use Swoole\Coroutine\Http\Client;
 
@@ -31,12 +35,13 @@ class RpcHttpClient implements RpcClient {
                        'base_path' => '',
                        'path' => '/rpc_____call',
                        'authorization' => '',
+                       'hmac' => ["ak" => '',
+                                  "sk" => ''],
                        'serialize' => 'serialize',
                        'timeout' => 3,
                        'fuse_time' => 30,//熔断器熔断后多久进入半开状态
                        'fuse_fail_count' => 20,//连续失败多少次开启熔断
                        'pool' => ['min' => 1, 'max' => 10]];
-
 
 
     public function config($config) {
@@ -75,11 +80,7 @@ class RpcHttpClient implements RpcClient {
                                          'Rpc-Serialize' => $this->config[ 'serialize' ],
                                          'Rpc-Interface' => $interface,
                                          'Rpc-Method' => $method]);
-        if (IS_SWOOLE && \Co::getuid() !== -1) {
-            return $this->queryCoroutine($headers, $data, $timeout );
-        } else {
-            return $this->queryByRequest($headers, $data, $timeout );
-        }
+        return $this->queryByRequest($headers, $data, $timeout);
     }
 
 
@@ -93,12 +94,12 @@ class RpcHttpClient implements RpcClient {
         } else {
             $data = json_encode($data);
         }
-        if($timeout==-1){
-            $timeout=$this->config[ 'timeout' ];
+        if ($timeout == -1) {
+            $timeout = $this->config[ 'timeout' ];
         }
-        $url=$scheme . $this->config[ 'host' ] . ':' . $this->config[ 'port' ] . $this->config[ 'base_path' ] .
-            $this->config[ 'path' ];
-        $response = Http::put($url, $headers, $data, $timeout);
+        $url = $scheme . $this->config[ 'host' ] . ':' . $this->config[ 'port' ] . $this->config[ 'base_path' ] . $this->config[ 'path' ];
+        $http = $this->httpClient();
+        $response = $http->put($url, $headers, $data, $timeout);
         if ($response->status_code == 200) {
             $type = $response->headers[ 'content-type' ];
             $data = $response->body;
@@ -120,40 +121,29 @@ class RpcHttpClient implements RpcClient {
         }
     }
 
-    public function queryCoroutine($headers, $data, $timeout = -1) {
-        $cli = new Client($this->config[ 'host' ], $this->config[ 'port' ]);
-        if($timeout==-1){
-            $timeout=$this->config[ 'timeout' ];
-        }
-        $cli->set(['timeout' => $timeout]);
-        $cli->setHeaders($headers);
-        if ($this->config[ 'serialize' ] == 'serialize') {
-            $data = serialize($data);
-        } else {
-            $data = json_encode($data);
-        }
-        $cli->post($this->config[ 'base_path' ] . $this->config[ 'path' ], $data);
-        $cli->close();
-        if ($cli->statusCode == 200) {
-            $type = $cli->headers[ 'content-type' ];
-            $data = $cli->body;
-            if ($data && strpos($type, 'application/php-serialize') == 0) {
-                $data = unserialize($data);
-            } elseif ($data && strpos($type, 'application/json') == 0) {
-                $data = json_decode($data, true);
+    /**
+     * 获取http服务
+     * @return mixed|HmacHttp
+     */
+    private function httpClient() {
+        if ($this->config[ 'hmac' ] && $this->config[ 'hmac' ][ 'ak' ] && $this->config[ 'hmac' ][ 'sk' ]) {
+            $http = new HmacHttp();
+            $http->setAccessSecretKey($this->config[ 'hmac' ][ 'ak' ], $this->config[ 'hmac' ][ 'ak' ]);
+            if ($this->config[ 'hmac' ][ 'sign_header' ]) {
+                $http->setSignHeader($this->config[ '' ][ 'sign_header' ]);
             }
-            if ($cli->headers[ 'rpc-exception' ]) {
-                $type = $data[ 'type' ];
-                $msg = $data[ 'msg' ];
-                $code = $data[ 'code' ];
-                $exception = new $type($msg, $code);
-                throw $exception;
+            if ($this->config[ 'hmac' ][ 'sign_algo' ]) {
+                $http->setSignAlgo($this->config[ '' ][ 'sign_algo' ]);
             }
-            return $data;
+            return $http;
+        }
+        if (IS_SWOOLE && \Co::getuid() !== -1) {
+            return Ioc::get(CoroutineHttpClient::class);
         } else {
-            throw new RpcClientException('服务异常', 100);
+            return Ioc::get(RequestHttpClient::class);
         }
     }
+
 
 
     public function connect() {

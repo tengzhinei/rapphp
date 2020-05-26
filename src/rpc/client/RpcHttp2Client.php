@@ -16,20 +16,8 @@ use Swoole\Coroutine\Http2\Client;
 /**
  * 通过 http2 实现的 Rpc 客户端 支持长链接
  */
-class RpcHttp2Client implements RpcClient
+class RpcHttp2Client  extends AbsRpcClient
 {
-    use PoolTrait;
-
-    private $config = ['host' => '',
-                       'port' => 9501,
-                       'path' => '/rpc_____call',
-                       'base_path' => '',
-                       'authorization' => '',
-                       'serialize' => 'serialize',
-                       'timeout' => 0.5,
-                       'fuse_time' => 30,//熔断器熔断后多久进入半开状态
-                       'fuse_fail_count' => 20,//连续失败多少次开启熔断
-                       'pool' => ['min' => 1, 'max' => 10]];
 
 
     /**
@@ -37,21 +25,7 @@ class RpcHttp2Client implements RpcClient
      */
     private $cli;
 
-    public function config($config)
-    {
-        $this->config = array_merge($this->config, $config);
-        $this->config[ 'name' ] = Config::getFileConfig()[ 'app' ][ 'name' ];
-        if (!$this->config[ 'name' ]) {
-            $this->config[ 'name' ] = 'rap_rpc_client';
-        }
 
-    }
-
-
-    public function poolConfig()
-    {
-        return $this->config[ 'pool' ];
-    }
 
     /**
      * 发起请求
@@ -74,7 +48,6 @@ class RpcHttp2Client implements RpcClient
         if (!$this->cli) {
             $this->connect();
         }
-
         if (!$this->cli->connected) {
             $this->cli->connect();
         }
@@ -92,12 +65,17 @@ class RpcHttp2Client implements RpcClient
                                         'Authorization-Forward' => $authorization,
                                         'Rpc-Interface' => $interface,
                                         'Rpc-Method' => $method]);
-        $req->headers = $header;
+
+
+
+
         if ($this->config[ 'serialize' ] == 'serialize') {
             $data = serialize($data);
         } else {
             $data = json_encode($data);
         }
+        $header = $this->authHeader($this->config[ 'base_path' ] . $this->config[ 'path' ], $header, $data);
+        $req->headers = $header;
         $req->data = $data;
         $this->cli->send($req);
 
@@ -124,13 +102,6 @@ class RpcHttp2Client implements RpcClient
         } else {
             throw new RpcClientException('服务异常', 100);
         }
-    }
-
-    public function fuseConfig()
-    {
-        return ['fuse_time' => $this->config[ 'fuse_time' ],//熔断器熔断后多久进入半开状态
-                'fuse_fail_count' => $this->config[ 'fuse_fail_count' ],//连续失败多少次开启熔断
-        ];
     }
 
 

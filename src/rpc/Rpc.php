@@ -66,6 +66,7 @@ class Rpc
     private function initRpcClient($name, RpcRegister $register, $config)
     {
         $client = $config[ 'client' ];
+        $config['name'] = $name;
         if (!$client) {
             $client = 'http';
         }

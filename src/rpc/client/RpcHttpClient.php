@@ -11,6 +11,8 @@ namespace rap\rpc\client;
 
 use rap\config\Config;
 use rap\ioc\Ioc;
+use rap\rpc\auth\AuthHandler;
+use rap\rpc\auth\DefaultAuthHandler;
 use rap\swoole\pool\PoolTrait;
 use rap\util\http\client\CoroutineHttpClient;
 use rap\util\http\client\RequestHttpClient;
@@ -22,40 +24,8 @@ use Swoole\Coroutine\Http\Client;
  * 通过 http 实现的 Rpc 客户端
  * swoole环境下用协程客户端,否者自动降级
  */
-class RpcHttpClient implements RpcClient {
-    use PoolTrait;
+class RpcHttpClient extends AbsRpcClient {
 
-    public $FUSE_STATUS     = 3;
-    public $FUSE_FAIL_COUNT = 0;
-    public $FUSE_OPEN_TIME;
-
-    private $config = ['host' => '',
-                       'auth' => '',
-                       'port' => 9501,
-                       'base_path' => '',
-                       'path' => '/rpc_____call',
-                       'authorization' => '',
-                       'hmac' => ["ak" => '',
-                                  "sk" => ''],
-                       'serialize' => 'serialize',
-                       'timeout' => 3,
-                       'fuse_time' => 30,//熔断器熔断后多久进入半开状态
-                       'fuse_fail_count' => 20,//连续失败多少次开启熔断
-                       'pool' => ['min' => 1, 'max' => 10]];
-
-
-    public function config($config) {
-        $this->config = array_merge($this->config, $config);
-        $this->config[ 'name' ] = Config::getFileConfig()[ 'app' ][ 'name' ];
-        if (!$this->config[ 'name' ]) {
-            $this->config[ 'name' ] = 'rap_rpc_client';
-        }
-
-    }
-
-    public function poolConfig() {
-        return $this->config[ 'pool' ];
-    }
 
     /**
      * 发起请求
@@ -75,7 +45,6 @@ class RpcHttpClient implements RpcClient {
         }
         $authorization = $header[ 'authorization' ];
         $headers = array_merge($header, ['Rpc-Client-Name' => Config::get('app')[ 'name' ],
-                                         'Authorization' => $this->config[ 'authorization' ],
                                          'Authorization-Forward' => $authorization,
                                          'Rpc-Serialize' => $this->config[ 'serialize' ],
                                          'Rpc-Interface' => $interface,
@@ -99,6 +68,7 @@ class RpcHttpClient implements RpcClient {
         }
         $url = $scheme . $this->config[ 'host' ] . ':' . $this->config[ 'port' ] . $this->config[ 'base_path' ] . $this->config[ 'path' ];
         $http = $this->httpClient();
+        $headers = $this->authHeader($this->config[ 'base_path' ] . $this->config[ 'path' ], $headers, $data);
         $response = $http->put($url, $headers, $data, $timeout);
         if ($response->status_code == 200) {
             $type = $response->headers[ 'content-type' ];
@@ -126,17 +96,6 @@ class RpcHttpClient implements RpcClient {
      * @return mixed|HmacHttp
      */
     private function httpClient() {
-        if ($this->config[ 'hmac' ] && $this->config[ 'hmac' ][ 'ak' ] && $this->config[ 'hmac' ][ 'sk' ]) {
-            $http = new HmacHttp();
-            $http->setAccessSecretKey($this->config[ 'hmac' ][ 'ak' ], $this->config[ 'hmac' ][ 'ak' ]);
-            if ($this->config[ 'hmac' ][ 'sign_header' ]) {
-                $http->setSignHeader($this->config[ '' ][ 'sign_header' ]);
-            }
-            if ($this->config[ 'hmac' ][ 'sign_algo' ]) {
-                $http->setSignAlgo($this->config[ '' ][ 'sign_algo' ]);
-            }
-            return $http;
-        }
         if (IS_SWOOLE && \Co::getuid() !== -1) {
             return Ioc::get(CoroutineHttpClient::class);
         } else {
@@ -145,13 +104,6 @@ class RpcHttpClient implements RpcClient {
     }
 
 
-
     public function connect() {
-    }
-
-    public function fuseConfig() {
-        return ['fuse_time' => $this->config[ 'fuse_time' ],//熔断器熔断后多久进入半开状态
-                'fuse_fail_count' => $this->config[ 'fuse_fail_count' ],//连续失败多少次开启熔断
-        ];
     }
 }

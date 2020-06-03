@@ -152,13 +152,14 @@ class DBCache {
         /* @var $model Record */
         $cacheKeys = $model->cacheKeys();
         $_db_data = $model->getOldDbData();
-
         if (!$cacheKeys) {
             return;
         }
-
         if (!$_db_data) {
-            $_db_data = $model::get($model->getPk())->toArray('', false);
+            $m = $model::get($model->getPk());
+            if($m){
+                $_db_data = $m->toArray('', false);
+            }
         }
         foreach ($cacheKeys as $cacheKey) {
             $m = explode(',', $cacheKey);

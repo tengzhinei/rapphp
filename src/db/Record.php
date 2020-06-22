@@ -432,12 +432,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
             $this->_db_data[ $field ] = $value;
         }
         if (!($this instanceof NoAutoCache)) {
-            if($this->from_db){
-                //来自数据库是全字段可以直接替换数据
-                $db_cache->firstCacheSave($this->getTable(), $this->$pk, $this->_db_data);
-            }else{
-                $db_cache->firstCacheRemove($this->getTable(), $this->$pk);
-            }
+            $db_cache->firstCacheRemove($this->getTable(), $this->$pk);
         }
 
     }

@@ -96,7 +96,7 @@ class ResourcePool
     public function lock(PoolAble $bean)
     {
         /* @var $bean PoolTrait */
-        $bean->_poolLock_ = true;
+        $bean->_poolLock_ ++;
     }
 
     /**
@@ -107,7 +107,10 @@ class ResourcePool
     public function unLock(PoolAble $bean)
     {
         /* @var $bean PoolTrait */
-        $bean->_poolLock_ = false;
+        $bean->_poolLock_ --;
+        if($bean->_poolLock_<0){
+            $bean->_poolLock_=0;
+        }
     }
 
 

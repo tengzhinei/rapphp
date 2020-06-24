@@ -16,7 +16,7 @@ trait PoolTrait
 
     public $_poolName_ = "";
 
-    public $_poolLock_ = false;
+    public $_poolLock_ = 0;
 
     /**
      * @var PoolBuffer

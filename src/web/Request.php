@@ -374,7 +374,9 @@ class Request
             $this->host = $host;
             return null;
         }
-        $this->host = $this->header('x-forwarded-host');
+        if(!$this->host){
+            $this->host = $this->header('x-forwarded-host');
+        }
         if (!$this->host) {
             $this->host = $this->header('host');
         }

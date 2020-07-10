@@ -50,6 +50,9 @@ class CoroutineHttpClient implements HttpClient
             $code = $code = $cli->errCode;
             $body = socket_strerror($code);
         }
+        if($code==301||$code==302){
+            return $this->get($cli->headers['location'],$header,$timeout);
+        }
         $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
         return $response;
@@ -72,6 +75,9 @@ class CoroutineHttpClient implements HttpClient
         if ($cli->statusCode <0) {
             $code = $code = $cli->errCode;
             $body = socket_strerror($code);
+        }
+        if($code==301||$code==302){
+            return $this->form($cli->headers['location'],$header,$data,$timeout);
         }
         $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
@@ -100,6 +106,9 @@ class CoroutineHttpClient implements HttpClient
         if ($cli->statusCode <0) {
             $code = $code = $cli->errCode;
             $body = socket_strerror($code);
+        }
+        if($code==301||$code==302){
+            return $this->post($cli->headers['location'],$header,$data,$timeout);
         }
         $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
@@ -133,6 +142,9 @@ class CoroutineHttpClient implements HttpClient
             $code = $code = $cli->errCode;
             $body = socket_strerror($code);
         }
+        if($code==301||$code==302){
+            return $this->put($cli->headers['location'],$header,$data,$timeout);
+        }
         $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
         return $response;
@@ -159,6 +171,9 @@ class CoroutineHttpClient implements HttpClient
             $code = $code = $cli->errCode;
             $body = socket_strerror($code);
         }
+        if($code==301||$code==302){
+            return $this->upload($cli->headers['location'],$header,$data,$files,$timeout);
+        }
         $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();
         return $response;
@@ -184,6 +199,9 @@ class CoroutineHttpClient implements HttpClient
         if ($cli->statusCode <0) {
             $code = $code = $cli->errCode;
             $body = socket_strerror($code);
+        }
+        if($code==301||$code==302){
+            return $this->delete($cli->headers['location'],$header,$data,$timeout);
         }
         $response = new HttpResponse($code, $cli->headers, $body);
         $cli->close();

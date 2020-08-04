@@ -7,6 +7,7 @@ use rap\cache\Cache;
 use rap\ioc\scope\SessionScope;
 use rap\session\RedisSession;
 use rap\swoole\Context;
+use rap\swoole\pool\Pool;
 
 /**
  * SessionScope获取和保存
@@ -29,13 +30,18 @@ class SessionScopeHelp
             $session_id = $request->session()->sessionId();
             $cache_key = 'scope_session_' . $clazzOrName . $session_id;
             $cache = Cache::getCache(RedisSession::REDIS_CACHE_NAME);
-            $bean = $cache->get($cache_key, null);
-            if ($bean) {
-                $cache->expire($cache_key, 60 * 30);
-            } else {
-                $bean = Ioc::beanCreate($clazzOrName);
-                $cache->set($cache_key, $bean, 60 * 30);
+            try{
+                $bean = $cache->get($cache_key, null);
+                if ($bean) {
+                    $cache->expire($cache_key, 60 * 30);
+                } else {
+                    $bean = Ioc::beanCreate($clazzOrName);
+                    $cache->set($cache_key, $bean, 60 * 30);
+                }
+            }finally{
+                Pool::release($cache);
             }
+
         }
         Context::set('Ioc_' . $clazzOrName, $bean);
         return $bean;

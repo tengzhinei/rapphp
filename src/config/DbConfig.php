@@ -11,6 +11,7 @@ use rap\db\Insert;
 use rap\db\Select;
 use rap\db\Update;
 use rap\log\Log;
+use rap\swoole\Context;
 
 class DbConfig
 {
@@ -19,7 +20,7 @@ class DbConfig
                        'module_field' => 'module',
                        'content_field' => 'content'];
 
-
+    private const CONTEXT_CONFIG='';
     /**
      * @param FileConfig $fileConfig
      */
@@ -78,6 +79,7 @@ class DbConfig
                   ->excuse();
         }
         Cache::remove(md5("config_" . $module));
+        Context::remove(self::CONTEXT_CONFIG.$module);
     }
 
     /**
@@ -103,6 +105,7 @@ class DbConfig
                   ->excuse();
         }
         Cache::remove(md5("config_" . $module));
+        Context::remove(self::CONTEXT_CONFIG.$module);
     }
 
 
@@ -116,9 +119,10 @@ class DbConfig
      */
     private function getModuleFromDB($module)
     {
-
-        $data = Cache::get(md5("config_" . $module));
-
+        $data = Context::get(self::CONTEXT_CONFIG.$module);
+        if(!$data){
+            $data = Cache::get(md5("config_" . $module));
+        }
         if (!$data) {
             $data = Select::table($this->config[ 'db_table' ])
                           ->where($this->config[ 'module_field' ], $module)
@@ -126,8 +130,8 @@ class DbConfig
             if (!$data) {
                 $data='null';
             }
-
             Cache::set(md5("config_" . $module), $data);
+            Context::set(self::CONTEXT_CONFIG.$module,$data);
         }
         if ($data) {
             if ($data=='null') {

@@ -10,6 +10,7 @@ namespace rap\db;
 
 use rap\cache\Cache;
 use rap\log\Log;
+use rap\swoole\Context;
 
 class DBCache {
 
@@ -30,7 +31,11 @@ class DBCache {
         /* @var $record Record */
         $record = new $model;
         $cache_key =self::FIRST_CACHE_KEY . $record->getTable().":".$id ;
-        $data = Cache::get($cache_key);
+        $data = Context::get($cache_key);
+
+        if(!$data){
+            $data = Cache::get($cache_key);
+        }
         if ($data == 'null') {
             return 'null';
         }
@@ -51,7 +56,9 @@ class DBCache {
      */
     public function firstCacheSave($table, $id, $value) {
         $cache_key = self::FIRST_CACHE_KEY  . $table.":".$id ;
+        Context::set($cache_key,$value);
         Cache::set($cache_key,$value);
+
     }
 
     /**
@@ -62,6 +69,7 @@ class DBCache {
      */
     public function firstCacheRemove($table, $id) {
         $cache_key = self::FIRST_CACHE_KEY  . $table .":".$id ;
+        Context::remove($cache_key);
         Cache::remove($cache_key);
     }
 
@@ -152,14 +160,13 @@ class DBCache {
         /* @var $model Record */
         $cacheKeys = $model->cacheKeys();
         $_db_data = $model->getOldDbData();
+
         if (!$cacheKeys) {
             return;
         }
+
         if (!$_db_data) {
-            $m = $model::get($model->getPk());
-            if($m){
-                $_db_data = $m->toArray('', false);
-            }
+            $_db_data = $model::get($model->getPk())->toArray('', false);
         }
         foreach ($cacheKeys as $cacheKey) {
             $m = explode(',', $cacheKey);

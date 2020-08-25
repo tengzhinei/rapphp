@@ -14,6 +14,7 @@ use rap\web\Application;
 use rap\swoole\CoContext;
 use Swoole\Atomic;
 use Swoole\Runtime;
+use Swoole\Coroutine;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -21,8 +22,7 @@ use Swoole\Runtime;
  * Date: 18/4/4
  * Time: 下午1:55
  */
-class SwooleHttpServer extends Command
-{
+class SwooleHttpServer extends Command {
     /**
      * @var Atomic
      */
@@ -40,28 +40,30 @@ class SwooleHttpServer extends Command
                        'auto_reload' => false];
 
 
-    public function run()
-    {
+    public function run() {
         $this->workerAtomic = new Atomic(0);
         $this->workerAtomic->add(1);
         $this->worker_version = $this->workerAtomic->get();
         $this->config = array_merge($this->config, Config::get('swoole_http'));
         //mysql redis 协程化
         Runtime::enableCoroutine();
+        Coroutine::set([
+            "enable_preemptive_scheduler"=>true
+        ]);
         $document_root = '';
-
-        if ($this->config['enable_static_handler'] && !Config::get('app')['debug']) {
+        if ($this->config[ 'enable_static_handler' ] && !Config::get('app')[ 'debug' ]) {
             //开启静态
-            foreach ($this->config['static_handler_locations'] as $dir) {
+            foreach ($this->config[ 'static_handler_locations' ] as $dir) {
                 FileUtil::copy(ROOT_PATH . $dir, ROOT_PATH . '.rap_static_file' . '/' . $dir);
             }
             $document_root = '.rap_static_file';
         }
 
-        $config = array_merge($this->config, ['open_http2_protocol' => $this->config['http2'],
-                                              'document_root' => ROOT_PATH . $document_root,
-                                              'buffer_output_size' => 32 * 1024 * 1024]);
-        $http = new \swoole_http_server($this->config['ip'], $this->config['port']);
+        $config = array_merge(['open_http2_protocol' => $this->config[ 'http2' ],
+                               'document_root' => ROOT_PATH . $document_root,
+                               'dispatch_mode' => 1,
+                               'buffer_output_size' => 32 * 1024 * 1024], $this->config);
+        $http = new \swoole_http_server($this->config[ 'ip' ], $this->config[ 'port' ]);
         $http->set($config);
         $http->on('workerstart', [$this, 'onWorkStart']);
         $http->on('workerstop', [$this, 'onWorkerStop']);
@@ -75,33 +77,30 @@ class SwooleHttpServer extends Command
         $http->start();
     }
 
-    public function onStart($server)
-    {
+    public function onStart($server) {
         Log::notice('swoole http start : http服务启动');
         $application = Ioc::get(Application::class);
         $application->server = $server;
 
         Event::trigger(ServerEvent::ON_SERVER_START, $server);
-        if ($this->config['auto_reload'] && Config::get('app')['debug']) {
+        if ($this->config[ 'auto_reload' ] && Config::get('app')[ 'debug' ]) {
             $this->writeln("自动加载");
             $reload = new ServerWatch();
             $reload->init($server);
         }
     }
 
-    public function onShutdown($server)
-    {
+    public function onShutdown($server) {
         Log::notice('swoole http shutdown : http服务停止');
         Event::trigger(ServerEvent::ON_SERVER_SHUTDOWN, $server);
-        if ($this->config['enable_static_handler']) {
+        if ($this->config[ 'enable_static_handler' ]) {
             FileUtil::delete(ROOT_PATH . '.rap_static_file');
         }
     }
 
-    public function onWorkStart($server, $id)
-    {
-        Log::info('swoole worker start' , ['id'=>$id]);
-        /* @var $application Application  */
+    public function onWorkStart($server, $id) {
+        Log::info('swoole worker start', ['id' => $id]);
+        /* @var $application Application */
         $application = Ioc::get(Application::class);
         $application->server = $server;
         $application->worker_id = $id;
@@ -109,21 +108,19 @@ class SwooleHttpServer extends Command
         Event::trigger(ServerEvent::ON_SERVER_WORK_START, $server, $id);
     }
 
-    public function onWorkerStop($server, $id)
-    {
-        Log::info('swoole worker stop',['id'=>$id] );
+    public function onWorkerStop($server, $id) {
+        Log::info('swoole worker stop', ['id' => $id]);
         $application = Ioc::get(Application::class);
         $application->server = $server;
         Event::trigger(ServerEvent::ON_SERVER_WORKER_STOP, $server, $id);
     }
 
-    public function onTask($serv, $task_id, $from_id, $data)
-    {
-        Log::info('swoole task start' ,['task_id'=>$task_id]);
-        $clazz = $data['clazz'];
-        $method = $data['method'];
-        $params = $data['params'];
-        $config = $data['config'];
+    public function onTask($serv, $task_id, $from_id, $data) {
+        Log::info('swoole task start', ['task_id' => $task_id]);
+        $clazz = $data[ 'clazz' ];
+        $method = $data[ 'method' ];
+        $params = $data[ 'params' ];
+        $config = $data[ 'config' ];
         /* @var $deliver TaskConfig */
         $deliver = Ioc::get(TaskConfig::class);
         $deliver->setTaskInit($config);
@@ -133,16 +130,14 @@ class SwooleHttpServer extends Command
     }
 
 
-    public function onFinish()
-    {
+    public function onFinish() {
     }
 
     private $worker_version = 0;
 
-    public function onRequest(\swoole_http_request $request, \swoole_http_response $response)
-    {
+    public function onRequest(\swoole_http_request $request, \swoole_http_response $response) {
         try {
-            if ($request->server['request_uri'] == '/favicon.ico') {
+            if ($request->server[ 'request_uri' ] == '/favicon.ico') {
                 $response->end();
                 return;
             }
@@ -162,7 +157,7 @@ class SwooleHttpServer extends Command
             CoContext::getContext()->setRequest($req);
 
             //swoole  4.2.9
-            defer(function () use ($req) {
+            defer(function() use ($req) {
                 try {
                     Event::trigger(ServerEvent::ON_REQUEST_DEFER);
                 } catch (\Throwable $throwable) {
@@ -178,33 +173,22 @@ class SwooleHttpServer extends Command
             //释放协程里的变量和
         } catch (\Exception $exception) {
             $response->end($exception->getMessage());
-            $msg = str_replace(
-                "rap\\exception\\",
-                "",
-                get_class($exception)
-            ) . " in " .
-                str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
-            Log::error('http request error handler ,' ,['code'=>$exception->getCode(),
-                                                        'msg'=>$msg,
-                                                        'trace'=>$exception->getTraceAsString()]);
+            $msg = str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
+            Log::error('http request error handler ,', ['code' => $exception->getCode(),
+                                                        'msg' => $msg,
+                                                        'trace' => $exception->getTraceAsString()]);
             return;
         } catch (\Error $e) {
             $response->end($e->getMessage());
-            $msg = str_replace(
-                "rap\\exception\\",
-                "",
-                get_class($e)
-            ) . " in " .
-                str_replace(ROOT_PATH, "", $e->getFile()) . " line " . $e->getLine();
-            Log::error('http request error handler ,' ,['code'=>$e->getCode(),
-                                                        'msg'=>$msg,
-                                                        'trace'=>$e->getTraceAsString()]);
+            $msg = str_replace("rap\\exception\\", "", get_class($e)) . " in " . str_replace(ROOT_PATH, "", $e->getFile()) . " line " . $e->getLine();
+            Log::error('http request error handler ,', ['code' => $e->getCode(),
+                                                        'msg' => $msg,
+                                                        'trace' => $e->getTraceAsString()]);
             return;
         }
     }
 
-    public function configure()
-    {
+    public function configure() {
         $this->name('http')->asName("swoole http服务器")->des("启动swoole http 服务器 需要安装 swoole 拓展");
     }
 }

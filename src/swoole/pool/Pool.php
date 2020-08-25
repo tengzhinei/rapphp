@@ -58,7 +58,7 @@ class Pool
             $bean = ResourcePool::instance()->get($name);
             if ($bean instanceof RedisCache) {
                 $select = $context->get(CoContext::REDIS_SELECT);
-                if ($select != null) {
+                if ($select !== null) {
                     $bean->select($select);
                 }
             }

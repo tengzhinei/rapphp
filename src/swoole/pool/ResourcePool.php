@@ -57,6 +57,10 @@ class ResourcePool
             /* @var $buffer PoolBuffer */
             $buffer = $channel->pop($timeout);
             if (!$buffer) {
+                $resoonse = response();
+                if(!$resoonse){
+                    $resoonse->code(503);
+                }
                 throw new PoolTimeoutException("pool is empty and get item timeout");
             }
             $bean = $buffer->get();

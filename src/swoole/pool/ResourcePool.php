@@ -11,6 +11,7 @@ namespace rap\swoole\pool;
 
 use rap\ioc\Ioc;
 use rap\swoole\CoContext;
+use rap\swoole\RapCo;
 use Swoole\Coroutine\Channel;
 
 class ResourcePool
@@ -125,7 +126,6 @@ class ResourcePool
      */
     public function preparePool($classOrName)
     {
-
         /* @var $bean PoolAble|PoolTrait */
         $bean = Ioc::beanCreate($classOrName, false);
         $config = $bean->poolConfig();
@@ -136,16 +136,6 @@ class ResourcePool
         if (!$config['timeout']) {
             $config['timeout'] = 0.5;
         }
-        $this->pool_config[$classOrName] = $config;
-        $chanel = new Channel($max + 1);
-        $this->channels[$classOrName] = $chanel;
-        $buffers = [];
-        for ($i = 0; $i < $max; $i++) {
-            $buffer = new PoolBuffer($classOrName);
-            $chanel->push($buffer);
-            $buffers[] = $buffer;
-        }
-        $this->buffers[$classOrName] = $buffers;
         //定时删除
         $idle = $config['idle'];
         if (!$idle) {
@@ -155,10 +145,23 @@ class ResourcePool
         if (!$check) {
             $check = 30;
         }
+        RapCo::group()->go(function ()use($classOrName,$config,$min,$max){
 
-        if ($max==$min) {
-            return;
-        }
+            $this->pool_config[$classOrName] = $config;
+            $chanel = new Channel($max + 1);
+            $this->channels[$classOrName] = $chanel;
+            $buffers = [];
+            for ($i = 0; $i < $max; $i++) {
+                $buffer = new PoolBuffer($classOrName);
+                $chanel->push($buffer);
+                $buffers[] = $buffer;
+            }
+            $this->buffers[$classOrName] = $buffers;
+            if ($max==$min) {
+                return;
+            }
+        })->wait();
+
         swoole_timer_tick(1000 * $check, function () use ($idle, $max, $min) {
             $removed=0;
             foreach ($this->buffers as $class => $buffer_array) {

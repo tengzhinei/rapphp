@@ -46,7 +46,8 @@ class SwooleHttpServer extends Command {
         $this->worker_version = $this->workerAtomic->get();
         $this->config = array_merge($this->config, Config::get('swoole_http'));
         //mysql redis 协程化
-        Runtime::enableCoroutine();
+//        Runtime::enableCoroutine();
+        \Co::set(['hook_flags' => SWOOLE_HOOK_ALL | SWOOLE_HOOK_CURL]);
         Coroutine::set([
             "enable_preemptive_scheduler"=>true
         ]);
@@ -62,6 +63,7 @@ class SwooleHttpServer extends Command {
         $config = array_merge(['open_http2_protocol' => $this->config[ 'http2' ],
                                'document_root' => ROOT_PATH . $document_root,
                                'dispatch_mode' => 1,
+                               'task_enable_coroutine'=>true,
                                'buffer_output_size' => 32 * 1024 * 1024], $this->config);
         $http = new \swoole_http_server($this->config[ 'ip' ], $this->config[ 'port' ]);
         $http->set($config);

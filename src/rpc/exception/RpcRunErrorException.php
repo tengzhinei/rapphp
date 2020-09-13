@@ -1,6 +1,6 @@
 <?php
 
-namespace rap\rpc;
+namespace rap\rpc\exception;
 
 use \RuntimeException;
 

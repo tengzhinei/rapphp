@@ -415,8 +415,13 @@ class Record implements \ArrayAccess, \JsonSerializable {
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
         //先删除二级缓存
-        $db_cache->secondCacheRemove($this);
-
+        /* @var $model Record  */
+        $model=get_called_class();
+        $_db_data=$this->getOldDbData();
+        $cacheKeys = $this->cacheKeys();
+        if ($cacheKeys&&!$_db_data) {
+            $_db_data = $model::get($this->getPk())->getOldDbData();
+        }
         if ($this->delayUpdate()) {
             $row_count = Update::delayUpdate($this->$pk, $this->getTable(), $data, $where, $this->connectionName());
         } else {
@@ -434,6 +439,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
         if (!($this instanceof NoAutoCache)) {
             $db_cache->firstCacheRemove($this->getTable(), $this->$pk);
         }
+        $db_cache->secondCacheRemove($this,$_db_data);
 
     }
 
@@ -451,22 +457,25 @@ class Record implements \ArrayAccess, \JsonSerializable {
         $model = get_called_class();
         $pk = $this->getPkField();
         $id = $this->$pk;
-        if (isset($id)) {
-            $where[ $pk ] = $id;
-            $delete_time = "delete_time";
-            if (property_exists($model, $delete_time)) {
-                if (!$force) {
-                    $this->$delete_time = time();
-                    $this->update();
-                    return;
-                }
-            }
+
+        /* @var $model Record */
+        $cacheKeys = $this->cacheKeys();
+        $_db_data=$this->getOldDbData();
+        if ($cacheKeys&&!$_db_data) {
+            $_db_data = $model::get($this->getPk())->getOldDbData();
+        }
+        $where[ $pk ] = $id;
+        $delete_time = "delete_time";
+        if (property_exists($model, $delete_time)&&!$force) {
+            $this->$delete_time = time();
+            $this->update();
+        }else{
             DB::delete($this->getTable(), null, $this->connectionName())->where($pk, $id)->excuse();
         }
         //删除缓存
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
-        $db_cache->secondCacheRemove($this);
+        $db_cache->secondCacheRemove($this,$_db_data);
         if (!($this instanceof NoAutoCache)) {
             $db_cache->firstCacheRemove($this->getTable(), $id);
         }

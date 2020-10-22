@@ -151,22 +151,27 @@ class DBCache {
         return null;
     }
 
+
     /**
      * cacheKeys 二级缓存删除
      *
      * @param string $model 类名
+     * @param mixed $_db_data 数据
      */
-    public function secondCacheRemove($model) {
+    public function secondCacheRemove($model,$_db_data=[]) {
         /* @var $model Record */
         $cacheKeys = $model->cacheKeys();
-        $_db_data = $model->getOldDbData();
-
+        if(!$_db_data){
+            $_db_data = $model->getOldDbData();
+        }
         if (!$cacheKeys) {
             return;
         }
 
         if (!$_db_data) {
-            $_db_data = $model::get($model->getPk())->toArray('', false);
+            $old = $model::get($model->getPk());
+            if(!$old)return;
+            $_db_data= $old->getOldDbData();
         }
         foreach ($cacheKeys as $cacheKey) {
             $m = explode(',', $cacheKey);

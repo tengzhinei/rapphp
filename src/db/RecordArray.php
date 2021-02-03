@@ -2,47 +2,19 @@
 
 
 namespace rap\db;
+use rap\util\bean\BeanUtil;
 
 /**
- *对象转数据帮助类
+ * 对象转数据帮助类
+ * 已过期 请使用rap\util\bean\BeanUtil
  * @author: 藤之内
  */
-class RecordArray
-{
+class RecordArray {
 
-    public static function toArray($model, $fields, $contain)
-    {
-        $data = [];
-        if (!$fields) {
-            foreach ($model as $key => $value) {
-                $value = self::valueDiscern($value);
-                $data[ $key ] = $value;
-            }
-        } else {
-            $keys = explode(',', $fields);
-            if ($contain) {
-                foreach ($keys as $key) {
-                    $value = $model->$key;
-                    $value = self::valueDiscern($value);
-                    $data[ $key ] = $value;
-                }
-            } else {
-                foreach ($model as $key => $value) {
-                    if (!in_array($key, $keys)) {
-                        $value = self::valueDiscern($value);
-                        $data[ $key ] = $value;
-                    }
-                }
-            }
-        }
-        return $data;
+    public static function toArray($model, $fields, $contain) {
+
+        return BeanUtil::toArray($model, $fields, $contain);
     }
 
-    private static function valueDiscern($value)
-    {
-        if ($value instanceof Record) {
-            $value = $value->jsonSerialize();
-        }
-        return $value;
-    }
+
 }

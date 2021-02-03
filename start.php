@@ -1,4 +1,5 @@
 <?php
+
 error_reporting(E_ALL& ~E_NOTICE& ~E_WARNING&~E_DEPRECATED);
 define('RAP_VERSION', '3.2.2');
 define('DS', DIRECTORY_SEPARATOR);

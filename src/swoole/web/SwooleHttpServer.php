@@ -117,8 +117,8 @@ class SwooleHttpServer extends Command {
         Event::trigger(ServerEvent::ON_SERVER_WORKER_STOP, $server, $id);
     }
 
-    public function onTask($serv, $task_id, $from_id, $data) {
-        Log::info('swoole task start', ['task_id' => $task_id]);
+    public function onTask($serv, $task) {
+        $data = $task->data;
         $clazz = $data[ 'clazz' ];
         $method = $data[ 'method' ];
         $params = $data[ 'params' ];
@@ -128,7 +128,10 @@ class SwooleHttpServer extends Command {
         $deliver->setTaskInit($config);
         $bean = Ioc::get($clazz);
         $method = new \ReflectionMethod($clazz, $method);
-        $method->invokeArgs($bean, $params);
+        $value =  $method->invokeArgs($bean, $params);
+        if($value){
+            $task->finish($value);
+        }
     }
 
 

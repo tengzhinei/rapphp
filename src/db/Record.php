@@ -6,6 +6,8 @@ use rap\ioc\Ioc;
 use rap\storage\Storage;
 use rap\swoole\Context;
 use rap\swoole\pool\Pool;
+use rap\util\bean\BeanUtil;
+use rap\web\BeanWebParse;
 use rap\web\mvc\Search;
 use rap\web\Request;
 
@@ -15,7 +17,7 @@ use rap\web\Request;
  * Date: 17/9/22
  * Time: 上午10:28
  */
-class Record implements \ArrayAccess, \JsonSerializable {
+class Record implements BeanWebParse , \ArrayAccess, \JsonSerializable {
 
     /**
      * 获取表名,包含 as 时会添加上as  如 User::table('u') 返回user u
@@ -34,8 +36,6 @@ class Record implements \ArrayAccess, \JsonSerializable {
         }
         return $table;
     }
-
-
 
 
     /**
@@ -97,13 +97,11 @@ class Record implements \ArrayAccess, \JsonSerializable {
 
     /**
      * 判定是否来自数据库
-     *
      * @var bool
      */
-    private $from_db=false;
+    private $from_db = false;
 
     /**
-     *
      * 数据库字段组装对象
      *
      * @param $items
@@ -113,12 +111,12 @@ class Record implements \ArrayAccess, \JsonSerializable {
      */
     public function fromDbData($items) {
         $this->to_update = true;
-        $this->from_db=true;
+        $this->from_db = true;
         $_fields = $this->getFields();
         $this->_db_data = $items;
         foreach ($items as $item => $value) {
             $type_p = $_fields[ $item ];
-            if (is_array($type_p)) {
+            if (is_array($type_p) && key_exists('type', $type_p)) {
                 $type = $type_p[ 'type' ];
             } else {
                 $type = $type_p;
@@ -199,6 +197,19 @@ class Record implements \ArrayAccess, \JsonSerializable {
                     $values[] = $v;
                 }
                 $value = $values;
+            } elseif (is_array($type) && strpos($type[ 0 ], "\\")) {
+                $type = $type[ 0 ];
+                $rs = [];
+                foreach ($value as $value_item) {
+                    $bean = new $type();
+                    BeanUtil::setProperty($bean, $value_item);
+                    $rs[] = $bean;
+                }
+                $value = $rs;
+            } elseif (strpos($type[ 0 ], "\\")) {
+                $bean = new $type();
+                BeanUtil::setProperty($bean, $value);
+                $value = $bean;
             }
             $this->$item = $value;
         }
@@ -415,11 +426,11 @@ class Record implements \ArrayAccess, \JsonSerializable {
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
         //先删除二级缓存
-        /* @var $model Record  */
-        $model=get_called_class();
-        $_db_data=$this->getOldDbData();
+        /* @var $model Record */
+        $model = get_called_class();
+        $_db_data = $this->getOldDbData();
         $cacheKeys = $this->cacheKeys();
-        if ($cacheKeys&&!$_db_data) {
+        if ($cacheKeys && !$_db_data) {
             $_db_data = $model::get($this->getPk())->getOldDbData();
         }
         if ($this->delayUpdate()) {
@@ -439,7 +450,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
         if (!($this instanceof NoAutoCache)) {
             $db_cache->firstCacheRemove($this->getTable(), $this->$pk);
         }
-        $db_cache->secondCacheRemove($this,$_db_data);
+        $db_cache->secondCacheRemove($this, $_db_data);
 
     }
 
@@ -460,22 +471,22 @@ class Record implements \ArrayAccess, \JsonSerializable {
 
         /* @var $model Record */
         $cacheKeys = $this->cacheKeys();
-        $_db_data=$this->getOldDbData();
-        if ($cacheKeys&&!$_db_data) {
+        $_db_data = $this->getOldDbData();
+        if ($cacheKeys && !$_db_data) {
             $_db_data = $model::get($this->getPk())->getOldDbData();
         }
         $where[ $pk ] = $id;
         $delete_time = "delete_time";
-        if (property_exists($model, $delete_time)&&!$force) {
+        if (property_exists($model, $delete_time) && !$force) {
             $this->$delete_time = time();
             $this->update();
-        }else{
+        } else {
             DB::delete($this->getTable(), null, $this->connectionName())->where($pk, $id)->excuse();
         }
         //删除缓存
         /* @var $db_cache DBCache */
         $db_cache = Ioc::get(DBCache::class);
-        $db_cache->secondCacheRemove($this,$_db_data);
+        $db_cache->secondCacheRemove($this, $_db_data);
         if (!($this instanceof NoAutoCache)) {
             $db_cache->firstCacheRemove($this->getTable(), $id);
         }
@@ -747,7 +758,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
      * @return array|mixed|string
      */
     public function toArray($fields = '', $contain = true) {
-        return RecordArray::toArray($this, $fields, $contain);
+        return BeanUtil::toArray($this, $fields, $contain);
     }
 
     /**
@@ -858,9 +869,9 @@ class Record implements \ArrayAccess, \JsonSerializable {
         }
         $data = self::get($pk);
         $data = $data->toArray('', false);
-        $this->from_db=true;
+        $this->from_db = true;
         foreach ($data as $key => $value) {
-            if ($this->$key===null&&$value!==null) {
+            if ($this->$key === null && $value !== null) {
                 $this->$key = $value;
             }
         }
@@ -917,7 +928,7 @@ class Record implements \ArrayAccess, \JsonSerializable {
         }
         if (!$fb[ 1 ]) {
             $fields = explode(',', $fb[ 0 ]);
-            $data = RecordArray::toArray($this, '', true);
+            $data = BeanUtil::toArray($this, '', true);
             foreach ($data as $key => $value) {
                 if (!in_array($key, $fields)) {
                     $this->$key = $request->param($key);

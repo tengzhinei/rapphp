@@ -6,6 +6,9 @@ use rap\exception\MsgException;
 use rap\session\Session;
 use rap\storage\File;
 use rap\swoole\Context;
+use rap\util\bean\BeanUtil;
+use rap\util\bean\PropertyDefinition;
+use rap\web\BeanWebParse;
 use rap\web\Request;
 use rap\web\Response;
 
@@ -124,17 +127,10 @@ abstract class HandlerAdapter
                     } else {
                         $className = $class->getName();
                         $bean = method_exists($className, 'instance') ? $className::instance() : new $className();
-                        if ($bean instanceof Record) {
+                        if ($bean instanceof BeanWebParse) {
                             $bean->parseRequest($request);
                         } else {
-                            $properties = $class->getProperties();
-                            foreach ($properties as $property) {
-                                $name = $property->getName();
-                                $val = $request->param($name);
-                                if (isset($val)) {
-                                    $bean->$name = $val;
-                                }
-                            }
+                            BeanUtil::setProperty($bean,$request);
                         }
                         $args[ $name ] = $bean;
                     }
@@ -184,17 +180,10 @@ abstract class HandlerAdapter
                         $args[ $name ] = $request->file($name);
                     } else {
                         $bean = method_exists($className, 'instance') ? $className::instance() : new $className();
-                        if ($bean instanceof Record) {
+                        if ($bean instanceof BeanWebParse) {
                             $bean->parseRequest($request);
                         } else {
-                            $properties = $class->getProperties();
-                            foreach ($properties as $property) {
-                                $name = $property->getName();
-                                $val = $request->param($name);
-                                if (isset($val)) {
-                                    $bean->$name = $val;
-                                }
-                            }
+                            BeanUtil::setProperty($bean,$request);
                         }
                         $args[ $name ] = $bean;
                     }

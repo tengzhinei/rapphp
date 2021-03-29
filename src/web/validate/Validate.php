@@ -747,7 +747,7 @@ class Validate
         } else {
             $length = mb_strlen((string)$this->value);
         }
-        $result = $length < $min || $length > $max;
+        $result = $length >=$min && $length <= $max;
         $this->checkResult($result);
         return $this;
     }

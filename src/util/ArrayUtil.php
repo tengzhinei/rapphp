@@ -33,15 +33,32 @@ class ArrayUtil {
      *
      * @return array
      */
+    /**
+     * 分组
+     *
+     * @param array  $list         数组
+     * @param string $parent_field 按某个字段分组
+     *
+     * @return array
+     */
     public static function groupBy($list, $parent_field = 'parent_id') {
         $map = [];
         foreach ($list as $item) {
             $parent_id = null;
-            $parent_id = $item[ $parent_field ];
-            if (!$parent_id) {
-                $parent_id = "_";
+            if(is_object($item)){
+                $parent_id = $item->$parent_field;
+                if (!$parent_id) {
+                    $parent_id = "_";
+                }
+                $map[ $parent_id ][] = $item;
+            }else{
+                $parent_id = $item[ $parent_field ];
+                if (!$parent_id) {
+                    $parent_id = "_";
+                }
+                $map[ $parent_id ][] = $item;
             }
-            $map[ $parent_id ][] = $item;
+
         }
         return $map;
     }

@@ -7,6 +7,7 @@ use rap\storage\Storage;
 use rap\swoole\Context;
 use rap\swoole\pool\Pool;
 use rap\util\bean\BeanUtil;
+use rap\util\EncryptUtil;
 use rap\web\BeanWebParse;
 use rap\web\mvc\Search;
 use rap\web\Request;
@@ -17,7 +18,7 @@ use rap\web\Request;
  * Date: 17/9/22
  * Time: 上午10:28
  */
-class Record implements BeanWebParse , \ArrayAccess, \JsonSerializable {
+class Record implements BeanWebParse, \ArrayAccess, \JsonSerializable {
 
     /**
      * 获取表名,包含 as 时会添加上as  如 User::table('u') 返回user u
@@ -95,6 +96,11 @@ class Record implements BeanWebParse , \ArrayAccess, \JsonSerializable {
         $this->to_update = $update;
     }
 
+
+    public function getEncryptSalt() {
+        return null;
+    }
+
     /**
      * 判定是否来自数据库
      * @var bool
@@ -132,6 +138,9 @@ class Record implements BeanWebParse , \ArrayAccess, \JsonSerializable {
                 $value = $value_temp;
             } elseif ($type == 'json') {
                 $value = json_decode($value, true);
+            } elseif ($type == 'encrypt' && strpos($value, 'encrypt_') === 0) {
+                //加密数据需要进行解密
+                $value = EncryptUtil::decrypt($value,$this->getEncryptSalt());
             } elseif ($type == 'int') {
                 if ($value !== null) {
                     $value = (int)$value;
@@ -279,6 +288,13 @@ class Record implements BeanWebParse , \ArrayAccess, \JsonSerializable {
                 $time = (int)$value;
                 if ($time . "" != $value) {
                     $value = strtotime($value);
+                }
+            } elseif ($type == 'encrypt' && strpos($value, 'encrypt_') !== 0) {
+                //加密数据需要进行加密
+                $value = EncryptUtil::encrypt($value,$this->getEncryptSalt());
+                $value = 'encrypt_' . $value;
+                if ($value == $oldValue && $oldValue != null) {
+                    continue;
                 }
             } elseif ($type == 'attach_s') {
                 if (is_string($value)) {
@@ -963,4 +979,6 @@ class Record implements BeanWebParse , \ArrayAccess, \JsonSerializable {
     public function toJsonField() {
         return "";
     }
+
+
 }

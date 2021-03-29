@@ -15,9 +15,12 @@ namespace rap\util;
 class EncryptUtil
 {
 
-    public static function decrypt($value, $sign)
+    public static function decrypt($value, $salt=null)
     {
-        $m=self::getBytes($sign);
+        if($salt===null){
+            $salt=EncryptUtil::class;
+        }
+        $m=self::getBytes($salt);
         $bytes=self::getBytes(base64_decode($value));
         $b=[];
         for ($i = 0; $i < count($bytes); $i++) {
@@ -27,9 +30,12 @@ class EncryptUtil
         return $value;
     }
 
-    public static function encrypt($value, $sign)
+    public static function encrypt($value, $salt=null)
     {
-        $m=self::getBytes($sign);
+        if($salt===null){
+            $salt=EncryptUtil::class;
+        }
+        $m=self::getBytes($salt);
         $bytes=[];
         for ($i = 0; $i < strlen($value); $i++) {
             $bytes[] = ord($value[$i])^$m[$i % count($m)];

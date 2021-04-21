@@ -129,9 +129,7 @@ class SwooleHttpServer extends Command {
         $bean = Ioc::get($clazz);
         $method = new \ReflectionMethod($clazz, $method);
         $value =  $method->invokeArgs($bean, $params);
-        if($value){
-            $task->finish($value);
-        }
+        $task->finish($value);
     }
 
 

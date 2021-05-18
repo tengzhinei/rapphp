@@ -8,12 +8,13 @@ namespace rap\config;
 
 
 use rap\util\FileUtil;
+use Yosymfony\Toml\Toml;
 
 class FileConfig {
 
     private $fileDate;
 
-    private $provides=[];
+    private $provides = [];
 
     public function __construct() {
         $this->reload();
@@ -21,6 +22,7 @@ class FileConfig {
 
     /**
      * 获取模块
+     *
      * @param $module
      *
      * @return mixed
@@ -34,15 +36,15 @@ class FileConfig {
      * 获取所有配置
      * @return mixed
      */
-    public function getAll(){
+    public function getAll() {
         return $this->fileDate;
     }
 
     /**
      * 合并模块
      */
-    public function mergeProvide(){
-        /* @var $provide FileConfigProvide  */
+    public function mergeProvide() {
+        /* @var $provide FileConfigProvide */
         foreach ($this->provides as $provide) {
             $config = $provide->load();
             foreach ($config as $w => $item) {
@@ -60,43 +62,47 @@ class FileConfig {
 
     /**
      * 注册配置提供器
+     *
      * @param FileConfigProvide $provide
      */
-    public function registerProvide(FileConfigProvide $provide){
-        $this->provides[]=$provide;
+    public function registerProvide(FileConfigProvide $provide) {
+        $this->provides[] = $provide;
     }
 
 
     /**
      * 重新加载配置项
      */
-    public function reload(){
-        $file_data=[];
+    public function reload() {
+        $file_data = [];
         if (is_file(APP_PATH . 'config.php')) {
             $file_data = include APP_PATH . 'config.php';
-        }else if(is_file(APP_PATH . 'config/config.php')) {
+        } else if (is_file(APP_PATH . 'config/config.php')) {
             $file_data = include APP_PATH . 'config/config.php';
 
         }
         if (!is_dir(APP_PATH . 'config')) {
-            $this->fileDate=$file_data;
+            $this->fileDate = $file_data;
             return;
         }
-        FileUtil::eachAll(APP_PATH . 'config', function($path, $name)use(&$file_data) {
+        FileUtil::eachAll(APP_PATH . 'config', function($path, $name) use (&$file_data) {
             if ($name == 'config.php') {
                 return;
             }
-            if(strpos($name,'.php')>0){
+            if (strpos($name, '.php') > 0) {
                 $name = str_replace('.php', '', $name);
                 $data = include $path;
-            }else if(strpos($name,'.json')>0){
+            } else if (strpos($name, '.json') > 0) {
                 $name = str_replace('.json', '', $name);
-                $content=file_get_contents($path);
-                $data=json_decode($content,true);
-            }else{
+                $content = FileUtil::readFile($path);
+                $data = json_decode($content, true);
+            } else if (strpos($name, '.toml') > 0) {
+                $name = str_replace('.toml', '', $name);
+                $content = FileUtil::readFile($path);
+                $data = Toml::parse($content);
+            } else {
                 return;
             }
-
             if (!$file_data[ $name ]) {
                 $file_data[ $name ] = $data;
             } else {
@@ -105,6 +111,6 @@ class FileConfig {
                 }
             }
         });
-        $this->fileDate=$file_data;
+        $this->fileDate = $file_data;
     }
 }

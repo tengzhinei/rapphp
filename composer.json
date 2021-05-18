@@ -22,6 +22,7 @@
         "monolog/monolog": "^1.24",
         "mashape/unirest-php": "3.*",
         "twig/twig": "~2.0",
+        "yosymfony/toml":"*",
         "psr/container":"*"
     },
     "require-dev": {

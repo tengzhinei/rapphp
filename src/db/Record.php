@@ -140,7 +140,7 @@ class Record implements BeanWebParse, \ArrayAccess, \JsonSerializable {
                 $value = json_decode($value, true);
             } elseif ($type == 'encrypt' && strpos($value, 'encrypt_') === 0) {
                 //加密数据需要进行解密
-                $value = EncryptUtil::decrypt($value,$this->getEncryptSalt());
+                $value = EncryptUtil::decrypt(substr($value, 8),$this->getEncryptSalt());
             } elseif ($type == 'int') {
                 if ($value !== null) {
                     $value = (int)$value;

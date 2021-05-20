@@ -11,14 +11,8 @@ namespace rap\rpc\client;
 
 use rap\config\Config;
 use rap\ioc\Ioc;
-use rap\rpc\auth\AuthHandler;
-use rap\rpc\auth\DefaultAuthHandler;
-use rap\swoole\pool\PoolTrait;
 use rap\util\http\client\CoroutineHttpClient;
 use rap\util\http\client\RequestHttpClient;
-use rap\util\http\hmac\HmacHttp;
-use rap\util\http\Http;
-use Swoole\Coroutine\Http\Client;
 
 /**
  * 通过 http 实现的 Rpc 客户端
@@ -93,7 +87,7 @@ class RpcHttpClient extends AbsRpcClient {
 
     /**
      * 获取http服务
-     * @return mixed|HmacHttp
+     * @return mixed
      */
     private function httpClient() {
         if (IS_SWOOLE && \Co::getuid() !== -1) {

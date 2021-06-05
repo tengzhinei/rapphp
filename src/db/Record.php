@@ -598,7 +598,7 @@ class Record implements BeanWebParse, \ArrayAccess, \JsonSerializable {
         $pk = $bean->getPkField();
         $where[ $pk ] = $id;
         $data = $bean::find($where);
-        if ($cache) {
+        if ($cache && !($bean instanceof NoAutoCache)) {
             if ($data) {
                 $db_cache->firstCacheSave($bean->getTable(), $id, $data->_db_data);
             } else {

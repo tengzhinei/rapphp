@@ -45,8 +45,8 @@ class SwooleHttpServer extends Command {
         $this->workerAtomic->add(1);
         $this->worker_version = $this->workerAtomic->get();
         $this->config = array_merge($this->config, Config::get('swoole_http'));
-        //mysql redis 协程化
-//        Runtime::enableCoroutine();
+        //mysql redis 协程化,这行不能注释,兼容版本
+        Runtime::enableCoroutine();
         \Co::set(['hook_flags' => SWOOLE_HOOK_ALL | SWOOLE_HOOK_CURL]);
         Coroutine::set([
             "enable_preemptive_scheduler"=>true

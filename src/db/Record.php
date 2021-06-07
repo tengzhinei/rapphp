@@ -3,8 +3,6 @@ namespace rap\db;
 
 use rap\aop\Event;
 use rap\ioc\Ioc;
-use rap\storage\Storage;
-use rap\storage\RecordAttachHelper;
 use rap\swoole\Context;
 use rap\swoole\pool\Pool;
 use rap\util\bean\BeanUtil;

@@ -1,9 +1,10 @@
 <?php
 
 
-namespace rap\storage;
+namespace rap\db;
 
 use rap\ioc\IocInject;
+use rap\storage\Storage;
 
 class RecordAttachHelper {
     use IocInject;

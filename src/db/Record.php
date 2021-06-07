@@ -4,6 +4,7 @@ namespace rap\db;
 use rap\aop\Event;
 use rap\ioc\Ioc;
 use rap\storage\Storage;
+use rap\storage\RecordAttachHelper;
 use rap\swoole\Context;
 use rap\swoole\pool\Pool;
 use rap\util\bean\BeanUtil;
@@ -140,7 +141,7 @@ class Record implements BeanWebParse, \ArrayAccess, \JsonSerializable {
                 $value = json_decode($value, true);
             } elseif ($type == 'encrypt' && strpos($value, 'encrypt_') === 0) {
                 //加密数据需要进行解密
-                $value = EncryptUtil::decrypt(substr($value, 8),$this->getEncryptSalt());
+                $value = EncryptUtil::decrypt(substr($value, 8), $this->getEncryptSalt());
             } elseif ($type == 'int') {
                 if ($value !== null) {
                     $value = (int)$value;
@@ -175,13 +176,8 @@ class Record implements BeanWebParse, \ArrayAccess, \JsonSerializable {
                     continue;
                 }
                 $url = $attach[ 'url' ];
-                $image_type = 'default';
-                if (key_exists('type', $attach)) {
-                    $image_type = $attach[ 'type' ];
-                }
-                $domian = Storage::getStorage($image_type)->getDomain();
                 if (!(strpos($url, 'http') === 0) && $url) {
-                    $attach[ 'url' ] = $domian . $url;
+                    $attach[ 'url' ] = RecordAttachHelper::fromIoc()->domainFix($url);
                 }
                 if ($type == 'attach') {
                     $value = $attach;
@@ -198,10 +194,9 @@ class Record implements BeanWebParse, \ArrayAccess, \JsonSerializable {
                     if (key_exists('type', $v)) {
                         $type = $v[ 'type' ];
                     }
-                    $domian = Storage::getStorage($type)->getDomain();
                     $url = $v[ 'url' ];
                     if (!(strpos($url, 'http') === 0)) {
-                        $v[ 'url' ] = $domian . $url;
+                        $v[ 'url' ] = RecordAttachHelper::fromIoc()->domainFix($url);
                     }
                     $values[] = $v;
                 }
@@ -291,7 +286,7 @@ class Record implements BeanWebParse, \ArrayAccess, \JsonSerializable {
                 }
             } elseif ($type == 'encrypt' && strpos($value, 'encrypt_') !== 0) {
                 //加密数据需要进行加密
-                $value = EncryptUtil::encrypt($value,$this->getEncryptSalt());
+                $value = EncryptUtil::encrypt($value, $this->getEncryptSalt());
                 $value = 'encrypt_' . $value;
                 if ($value == $oldValue && $oldValue != null) {
                     continue;
@@ -309,10 +304,7 @@ class Record implements BeanWebParse, \ArrayAccess, \JsonSerializable {
                         $type = $item[ 'type' ];
                     }
                     $url = $item[ 'url' ];
-                    $domian = Storage::getStorage($type)->getDomain();
-                    if ($domian) {
-                        $url = str_replace($domian, "", $url);
-                    }
+                    $url = RecordAttachHelper::fromIoc()->domainClear($url);
                     $item[ 'url' ] = $url;
                     $values[] = $item;
                 }
@@ -331,10 +323,7 @@ class Record implements BeanWebParse, \ArrayAccess, \JsonSerializable {
                     $type = $item[ 'type' ];
                 }
                 $url = $item[ 'url' ];
-                $domian = Storage::getStorage($type)->getDomain();
-                if ($domian) {
-                    $url = str_replace($domian, "", $url);
-                }
+                $url = RecordAttachHelper::fromIoc()->domainClear($url);
                 $item[ 'url' ] = $url;
                 $item = [$item];
                 $value = json_encode($item);
@@ -822,12 +811,8 @@ class Record implements BeanWebParse, \ArrayAccess, \JsonSerializable {
                 }
                 $attach_s = json_encode($value, true);
                 foreach ($attach_s as $attach) {
-                    $type = $attach[ 'type' ];
                     $url = $attach[ 'url' ];
-                    if (!$type) {
-                        $type = 'default';
-                    }
-                    Storage::getStorage($type)->delete($url);
+                    RecordAttachHelper::fromIoc()->delete($url);
                 }
             }
         }

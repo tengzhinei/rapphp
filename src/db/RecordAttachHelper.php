@@ -3,11 +3,22 @@
 
 namespace rap\db;
 
+use rap\config\Config;
 use rap\ioc\IocInject;
 use rap\storage\Storage;
 
 class RecordAttachHelper {
     use IocInject;
+
+    private $defaultDomain;
+
+    /**
+     * XiciRecordAttachHelper __construct.
+     */
+    public function __construct()
+    {
+        $this->defaultDomain = Config::getFileConfig()['storage']['cname'];
+    }
 
     /**
      * @param $url
@@ -16,16 +27,14 @@ class RecordAttachHelper {
      */
     public function domainFix($url) {
         if (!(strpos($url, 'http') === 0) && $url) {
-            $domain = Storage::getStorage()->getDomain();
-            return $domain . $url;
+            return $this->defaultDomain . $url;
         }
         return $url;
     }
 
     public function domainClear($url) {
-        $domain = Storage::getStorage()->getDomain();
-        if ($domain) {
-            $url = str_replace($domain, "", $url);
+        if($this->defaultDomain){
+            $url = str_replace($this->defaultDomain, "", $url);
         }
         return $url;
     }
@@ -33,6 +42,5 @@ class RecordAttachHelper {
     public function delete($url){
         Storage::getStorage()->delete($url);
     }
-
 
 }

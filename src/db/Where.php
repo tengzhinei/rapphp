@@ -42,7 +42,6 @@ class Where {
      */
     public function where($field, $op = null, $condition = null) {
         $this->addWhere("AND", $field, $op, $condition);
-        $this->bind('1','2');
         return $this;
     }
 

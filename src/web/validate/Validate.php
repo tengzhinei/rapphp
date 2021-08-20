@@ -983,7 +983,7 @@ class Validate
         if (strpos($str, 'M') > 0 || strpos($str, 'm') > 0) {
             return substr($str, 0, strlen($str) - 1) * 1024 * 1024;
         }
-        if (strpos($str, 'k') > 0 || strpos($str, 'k') > 0) {
+        if (strpos($str, 'K') > 0 || strpos($str, 'k') > 0) {
             return substr($str, 0, strlen($str) - 1) * 1024;
         }
         return $str * 1024;

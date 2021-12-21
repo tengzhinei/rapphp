@@ -1,4 +1,5 @@
 <?php
+
 namespace rap\config;
 
 use rap\ioc\Ioc;
@@ -13,13 +14,12 @@ class Config
 {
 
 
-
     /**
      * 获取缓存
      *
      * @param string $module
      * @param string $key
-     * @param mixed  $default
+     * @param mixed $default
      *
      * @return mixed
      */
@@ -29,34 +29,28 @@ class Config
         $file = Ioc::get(FileConfig::class);
         $data = $file->get($module);
         if (!$data) {
-            /* @var $db DbConfig  */
+            /* @var $db DbConfig */
             $db = Ioc::get(DbConfig::class);
             $data = $db->get($module);
         }
-        if (!$data) {
-            return $default;
-        }
+        $result = $data;
         if ($key) {
-            $value = $data[ $key ];
-            if (!$value) {
-                return $default;
-            }
-            return $value;
-        } else {
-            return $data;
+            $value = $data[$key];
+            $result=$value?:$default;
         }
+        return $result?:$default;
     }
 
     /**
      * 设置配置
      *
-     * @param string       $module
+     * @param string $module
      * @param string|array $key
      * @param string|array $value
      */
     public static function set($module, $key, $value = null)
     {
-        /* @var $db DbConfig  */
+        /* @var $db DbConfig */
         $db = Ioc::get(DbConfig::class);
         $db->set($module, $key, $value);
     }
@@ -65,11 +59,11 @@ class Config
      * 设置配置,不做合并
      *
      * @param string $module
-     * @param array  $data
+     * @param array $data
      */
     public static function setAll($module, $data)
     {
-        /* @var $db DbConfig  */
+        /* @var $db DbConfig */
         $db = Ioc::get(DbConfig::class);
         $db->setAll($module, $data);
     }

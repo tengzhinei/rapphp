@@ -42,8 +42,7 @@ class DbConfig
      */
     public function get($module)
     {
-        $data = $this->getModuleFromDB($module);
-        return $data;
+        return $this->getModuleFromDB($module);
     }
 
     /**
@@ -65,21 +64,7 @@ class DbConfig
         } else {
             $data[ $key ] = $value;
         }
-        $data = json_encode($data);
-        $old = Select::table($this->config[ 'db_table' ])->where($this->config[ 'module_field' ], $module)->find();
-        if($old){
-            Update::table($this->config[ 'db_table' ])
-                  ->set($this->config[ 'content_field' ], $data)
-                  ->where($this->config[ 'module_field' ], $module)
-                  ->excuse();
-        }else{
-            Insert::table($this->config[ 'db_table' ])
-                  ->set($this->config[ 'content_field' ], $data)
-                  ->set($this->config[ 'module_field' ], $module)
-                  ->excuse();
-        }
-        Cache::remove(md5("config_" . $module));
-        Context::remove(self::CONTEXT_CONFIG.$module);
+        $this->setAll($module,$data);
     }
 
     /**

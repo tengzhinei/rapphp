@@ -98,11 +98,7 @@ abstract class Connection implements PoolAble {
      */
     public function connect() {
         if (!$this->pdo) {
-            try {
-                $this->pdo = new PDO($this->dsn, $this->username, $this->password, $this->params);
-            } catch (\PDOException $e) {
-                throw $e;
-            }
+            $this->pdo = new PDO($this->dsn, $this->username, $this->password, $this->params);
             if ($this->db) {
                 $this->pdo->exec("use " . $this->db);
             }
@@ -236,7 +232,7 @@ abstract class Connection implements PoolAble {
         }
         if ($values == null) {
             $items = $this->query($sql, $bind);
-            if ($items && count($items) > 0) {
+            if ($items && !empty($items)) {
                 $item = $items[ 0 ];
                 $key = array_keys($item)[ 0 ];
                 $values = [];
@@ -263,7 +259,7 @@ abstract class Connection implements PoolAble {
      * @throws \Exception
      */
     public function execute($sql, $bind = []) {
-        $pdo = $this->connect();
+        $this->connect();
         // 根据参数绑定组装最终的SQL语句
         $this->logSql($sql, $bind);
         //释放前次的查询结果
@@ -271,7 +267,7 @@ abstract class Connection implements PoolAble {
         try {
             // 调试开始
             // 预处理
-            $this->PDOStatement = $pdo->prepare($sql);
+            $this->PDOStatement = $this->pdo->prepare($sql);
             // 参数绑定
             $this->bindValue($bind);
             // 执行查询
@@ -346,7 +342,6 @@ abstract class Connection implements PoolAble {
      */
     private function logSql($sql, array $bind = []) {
         Log::info('sql', ['sql' =>$sql, 'args' => $bind]);
-        return;
     }
 
     /**

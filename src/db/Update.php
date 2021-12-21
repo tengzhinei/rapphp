@@ -117,7 +117,7 @@ class Update extends Where
     {
         $update = self::buildUpdate($table, $data, $where, $connection_name);
         $update->hint = "COMMIT_ON_SUCCESS ROLLBACK_ON_FAIL QUEUE_ON_PK $pk";
-        $update->excuse();
+        return $update->excuse();
     }
 
     /**

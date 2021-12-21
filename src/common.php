@@ -57,7 +57,7 @@ function twig($body)
 
 function downloadFile($file, $file_name = '')
 {
-    return new \rap\web\response\Download($file, $file_name);
+    return download($file,$file_name);
 }
 
 

@@ -45,7 +45,6 @@ class JoinPoint
         $this->argNames = $argNames;
         if (is_string($method)) {
             $this->method =  new \ReflectionMethod(get_class($obj), $method);
-            ;
         } else {
             $this->method=$method;
         }
@@ -123,7 +122,7 @@ class JoinPoint
      */
     public function process($args)
     {
-        $callback = $this->callback;
-        return $callback($args);
+        $call = $this->callback;
+        return $call($args);
     }
 }

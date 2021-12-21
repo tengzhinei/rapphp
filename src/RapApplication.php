@@ -163,16 +163,17 @@ class RapApplication extends Application
     private function initSession($config)
     {
         $item = $config[ "session" ];
-        if ($item) {
-            if ($item[ 'type' ] == 'redis') {
-                Ioc::bind(
-                    RedisSession::REDIS_CACHE_NAME,
-                    RedisCache::class,
-                    function (RedisCache $redisCache) use ($item) {
-                        $redisCache->config($item);
-                    }
-                );
-            }
+        if (!$item) {
+            return;
+        }
+        if ($item[ 'type' ] == 'redis') {
+            Ioc::bind(
+                RedisSession::REDIS_CACHE_NAME,
+                RedisCache::class,
+                function (RedisCache $redisCache) use ($item) {
+                    $redisCache->config($item);
+                }
+            );
         }
     }
 

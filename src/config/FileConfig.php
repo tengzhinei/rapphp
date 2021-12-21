@@ -28,8 +28,7 @@ class FileConfig {
      * @return mixed
      */
     public function get($module) {
-        $data = $this->fileDate[ $module ];
-        return $data;
+        return $this->fileDate[ $module ];
     }
 
     /**
@@ -85,32 +84,42 @@ class FileConfig {
             $this->fileDate = $file_data;
             return;
         }
-        FileUtil::eachAll(APP_PATH . 'config', function($path, $name) use (&$file_data) {
+        $file_data = $this->configFromDir($file_data);
+        $this->fileDate = $file_data;
+    }
+
+    /**
+     * @param $file_data
+     * @return mixed
+     */
+    private function configFromDir($file_data)
+    {
+        FileUtil::eachAll(APP_PATH . 'config', function ($path, $name) use (&$file_data) {
             if ($name == 'config.php') {
                 return;
             }
             if (strpos($name, '.php') > 0) {
                 $name = str_replace('.php', '', $name);
                 $data = include $path;
-            } else if (strpos($name, '.json') > 0) {
+            } elseif (strpos($name, '.json') > 0) {
                 $name = str_replace('.json', '', $name);
                 $content = FileUtil::readFile($path);
                 $data = json_decode($content, true);
-            } else if (strpos($name, '.toml') > 0) {
+            } elseif (strpos($name, '.toml') > 0) {
                 $name = str_replace('.toml', '', $name);
                 $content = FileUtil::readFile($path);
                 $data = Toml::parse($content);
             } else {
                 return;
             }
-            if (!$file_data[ $name ]) {
-                $file_data[ $name ] = $data;
+            if (!$file_data[$name]) {
+                $file_data[$name] = $data;
             } else {
                 foreach ($data as $k => $v) {
-                    $file_data[ $name ][ $k ] = $v;
+                    $file_data[$name][$k] = $v;
                 }
             }
         });
-        $this->fileDate = $file_data;
+        return $file_data;
     }
 }

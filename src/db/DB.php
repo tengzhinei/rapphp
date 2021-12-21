@@ -11,7 +11,7 @@ namespace rap\db;
 use rap\swoole\pool\Pool;
 use rap\swoole\pool\ResourcePool;
 
-class DB
+class  DB
 {
 
 
@@ -99,8 +99,7 @@ class DB
         //加锁保证事物内使用的是同一连接
         $pool->lock($connection);
         try {
-            $value = $connection->runInTrans($closure);
-            return $value;
+            return $connection->runInTrans($closure);
         } finally {
             //释放锁
             $pool->unLock($connection);
@@ -142,8 +141,7 @@ class DB
         /* @var $connection Connection */
         $connection = Pool::get(Connection::class);
         try {
-            $items = $connection->query($sql, $bind,$cacheHashKey);
-            return $items;
+            return $connection->query($sql, $bind,$cacheHashKey);
         } finally {
             Pool::release($connection);
         }

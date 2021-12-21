@@ -57,8 +57,7 @@ class MySqlConnection extends Connection
         $sql = "SELECT COLUMN_NAME as name FROM INFORMATION_SCHEMA.Columns WHERE 
         TABLE_NAME =? AND 
         TABLE_SCHEMA=? AND COLUMN_KEY=?";
-        $pk=$this->value($sql, [$table,$db_name,'PRI']);
-        return $pk;
+        return $this->value($sql, [$table,$db_name,'PRI']);
     }
 
     public function getFieldsComment($table)

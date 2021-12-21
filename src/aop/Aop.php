@@ -308,8 +308,7 @@ class Aop
             //接口和抽象类无法创建对象
             return null;
         }
-        $obj = $class->newInstanceWithoutConstructor();
-        return $obj;
+        return $class->newInstanceWithoutConstructor();
     }
 
     private static function deleteAll($path)
@@ -318,7 +317,7 @@ class Aop
             return;
         }
         $op = dir($path);
-        while (false != ($item = $op->read())) {
+        while ( $item = $op->read()) {
             if ($item == '.' || $item == '..') {
                 continue;
             }
@@ -400,10 +399,6 @@ EOF;
             $file = fopen($path, "w");
             fwrite($file, $clazzStr);
         }
-    }
-
-    public static function buildProxyMethods()
-    {
     }
 
 
@@ -595,6 +590,7 @@ EOF;
      * @param $param   \ReflectionParameter
      *
      * @return string
+     * @throws \ReflectionException
      */
     private static function buildParamsDefault($methodArgs, $param):string
     {
@@ -604,13 +600,10 @@ EOF;
         $methodArgs .= "=";
         if ($value === null) {
             $methodArgs .= 'null';
-            return $methodArgs;
         } elseif ($value === false) {
             $methodArgs .= 'false';
-            return $methodArgs;
         } elseif ($isArray) {
             $methodArgs .= "[]";
-            return $methodArgs;
         } else {
             if ($isStr) {
                 $methodArgs .= "\"";
@@ -618,9 +611,8 @@ EOF;
             $methodArgs .= $param->getDefaultValue();
             if ($isStr) {
                 $methodArgs .= "\"";
-                return $methodArgs;
             }
-            return $methodArgs;
         }
+        return $methodArgs;
     }
 }

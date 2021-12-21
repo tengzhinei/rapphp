@@ -18,12 +18,12 @@ use rap\swoole\pool\PoolAble;
 class FileCache implements CacheInterface, PoolAble
 {
     private $options = ['path' => "cache/",
-                        'data_compress' => false];
+        'data_compress' => false];
 
     public function config($options = [])
     {
         if (!empty($options)) {
-            $this->options['path']=RUNTIME."cache".DS;
+            $this->options['path'] = RUNTIME . "cache" . DS;
             $this->options = array_merge($this->options, $options);
         }
     }
@@ -42,7 +42,7 @@ class FileCache implements CacheInterface, PoolAble
             $dirName .= DIRECTORY_SEPARATOR;
         }
         $name = md5($name . '12' . $name);
-        $filename = $this->options[ 'path' ] . $dirName . $name . '.php';
+        $filename = $this->options['path'] . $dirName . $name . '.php';
         $dir = dirname($filename);
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
@@ -62,12 +62,12 @@ class FileCache implements CacheInterface, PoolAble
     public function set($name, $value, $expire)
     {
         if (is_null($expire)) {
-            $expire = $this->options[ 'expire' ];
+            $expire = $this->options['expire'];
         }
         $filename = $this->getCacheFile($name);
 
         $data = serialize($value);
-        if ($this->options[ 'data_compress' ] && function_exists('gzcompress')) {
+        if ($this->options['data_compress'] && function_exists('gzcompress')) {
             //数据压缩
             $data = gzcompress($data, 3);
         }
@@ -85,28 +85,33 @@ class FileCache implements CacheInterface, PoolAble
     public function get($name, $default = null)
     {
         $filename = $this->getCacheFile($name);
-        if (!is_file($filename)) {
-            return $default;
-        }
-        $content = file_get_contents($filename);
-        if (false !== $content) {
-            $expire = (int)substr($content, 8, 12);
-            if (0 != $expire && $_SERVER[ 'REQUEST_TIME' ] > filemtime($filename) + $expire) {
-                //缓存过期删除缓存文件
-                $this->unlink($filename);
-                return $default;
-            }
-            $content = substr($content, 20, -3);
-            if ($this->options[ 'data_compress' ] && function_exists('gzcompress')) {
-                //启用数据压缩
-                $content = gzuncompress($content);
-            }
-            $content = unserialize($content);
-            return $content;
-        } else {
-            return $default;
-        }
+        return $this->loadFromFile($filename, $default);
     }
+
+    private function loadFromFile(string $filename, $default)
+    {
+        $content = false;
+        if (is_file($filename)) {
+            $content = file_get_contents($filename);
+        }
+        if (false === $content||strlen($content)<12) {
+            return $default;
+        }
+        $expire = (int)substr($content, 8, 12);
+        if (0 != $expire && time() > filemtime($filename) + $expire) {
+            //缓存过期删除缓存文件
+            $this->unlink($filename);
+            return $default;
+        }
+        $content = substr($content, 20, -3);
+        if ($this->options['data_compress'] && function_exists('gzcompress')) {
+            //启用数据压缩
+            $content = gzuncompress($content);
+        }
+        return unserialize($content);
+
+    }
+
 
     public function has($name)
     {
@@ -140,8 +145,8 @@ class FileCache implements CacheInterface, PoolAble
 
     public function clear()
     {
-        $files = (array)glob($this->options[ 'path' ] . ($this->options[ 'prefix' ]
-                ? $this->options[ 'prefix' ] . DIRECTORY_SEPARATOR : '') . '*');
+        $files = (array)glob($this->options['path'] . ($this->options['prefix']
+                ? $this->options['prefix'] . DIRECTORY_SEPARATOR : '') . '*');
         foreach ($files as $path) {
             if (is_dir($path)) {
                 array_map('unlink', glob($path . '/*.php'));
@@ -155,7 +160,7 @@ class FileCache implements CacheInterface, PoolAble
     {
         $filename = $this->getCacheFile($key, $name);
         $data = serialize($value);
-        if ($this->options[ 'data_compress' ] && function_exists('gzcompress')) {
+        if ($this->options['data_compress'] && function_exists('gzcompress')) {
             //数据压缩
             $data = gzcompress($data, 3);
         }
@@ -172,27 +177,7 @@ class FileCache implements CacheInterface, PoolAble
     public function hashGet($name, $key, $default)
     {
         $filename = $this->getCacheFile($key, $name);
-        if (!is_file($filename)) {
-            return $default;
-        }
-        $content = file_get_contents($filename);
-        if (false !== $content) {
-            $expire = (int)substr($content, 8, 12);
-            if (0 != $expire && $_SERVER[ 'REQUEST_TIME' ] > filemtime($filename) + $expire) {
-                //缓存过期删除缓存文件
-                $this->unlink($filename);
-                return $default;
-            }
-            $content = substr($content, 20, -3);
-            if ($this->options[ 'data_compress' ] && function_exists('gzcompress')) {
-                //启用数据压缩
-                $content = gzuncompress($content);
-            }
-            $content = unserialize($content);
-            return $content;
-        } else {
-            return $default;
-        }
+        return $this->loadFromFile($filename, $default);
     }
 
     public function hashRemove($name, $key)
@@ -207,8 +192,8 @@ class FileCache implements CacheInterface, PoolAble
      * @param $path
      *
      * @return bool
-     * @author byron sampson <xiaobo.sun@qq.com>
      * @return boolean
+     * @author byron sampson <xiaobo.sun@qq.com>
      */
     private function unlink($path)
     {
@@ -218,14 +203,14 @@ class FileCache implements CacheInterface, PoolAble
     public function poolConfig()
     {
         return ['min' => 1,        //连接池
-                'max' => 2,
-                'check' => 30,
-                'idle' => 30];
+            'max' => 2,
+            'check' => 30,
+            'idle' => 30];
     }
 
     public function connect()
     {
-
+        //文件存储不需要连接
     }
 
     public function expire($key, $ttl)
@@ -237,7 +222,7 @@ class FileCache implements CacheInterface, PoolAble
         $content = file_get_contents($filename);
         if (false !== $content) {
             $pre = "<?php\n//" . sprintf('%012d', $ttl);
-            $content=$pre.substr($content, strlen($pre));
+            $content = $pre . substr($content, strlen($pre));
             file_put_contents($filename, $content);
             clearstatcache();
         }

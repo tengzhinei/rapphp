@@ -168,10 +168,12 @@ class Record implements BeanWebParse, \ArrayAccess, \JsonSerializable {
                 }
             } elseif ($type == 'attach' || $type == 'attach_i') {
                 $attach = json_decode($value, true);
-                if (count($attach) > 0) {
-                    $attach = $attach[ 0 ];
-                } else {
-                    continue;
+                if(!$attach['url']){
+                    if (count($attach) > 0) {
+                        $attach = $attach[ 0 ];
+                    } else {
+                        continue;
+                    }
                 }
                 $url = $attach[ 'url' ];
                 if (!(strpos($url, 'http') === 0) && $url) {

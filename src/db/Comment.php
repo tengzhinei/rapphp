@@ -29,7 +29,7 @@ trait Comment
      */
     public function comment($comment = "")
     {
-        $this->comment=!empty($comment) ? ' /* ' . $comment . ' */' : '';
+        $this->comment.=!empty($comment) ? ' /* ' . $comment . ' */' : '';
         return $this;
     }
 }

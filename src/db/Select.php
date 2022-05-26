@@ -101,8 +101,8 @@ class Select extends Where {
      */
     public function join($join, $condition = null, $type = 'LEFT') {
         $this->joins[] = ['join' => $join,
-                          'condition' => $condition,
-                          'type' => $type];
+            'condition' => $condition,
+            'type' => $type];
         return $this;
     }
 
@@ -290,26 +290,31 @@ class Select extends Where {
                         }
                     }
                 }
-                //在协程内运行
-                if ($this->eachCo) {
-                    $group = RapCo::group();
-                    foreach ($this->eachCo as $each) {
-                        $group->goWithContext(function() use($each,$result,&$is_remove){
-                            $return = $each($result);
-                            if ($return === self::REMOVED) {
-                                $is_remove = true;
-                            }
-                        });
-                    }
-                    $group->wait();
-                }
                 if ($is_remove) {
                     continue;
                 }
-                if ($this->to_array && $result instanceof Record) {
-                    $result = $result->toArray($this->to_array, $this->to_array_contain);
-                }
                 $results[] = $result;
+            }
+            if ($this->eachCo) {
+                $group = RapCo::group();
+                foreach ($results as $item) {
+                    foreach ($this->eachCo as $each) {
+                        $group->goWithContext(function() use($each,&$item){
+                            $each($item);
+                        });
+                    }
+                }
+                $group->wait();
+            }
+            if($this->to_array){
+                $res=[];
+                foreach ($results as $item) {
+                    if($item instanceof Record){
+                        $item = $item->toArray($this->to_array, $this->to_array_contain);
+                    }
+                    $res[]=$item;
+                }
+                $results=$res;
             }
             return $results;
         }
@@ -344,8 +349,8 @@ class Select extends Where {
      */
     public function setSubRecord($field, $pre, $class, \Closure $all_do = null) {
         $this->subRecord[ $pre ] = ['class' => $class,
-                                    'field' => $field,
-                                    'all_do' => $all_do];
+            'field' => $field,
+            'all_do' => $all_do];
         return $this;
     }
 
@@ -355,28 +360,28 @@ class Select extends Where {
      */
     private function getSql() {
         $sql = str_replace(['%TABLE%',
-                            '%DISTINCT%',
-                            '%FIELD%',
-                            '%JOIN%',
-                            '%WHERE%',
-                            '%GROUP%',
-                            '%HAVING%',
-                            '%ORDER%',
-                            '%LIMIT%',
-                            '%LOCK%',
-                            '%COMMENT%',
-                            '%FORCE%'], [$this->table,
-                                         $this->distinct,
-                                         $this->parseField(),
-                                         $this->parseJoin(),
-                                         $this->whereSql(),
-                                         $this->group,
-                                         $this->having,
-                                         $this->order,
-                                         $this->limit,
-                                         $this->lock,
-                                         $this->comment,
-                                         $this->force], $this->selectSql);
+            '%DISTINCT%',
+            '%FIELD%',
+            '%JOIN%',
+            '%WHERE%',
+            '%GROUP%',
+            '%HAVING%',
+            '%ORDER%',
+            '%LIMIT%',
+            '%LOCK%',
+            '%COMMENT%',
+            '%FORCE%'], [$this->table,
+            $this->distinct,
+            $this->parseField(),
+            $this->parseJoin(),
+            $this->whereSql(),
+            $this->group,
+            $this->having,
+            $this->order,
+            $this->limit,
+            $this->lock,
+            $this->comment,
+            $this->force], $this->selectSql);
         return $sql;
     }
 
@@ -475,7 +480,7 @@ class Select extends Where {
      * 缓存会自动sql语句和参数分析出缓存的key,存储名为cacheHashKey的hash内,
      * 缓存只能通过 删除对应的 hash 缓存清除
      * 清除方式 Cache::remove($cacheHashKey)
-     * 
+     *
      * @param string $cacheHashKey 缓存需要放入的hash
      *
      * @return $this

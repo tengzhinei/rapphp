@@ -28,16 +28,16 @@ class SwooleHttpServer extends Command {
      */
     private $workerAtomic;
     private $config = ['ip' => '0.0.0.0',
-                       'port' => 9501,
-                       'static_handler_locations' => [],
-                       'enable_static_handler' => false,
-                       'task_worker_num' => 3,
-                       'worker_num' => 1,
-                       'max_request' => 0,
-                       'task_max_request' => 1000,
-                       'coroutine' => true,
-                       'http2' => true,
-                       'auto_reload' => false];
+        'port' => 9501,
+        'static_handler_locations' => [],
+        'enable_static_handler' => false,
+        'task_worker_num' => 3,
+        'worker_num' => 1,
+        'max_request' => 0,
+        'task_max_request' => 1000,
+        'coroutine' => true,
+        'http2' => true,
+        'auto_reload' => false];
 
 
     public function run() {
@@ -61,11 +61,17 @@ class SwooleHttpServer extends Command {
         }
 
         $config = array_merge(['open_http2_protocol' => $this->config[ 'http2' ],
-                               'document_root' => ROOT_PATH . $document_root,
-                               'dispatch_mode' => 1,
-                               'task_enable_coroutine'=>true,
-                               'buffer_output_size' => 32 * 1024 * 1024], $this->config);
+            'document_root' => ROOT_PATH . $document_root,
+            'dispatch_mode' => 1,
+            'task_enable_coroutine'=>true,
+            'buffer_output_size' => 32 * 1024 * 1024], $this->config);
         $http = new \swoole_http_server($this->config[ 'ip' ], $this->config[ 'port' ]);
+        unset($config['coroutine']);
+        unset($config['ip']);
+        unset($config['port']);
+        unset($config['auto_reload_dir']);
+        unset($config['auto_reload']);
+        unset($config['http2']);
         $http->set($config);
         $http->on('workerstart', [$this, 'onWorkStart']);
         $http->on('workerstop', [$this, 'onWorkerStop']);
@@ -139,11 +145,11 @@ class SwooleHttpServer extends Command {
     private $worker_version = 0;
 
     public function onRequest(\swoole_http_request $request, \swoole_http_response $response) {
+        if ($request->server[ 'request_uri' ] == '/favicon.ico') {
+            $response->end();
+            return;
+        }
         try {
-            if ($request->server[ 'request_uri' ] == '/favicon.ico') {
-                $response->end();
-                return;
-            }
             /* @var $application Application */
             $application = Ioc::get(Application::class);
             $version = $this->workerAtomic->get();
@@ -160,34 +166,33 @@ class SwooleHttpServer extends Command {
             CoContext::getContext()->setRequest($req);
 
             //swoole  4.2.9
-            defer(function() use ($req) {
-                try {
-                    Event::trigger(ServerEvent::ON_REQUEST_DEFER);
-                } catch (\Throwable $throwable) {
-                    Log::error('http request error', ['message' => $throwable->getMessage()]);
-                } catch (\Error $throwable) {
-                    Log::error('http request error', ['message' => $throwable->getMessage()]);
-                } finally {
-                    Log::info('http request end', ['url' => $req->url(), 'session_id' => $req->session()->sessionId()]);
-                    CoContext::getContext()->release();
-                }
-            });
             $application->start($req, $rep);
             //释放协程里的变量和
         } catch (\Exception $exception) {
             $response->end($exception->getMessage());
             $msg = str_replace("rap\\exception\\", "", get_class($exception)) . " in " . str_replace(ROOT_PATH, "", $exception->getFile()) . " line " . $exception->getLine();
             Log::error('http request error handler ,', ['code' => $exception->getCode(),
-                                                        'msg' => $msg,
-                                                        'trace' => $exception->getTraceAsString()]);
+                'msg' => $msg,
+                'trace' => $exception->getTraceAsString()]);
             return;
         } catch (\Error $e) {
             $response->end($e->getMessage());
             $msg = str_replace("rap\\exception\\", "", get_class($e)) . " in " . str_replace(ROOT_PATH, "", $e->getFile()) . " line " . $e->getLine();
             Log::error('http request error handler ,', ['code' => $e->getCode(),
-                                                        'msg' => $msg,
-                                                        'trace' => $e->getTraceAsString()]);
+                'msg' => $msg,
+                'trace' => $e->getTraceAsString()]);
             return;
+        }finally{
+            try {
+                Event::trigger(ServerEvent::ON_REQUEST_DEFER);
+            } catch (\Throwable $throwable) {
+                Log::error('http request error', ['message' => $throwable->getMessage()]);
+            } catch (\Error $throwable) {
+                Log::error('http request error', ['message' => $throwable->getMessage()]);
+            } finally {
+                Log::info('http request end', ['url' => $req->url(), 'session_id' => $req->session()->sessionId()]);
+                CoContext::getContext()->release();
+            }
         }
     }
 

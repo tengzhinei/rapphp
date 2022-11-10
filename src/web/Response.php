@@ -224,7 +224,7 @@ class Response
             //设置文件最长执行时间
             set_time_limit(0);
             $data = fread($fp, $buffer);
-            $count += $data;//计数
+            $count += strlen($data);//计数
             echo $data;//传数据给浏览器端
         }
 

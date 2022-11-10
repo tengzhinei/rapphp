@@ -154,9 +154,9 @@ class CoroutineHttpClient implements HttpClient
     {
         $hostPath = self::parseUrl($url);
         if (!$hostPath[0]) {
-            return new HttpResponse(-1, [], '', $hostPath[2] == 443);
+            return new HttpResponse(-1, [], '');
         }
-        $cli = new Client($hostPath[0], $hostPath[2]);
+        $cli = new Client($hostPath[0], $hostPath[2], $hostPath[2] == 443);
         $cli->set(['timeout' => $timeout, 'ssl_verify_peer'=>false]);
         if ($header) {
             $cli->setHeaders($header);

@@ -67,7 +67,14 @@ class BeanUtil {
     }
 
 
-    public static function toArray($model, $fields, $contain)
+    /**
+     * 对象转数组
+     * @param $model
+     * @param string $fields
+     * @param bool $contain
+     * @return array
+     */
+    public static function toArray($model, $fields='', $contain=true)
     {
         $data = [];
         if (!$fields) {

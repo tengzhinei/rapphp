@@ -161,7 +161,7 @@ class CoroutineHttpClient implements HttpClient
         if ($header) {
             $cli->setHeaders($header);
         }
-        foreach ($files as $file => $name) {
+        foreach ($files as $name  => $file) {
             $cli->addFile($file, $name);
         }
         $cli->post($hostPath[1], $data);

@@ -169,7 +169,7 @@ class FileUtil
                 $closure($dir . "/" . $filename, $filename);
             }
         }
-        @closedir($dir);
+        @closedir($handler);
     }
 
     public static function eachAll($dir, \Closure $closure)

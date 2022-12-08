@@ -135,7 +135,7 @@ class Router {
     }
 
     /**
-     * @param        $ctr string/\Closure
+     * @param        $ctr string|\Closure
      * @param string $action
      */
     public function whenMiss($ctr, $action = "") {

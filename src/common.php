@@ -1,28 +1,72 @@
 <?php
+
 use rap\swoole\pool\Pool;
+use rap\web\response\WebResult;
+use rap\web\response\Redirect;
+use rap\web\response\PlainBody;
+use rap\web\response\Download;
+use rap\cache\Cache;
+use rap\exception\MsgException;
+use rap\web\validate\Validate;
+use rap\swoole\Context;
+use rap\web\Request;
+use rap\swoole\CoContext;
+use rap\ioc\Ioc;
+use rap\web\Application;
+use Swoole\Atomic;
+use rap\web\Response;
+use rap\util\Lang;
+use rap\swoole\pool\PoolAble;
+
+
+function onceContext($name,$args,\Closure  $closure){
+    if($args){
+        if(is_array($args)){
+            foreach ($args as $arg) {
+                $name.='|'.$arg;
+            }
+        }else{
+            $name.=$args;
+        }
+    }
+    $value = Context::get($name);
+    if('null'===$value){
+        return null;
+    }
+    if($value!==null){
+        return $value;
+    }
+    $value = $closure();
+    if($value!==null){
+        Context::set($name,$value);
+    }else{
+        Context::set($name,'null');
+    }
+    return  $value;
+}
 
 /**
  * 通用成功返回 json
  *
  * @param string $msg
- *
- * @return array
+ * @param mixed $data
+ * @return WebResult
  */
-function success($msg = "")
+function success($msg = "", $data = '')
 {
-    return ['success' => true, 'msg' => $msg];
+    return new WebResult(true, $msg, $data);
 }
 
 /**
  * 通用失败返回数据
  *
  * @param string $msg
- *
- * @return array
+ * @param int $code
+ * @return WebResult
  */
-function fail($msg = "")
+function fail($msg = "", $code = 0)
 {
-    return ['success' => false, 'msg' => $msg];
+    return new WebResult(false, $msg, null, $code);
 }
 
 /**
@@ -30,11 +74,11 @@ function fail($msg = "")
  *
  * @param $url
  *
- * @return string
+ * @return Redirect
  */
 function redirect($url)
 {
-    return new \rap\web\response\Redirect($url);
+    return new Redirect($url);
 }
 
 
@@ -43,13 +87,18 @@ function redirect($url)
  *
  * @param $body
  *
- * @return string
+ * @return PlainBody
  */
 function body($body)
 {
-    return new \rap\web\response\PlainBody($body);
+    return new PlainBody($body);
 }
 
+/**
+ *
+ * @param $body
+ * @return string
+ */
 function twig($body)
 {
     return 'twig:' . $body;
@@ -57,13 +106,13 @@ function twig($body)
 
 function downloadFile($file, $file_name = '')
 {
-    return download($file,$file_name);
+    return download($file, $file_name);
 }
 
 
 function download($file, $file_name = '')
 {
-    return new \rap\web\response\Download($file, $file_name);
+    return new Download($file, $file_name);
 }
 
 
@@ -78,17 +127,18 @@ function download($file, $file_name = '')
  */
 function cache($key, $value = '', $expire = 0)
 {
-    $cache = \rap\cache\Cache::getCache();
-    try{
+    /**@var Cache|PoolAble $cache * */
+    $cache = Cache::getCache();
+    try {
         if ($value === '') {
             return $cache->get($key, '');
         } elseif (is_null($value)) {
             // 删除缓存
-            return $cache->remove($key);
+            $cache->remove($key);
         } else {
-            return $cache->set($key, $value, $expire);
+            $cache->set($key, $value, $expire);
         }
-    }finally{
+    } finally {
         Pool::release($cache);
     }
 
@@ -101,11 +151,11 @@ function cache($key, $value = '', $expire = 0)
  * @param int $code
  * @param null $data
  *
- * @throws \rap\exception\MsgException
+ * @throws MsgException
  */
 function exception($msg, $code = 100000, $data = null)
 {
-    throw new \rap\exception\MsgException($msg, $code, $data);
+    throw new MsgException($msg, $code, $data);
 }
 
 /**
@@ -125,11 +175,11 @@ function getMillisecond()
  * @param string $as_name
  * @param bool $throw
  *
- * @return \rap\web\validate\Validate
+ * @return Validate
  */
 function validate($value, $as_name = '', $throw = true)
 {
-    return \rap\web\validate\Validate::param($value, $as_name, $throw);
+    return Validate::param($value, $as_name, $throw);
 }
 
 
@@ -137,7 +187,7 @@ function validate($value, $as_name = '', $throw = true)
  * @param      $value
  * @param bool $throw
  *
- * @return \rap\web\validate\Validate
+ * @return Validate
  */
 function validateRole($value, $throw = true)
 {
@@ -152,16 +202,16 @@ function validateRole($value, $throw = true)
  * @param string $as_name
  * @param bool $throw
  *
- * @return \rap\web\validate\Validate
+ * @return Validate
  */
 function validateParam($name, $as_name = '', $throw = true)
 {
-    return \rap\web\validate\Validate::request($name, $as_name, $throw);
+    return Validate::request($name, $as_name, $throw);
 }
 
 function lang($moudle, $key, $vars = [])
 {
-    return \rap\util\Lang::get($moudle, $key, $vars);
+    return Lang::get($moudle, $key, $vars);
 }
 
 /**
@@ -169,7 +219,7 @@ function lang($moudle, $key, $vars = [])
  * @param      $as_name
  * @param bool $throw
  *
- * @return \rap\web\validate\Validate
+ * @return Validate
  */
 function validateParamRole($value, $as_name, $throw = true)
 {
@@ -182,7 +232,7 @@ function timer_after($time, Closure $closure)
     if (IS_SWOOLE) {
         $id = swoole_timer_after($time, function () use ($closure) {
             $closure();
-            \rap\swoole\Context::release();
+            Context::release();
         });
     }
     return $id;
@@ -194,7 +244,7 @@ function timer_tick($time, Closure $closure)
     if (IS_SWOOLE) {
         $id = swoole_timer_tick($time, function () use ($closure) {
             $closure();
-            \rap\swoole\Context::release();
+            Context::release();
         });
     }
     return $id;
@@ -203,21 +253,21 @@ function timer_tick($time, Closure $closure)
 /**
  * 获取request
  * 只能在主进程使用,不可以在异步或Task中使用
- * @return \rap\web\Request
+ * @return Request
  */
 function request()
 {
-    return \rap\swoole\CoContext::getContext()->getRequest();
+    return CoContext::getContext()->getRequest();
 }
 
 /**
  * 获取response
  * 只能在主进程使用,不可以在异步或Task中使用
- * @return \rap\web\Response
+ * @return Response
  */
 function response()
 {
-    return \rap\swoole\CoContext::getContext()->getResponse();
+    return CoContext::getContext()->getResponse();
 }
 
 /**
@@ -225,11 +275,11 @@ function response()
  */
 function worker_scope_change()
 {
-    $application = \rap\ioc\Ioc::get(\rap\web\Application::class);
-    /* @var $workerAtomic \Swoole\Atomic */
+    $application = Ioc::get(Application::class);
+    /* @var $workerAtomic Atomic */
     $workerAtomic = $application->workerAtomic;
     if ($workerAtomic) {
         $workerAtomic->add(1);
     }
-    \rap\ioc\Ioc::workerScopeClear();
+    Ioc::workerScopeClear();
 }

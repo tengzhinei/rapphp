@@ -11,6 +11,7 @@ namespace rap\db;
 use rap\cache\Cache;
 use rap\swoole\pool\Pool;
 use rap\swoole\RapCo;
+use rap\util\bean\BeanUtil;
 
 class Select extends Where {
 
@@ -264,9 +265,7 @@ class Select extends Where {
                 if ($result instanceof Record) {
                     $result->fromDbData($item);
                 } else {
-                    foreach ($item as $key => $value) {
-                        $result->$key = $value;
-                    }
+                    BeanUtil::copy($result,$item);
                 }
                 $is_remove = false;
                 if ($this->all_do) {

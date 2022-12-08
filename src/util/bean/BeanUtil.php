@@ -116,4 +116,62 @@ class BeanUtil {
     }
 
 
+    /**
+     * 复制对象
+     * @param mixed $to 需要被复制的对象
+     * @param mixed $form 需要拷贝的对象
+     * @param array $fields 需要取的字段,如果不传入为全部字段
+     */
+
+    /**
+     * 复制对象
+     * @param mixed $to 需要被复制的对象
+     * @param mixed $form 需要拷贝的对象
+     * @param array $fields 需要取的字段,如果不传入为全部字段
+     */
+    public static function copy($to, $form, array $fields = [])
+    {
+        $toClass = new \ReflectionClass(get_class($to));
+        if (!$fields) {
+            if (is_array($form)) {
+                $fields = array_keys($form);
+            } else {
+                $fromClass = new \ReflectionClass(get_class($form));
+                $fromProperties = $fromClass->getProperties();
+                $fields = [];
+                foreach ($fromProperties as $property) {
+                    $fields[] = $property->getName();
+                }
+            }
+        }
+        foreach ($fields as $field => $to_field) {
+            if (is_int($field)) {
+                $field = $to_field;
+            }
+            $val = null;
+            if (is_array($form)) {
+                $val = $form[$field];
+            } else {
+                $val = $form->$field;
+            }
+            if ($toClass->hasProperty($to_field)) {
+                if (version_compare(PHP_VERSION, '7.4.0') === 1 && $form->$field !== null) {
+                    $property = $toClass->getProperty($to_field);
+                    $type = $property->getType();
+                    if ($type) {
+                        $type_name = $type->getName();
+                        if ($type_name == 'int') {
+                            $to->$to_field = (int)$val;
+                        } else if ($type_name == 'string') {
+                            $to->$to_field = (string)$val;
+                        } else {
+                            $to->$to_field = $val;
+                        }
+                    }
+                } else {
+                    $to->$to_field = $val;
+                }
+            }
+        }
+    }
 }

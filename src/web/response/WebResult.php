@@ -24,7 +24,7 @@ class WebResult implements JsonSerializable
      * @param string $msg
      * @param null $data
      */
-    public function __construct(bool $success, string $msg = '', mixed $data = null, $code = 0)
+    public function __construct(bool $success, string $msg = '', $data = null, $code = 0)
     {
         $this->success = $success;
         $this->msg = $msg;

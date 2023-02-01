@@ -44,7 +44,7 @@ class Validate
     /**
      * 检查参数
      *
-     * @param string $value
+     * @param mixed $value
      * @param string $as_name
      * @param bool   $is_throw
      *

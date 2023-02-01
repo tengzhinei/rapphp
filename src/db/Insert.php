@@ -16,11 +16,11 @@ class Insert
 
     private $table;
 
-    private $data;
+    private $data = [];
 
     protected $insertSql = '%COMMENT% %INSERT% INTO %TABLE% (%FIELD%) VALUES (%DATA%) ';
 
-    private $connection_name=Connection::class;
+    private $connection_name = Connection::class;
 
     /**
      * 设置表
@@ -35,7 +35,7 @@ class Insert
         $insert = new Insert();
         $insert->table = $table;
         if ($connection_name) {
-            $insert->connection_name=$connection_name;
+            $insert->connection_name = $connection_name;
         }
         return $insert;
     }
@@ -43,17 +43,17 @@ class Insert
     /**
      * set 数据
      *
-     * @param string $key
-     * @param mixed  $value
+     * @param string|array $key
+     * @param mixed $value
      *
      * @return $this
      */
-    public function set($key, $value)
+    public function set($key, $value = null)
     {
         if (is_array($key)) {
             $this->data = array_merge($this->data, $key);
         } else {
-            $this->data[ $key ] = $value;
+            $this->data[$key] = $value;
         }
         return $this;
     }
@@ -76,14 +76,14 @@ class Insert
         $fields = implode(' , ', $fields);
         $valuePlace = implode(' , ', $valuePlace);
         $sql = str_replace(['%INSERT%',
-                            '%TABLE%',
-                            '%FIELD%',
-                            '%DATA%',
-                            '%COMMENT%'], [$this->replace ? 'REPLACE' : 'INSERT',
-                                           $this->table,
-                                           $fields,
-                                           $valuePlace,
-                                           $this->comment], $this->insertSql);
+            '%TABLE%',
+            '%FIELD%',
+            '%DATA%',
+            '%COMMENT%'], [$this->replace ? 'REPLACE' : 'INSERT',
+            $this->table,
+            $fields,
+            $valuePlace,
+            $this->comment], $this->insertSql);
         $connection = Pool::get($this->connection_name);
         try {
             $connection->execute($sql, $values);
@@ -98,8 +98,8 @@ class Insert
      * 静态插入
      *
      * @param string $table
-     * @param array  $data
-     * @param string  $connection_name
+     * @param array $data
+     * @param string $connection_name
      *
      * @return int|string
      */

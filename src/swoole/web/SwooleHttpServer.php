@@ -52,14 +52,6 @@ class SwooleHttpServer extends Command {
             "enable_preemptive_scheduler"=>true
         ]);
         $document_root = '';
-        if ($this->config[ 'enable_static_handler' ] && !Config::get('app')[ 'debug' ]) {
-            //开启静态
-            foreach ($this->config[ 'static_handler_locations' ] as $dir) {
-                FileUtil::copy(ROOT_PATH . $dir, ROOT_PATH . '.rap_static_file' . '/' . $dir);
-            }
-            $document_root = '.rap_static_file';
-        }
-
         $config = array_merge(['open_http2_protocol' => $this->config[ 'http2' ],
             'document_root' => ROOT_PATH . $document_root,
             'dispatch_mode' => 1,

@@ -152,7 +152,7 @@ class AopBuild
     public function methodsAll()
     {
         $this->rule = "except";
-        $this->method = array("1___");
+        $this->method = array("1___","__construct");
         return $this;
     }
 

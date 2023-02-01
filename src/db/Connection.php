@@ -1,4 +1,5 @@
 <?php
+
 namespace rap\db;
 
 use \PDO;
@@ -6,6 +7,7 @@ use rap\ioc\Ioc;
 use rap\log\Log;
 use rap\swoole\pool\PoolAble;
 use rap\swoole\pool\PoolTrait;
+use rap\util\bean\field\MType;
 
 /**
  * 南京灵衍信息科技有限公司
@@ -13,8 +15,10 @@ use rap\swoole\pool\PoolTrait;
  * Date: 17/9/21
  * Time: 下午1:25
  */
-abstract class Connection implements PoolAble {
+abstract class Connection implements PoolAble
+{
     use PoolTrait;
+
     /**
      *  PDO实例
      * @var PDO
@@ -47,21 +51,23 @@ abstract class Connection implements PoolAble {
      *
      * @param array $config
      */
-    public function config($config) {
-        $this->dsn = $config[ 'dsn' ];
-        $this->username = $config[ 'username' ];
-        $this->password = $config[ 'password' ];
-        if ($config[ 'pool' ]) {
-            $this->poolConifg = $config[ 'pool' ];
+    public function config($config)
+    {
+        $this->dsn = $config['dsn'];
+        $this->username = $config['username'];
+        $this->password = $config['password'];
+        if ($config['pool']) {
+            $this->poolConifg = $config['pool'];
         }
         //非 swoole 环境下无法使用连接池,可以使用 pdo 的持久化连接方式
         //swoole 环境下,没有必要使用
         if (!IS_SWOOLE) {
-            $this->params[ PDO::ATTR_PERSISTENT ] = true;
+            $this->params[PDO::ATTR_PERSISTENT] = true;
         }
     }
 
-    public function poolConfig() {
+    public function poolConfig()
+    {
         return $this->poolConifg;
     }
 
@@ -70,11 +76,11 @@ abstract class Connection implements PoolAble {
      * @var array
      */
     private $params = [PDO::ATTR_CASE => PDO::CASE_NATURAL,
-                       PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                       PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
-                       PDO::ATTR_STRINGIFY_FETCHES => false,
-                       PDO::ATTR_EMULATE_PREPARES => false,
-                       PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,];
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
+        PDO::ATTR_STRINGIFY_FETCHES => false,
+        PDO::ATTR_EMULATE_PREPARES => false,
+        PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,];
 
     /**
      * PDO操作实例
@@ -96,7 +102,8 @@ abstract class Connection implements PoolAble {
      * @return PDO
      * @throws \Exception
      */
-    public function connect() {
+    public function connect()
+    {
         if (!$this->pdo) {
             $this->pdo = new PDO($this->dsn, $this->username, $this->password, $this->params);
             if ($this->db) {
@@ -111,13 +118,14 @@ abstract class Connection implements PoolAble {
      * 执行查询 返回数据集
      *
      * @param string $sql
-     * @param array  $bind
+     * @param array $bind
      * @param string $cacheHashKey
      *
      * @return array
      * @throws \Exception
      */
-    public function query($sql, $bind = [], $cacheHashKey = '') {
+    public function query($sql, $bind = [], $cacheHashKey = '')
+    {
         //防止 cacheHashKey 不是字符串类型
         if ($cacheHashKey === true) {
             $cacheHashKey = false;
@@ -157,14 +165,15 @@ abstract class Connection implements PoolAble {
      *
      * @param string $str
      */
-    public function quote($str) {
+    public function quote($str)
+    {
         try {
             $this->connect();
             $this->pdo->quote($str);
         } catch (\PDOException $e) {
             $error = $e->errorInfo;
             //2006和2013表示表示连接失败,需要重连接
-            if ($error[ 1 ] == 2006 || $error[ 1 ] == 2013) {
+            if ($error[1] == 2006 || $error[1] == 2013) {
                 $this->pdo = null;
                 $this->connect();
                 $this->pdo->quote($str);
@@ -178,12 +187,13 @@ abstract class Connection implements PoolAble {
      * 查询单条数据,获取单列的值
      *
      * @param string $sql
-     * @param array  $bind
+     * @param array $bind
      * @param string $cacheHashKey
      *
      * @return null|string
      */
-    public function value($sql, $bind = [], $cacheHashKey = '') {
+    public function value($sql, $bind = [], $cacheHashKey = '')
+    {
         if ($cacheHashKey === true) {
             $cacheHashKey = false;
         }
@@ -195,7 +205,7 @@ abstract class Connection implements PoolAble {
             $dbCache = Ioc::get(DBCache::class);
             $value = $dbCache->thirdCacheGet($sql, $bind, $cacheHashKey);
             if ($value) {
-                return $value[ 'value' ];
+                return $value['value'];
             }
         }
 
@@ -213,13 +223,14 @@ abstract class Connection implements PoolAble {
     /**
      * 查询多条数据,获取多列的值
      *
-     * @param  string $sql
-     * @param  array  $bind
-     * @param  string   $cacheHashKey
+     * @param string $sql
+     * @param array $bind
+     * @param string $cacheHashKey
      *
      * @return array|null
      */
-    public function values($sql, $bind, $cacheHashKey='') {
+    public function values($sql, $bind, $cacheHashKey = '')
+    {
         if ($cacheHashKey === true) {
             $cacheHashKey = false;
         }
@@ -233,11 +244,11 @@ abstract class Connection implements PoolAble {
         if ($values == null) {
             $items = $this->query($sql, $bind);
             if ($items && !empty($items)) {
-                $item = $items[ 0 ];
-                $key = array_keys($item)[ 0 ];
+                $item = $items[0];
+                $key = array_keys($item)[0];
                 $values = [];
                 foreach ($items as $item) {
-                    $values[] = $item[ $key ];
+                    $values[] = $item[$key];
                 }
                 if ($cacheHashKey) {
                     $dbCache->thirdCacheSave($sql, $bind, $values, $cacheHashKey);
@@ -253,12 +264,13 @@ abstract class Connection implements PoolAble {
     /**
      * 执行sql
      *
-     * @param  string $sql
-     * @param  array  $bind
+     * @param string $sql
+     * @param array $bind
      *
      * @throws \Exception
      */
-    public function execute($sql, $bind = []) {
+    public function execute($sql, $bind = [])
+    {
         $this->connect();
         // 根据参数绑定组装最终的SQL语句
         $this->logSql($sql, $bind);
@@ -276,7 +288,7 @@ abstract class Connection implements PoolAble {
         } catch (\PDOException $e) {
             $error = $e->errorInfo;
             //2006和2013表示表示连接失败,需要重连接
-            if ($error[ 1 ] == 2006 || $error[ 1 ] == 2013) {
+            if ($error[1] == 2006 || $error[1] == 2013) {
                 $this->pdo = null;
                 $this->connect();
                 $this->execute($sql, $bind);
@@ -293,7 +305,8 @@ abstract class Connection implements PoolAble {
      *
      * @param string $db
      */
-    public function userDb($db) {
+    public function userDb($db)
+    {
         if ($this->db == $db) {
             return;
         }
@@ -308,7 +321,7 @@ abstract class Connection implements PoolAble {
         } catch (\PDOException $e) {
             $error = $e->errorInfo;
             //2006和2013表示表示连接失败,需要重连接
-            if ($error[ 1 ] == 2006 || $error[ 1 ] == 2013) {
+            if ($error[1] == 2006 || $error[1] == 2013) {
                 $this->pdo = null;
                 try {
                     $this->connect();
@@ -327,7 +340,8 @@ abstract class Connection implements PoolAble {
      * 获取返回行数
      * @return int
      */
-    public function rowCount() {
+    public function rowCount()
+    {
         return $this->PDOStatement->rowCount();
     }
 
@@ -335,13 +349,14 @@ abstract class Connection implements PoolAble {
      * 根据参数绑定组装最终的SQL语句
      * @access public
      *
-     * @param string $sql  带参数绑定的sql语句
-     * @param array  $bind 参数绑定列表
+     * @param string $sql 带参数绑定的sql语句
+     * @param array $bind 参数绑定列表
      *
      * @return string
      */
-    private function logSql($sql, array $bind = []) {
-        Log::info('sql', ['sql' =>$sql, 'args' => $bind]);
+    private function logSql($sql, array $bind = [])
+    {
+        Log::info('sql', ['sql' => $sql, 'args' => $bind]);
     }
 
     /**
@@ -353,16 +368,27 @@ abstract class Connection implements PoolAble {
      *
      * @throws \Exception
      */
-    protected function bindValue(array $bind = []) {
+    protected function bindValue(array $bind = [])
+    {
         foreach ($bind as $key => $val) {
             // 占位符
             $param = is_numeric($key) ? $key + 1 : ':' . $key;
             if (is_array($val)) {
-                if (PDO::PARAM_INT == $val[ 1 ] && '' === $val[ 0 ]) {
-                    $val[ 0 ] = 0;
+                $v = $val[0];
+                if (PDO::PARAM_INT == $val[1] && '' === $v) {
+                    $v = 0;
                 }
-                $this->PDOStatement->bindValue($param, $val[ 0 ], $val[ 1 ]);
+                if ($v instanceof MType) {
+                    $v = $v->dbValue();
+                }
+                $this->PDOStatement->bindValue($param, $v, $val[1]);
             } else {
+                if ($val instanceof MType) {
+                    $val = $val->dbValue();
+                }
+                if (is_array($val)) {
+                    $val = json_encode($val);
+                }
                 $this->PDOStatement->bindValue($param, $val);
             }
         }
@@ -372,7 +398,8 @@ abstract class Connection implements PoolAble {
      * 启动事务
      * @return void
      */
-    public function startTrans() {
+    public function startTrans()
+    {
         $this->connect();
         $this->transTimes++;
         try {
@@ -382,7 +409,7 @@ abstract class Connection implements PoolAble {
         } catch (\PDOException $e) {
             $error = $e->errorInfo;
             //2006和2013表示表示连接失败,需要重连接
-            if ($error[ 1 ] == 2006 || $error[ 1 ] == 2013) {
+            if ($error[1] == 2006 || $error[1] == 2013) {
                 $this->pdo = null;
                 $this->connect();
                 $this->pdo->beginTransaction();
@@ -396,7 +423,8 @@ abstract class Connection implements PoolAble {
      * 用于非自动提交状态下面的查询提交
      * @return void
      */
-    public function commit() {
+    public function commit()
+    {
         $this->connect();
         if (1 == $this->transTimes) {
             $this->pdo->commit();
@@ -408,7 +436,8 @@ abstract class Connection implements PoolAble {
      * 事务回滚
      * @return void
      */
-    public function rollback() {
+    public function rollback()
+    {
         $this->connect();
         if (1 == $this->transTimes) {
             $this->pdo->rollBack();
@@ -425,7 +454,8 @@ abstract class Connection implements PoolAble {
      * @throws \Exception
      * @throws \Throwable
      */
-    public function runInTrans(\Closure $closure) {
+    public function runInTrans(\Closure $closure)
+    {
         $this->startTrans();
         try {
             $result = $closure();
@@ -449,7 +479,8 @@ abstract class Connection implements PoolAble {
      * @return bool
      * @throws \Exception
      */
-    public function batchQuery($sqlArray = []) {
+    public function batchQuery($sqlArray = [])
+    {
         if (!is_array($sqlArray)) {
             return false;
         }
@@ -472,7 +503,8 @@ abstract class Connection implements PoolAble {
      * 获取最近一次查询的sql语句
      * @return string
      */
-    public function getLastSql() {
+    public function getLastSql()
+    {
         return "";
     }
 
@@ -483,7 +515,8 @@ abstract class Connection implements PoolAble {
      *
      * @return string
      */
-    public function getLastInsID($sequence = null) {
+    public function getLastInsID($sequence = null)
+    {
         return $this->pdo->lastInsertId($sequence);
     }
 
@@ -491,10 +524,11 @@ abstract class Connection implements PoolAble {
      * 获取最近的错误信息
      * @return string
      */
-    public function getError() {
+    public function getError()
+    {
         if ($this->PDOStatement) {
             $error = $this->PDOStatement->errorInfo();
-            $error = $error[ 1 ] . ':' . $error[ 2 ];
+            $error = $error[1] . ':' . $error[2];
         } else {
             $error = '';
         }
@@ -504,7 +538,8 @@ abstract class Connection implements PoolAble {
     /**
      * 析构方法
      */
-    public function __destruct() {
+    public function __destruct()
+    {
         // 释放查询
         $this->PDOStatement = null;
         // 关闭连接

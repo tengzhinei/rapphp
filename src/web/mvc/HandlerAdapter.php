@@ -130,7 +130,7 @@ abstract class HandlerAdapter
                         if ($bean instanceof BeanWebParse) {
                             $bean->parseRequest($request);
                         } else {
-                            BeanUtil::setProperty($bean,$request);
+                            BeanUtil::fromRequest($bean,$request);
                         }
                         $args[ $name ] = $bean;
                     }
@@ -183,7 +183,7 @@ abstract class HandlerAdapter
                         if ($bean instanceof BeanWebParse) {
                             $bean->parseRequest($request);
                         } else {
-                            BeanUtil::setProperty($bean,$request);
+                            BeanUtil::fromRequest($bean,$request);
                         }
                         $args[ $name ] = $bean;
                     }

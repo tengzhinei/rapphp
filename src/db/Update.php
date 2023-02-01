@@ -5,6 +5,7 @@
  * Date: 17/9/21
  * Time: 下午4:04
  */
+
 namespace rap\db;
 
 use rap\swoole\pool\Pool;
@@ -15,7 +16,7 @@ class Update extends Where
 
     private $table;
 
-    private $data;
+    private $data = [];
 
     protected $updateSql = '%COMMENT% UPDATE %HINT% %TABLE% SET %FIELD% %WHERE% %ORDER%%LIMIT% %LOCK%';
 
@@ -49,17 +50,17 @@ class Update extends Where
     /**
      * 设置值
      *
-     * @param $key
+     * @param string|array $key
      * @param $value
      *
      * @return $this
      */
-    public function set($key, $value)
+    public function set($key, $value = null)
     {
         if (is_array($key)) {
             $this->data = array_merge($this->data, $key);
         } else {
-            $this->data[ $key ] = $value;
+            $this->data[$key] = $value;
         }
         return $this;
     }
@@ -79,20 +80,20 @@ class Update extends Where
         }
         $fields = implode(' , ', $fields);
         $sql = str_replace(['%TABLE%',
-                            '%HINT%',
-                            '%FIELD%',
-                            '%WHERE%',
-                            '%ORDER%',
-                            '%LIMIT%',
-                            '%LOCK%',
-                            '%COMMENT%'], [$this->table,
-                                           $this->hint,
-                                           $fields,
-                                           $this->whereSql(),
-                                           $this->order,
-                                           $this->limit,
-                                           $this->lock,
-                                           $this->comment,], $this->updateSql);
+            '%HINT%',
+            '%FIELD%',
+            '%WHERE%',
+            '%ORDER%',
+            '%LIMIT%',
+            '%LOCK%',
+            '%COMMENT%'], [$this->table,
+            $this->hint,
+            $fields,
+            $this->whereSql(),
+            $this->order,
+            $this->limit,
+            $this->lock,
+            $this->comment,], $this->updateSql);
         $connection = Pool::get($this->connection_name);
         try {
             $connection->execute($sql, array_merge($values, $this->whereParams()));
@@ -107,11 +108,11 @@ class Update extends Where
      * 延迟队列更新
      * 这个需要配合阿里云的rds使用才有效果
      *
-     * @param string|int       $pk
-     * @param string           $table
-     * @param array            $data
+     * @param string|int $pk
+     * @param string $table
+     * @param array $data
      * @param array|string|int $where
-     * @param string           $connection_name
+     * @param string $connection_name
      */
     public static function delayUpdate($pk, $table, $data, $where, $connection_name = null)
     {
@@ -123,13 +124,13 @@ class Update extends Where
     /**
      * 静态更新
      *
-     * @param     string           $table
-     * @param     array            $data
-     * @param     array|string|int $where
-     * @param     string           $connection_name
+     * @param string $table
+     * @param array $data
+     * @param array|string|int $where
+     * @param string $connection_name
      *
-     * @throws \Error
      * @return int 更新条数
+     * @throws \Error
      */
     public static function update($table, $data, $where, $connection_name)
     {

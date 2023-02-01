@@ -17,7 +17,6 @@ class ApiExceptionHandler implements ExceptionHandler
 {
     public function handler(Request $request, Response $response, \Exception $exception)
     {
-
         if ($exception instanceof ErrorException) {
             $exception = $exception->error;
         }
@@ -33,6 +32,7 @@ class ApiExceptionHandler implements ExceptionHandler
         } else {
             $code = $exception->getCode();
         }
+
         $response->contentType("application/json");
         $value = json_encode(['success' => false,
                               'code' => $code,

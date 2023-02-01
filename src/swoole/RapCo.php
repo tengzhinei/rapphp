@@ -3,6 +3,7 @@
 
 namespace rap\swoole;
 
+use rap\log\Log;
 use rap\swoole\coroutine\CoroutineOrganizer;
 use rap\swoole\coroutine\CoroutineOrganizerDowngrade;
 use rap\swoole\coroutine\ICoroutineOrganizer;
@@ -65,8 +66,8 @@ class RapCo
     /**
      * 迭代执行,每个item 都会在单独的协程内执行
      *
-     * @param array   $array    数组
-     * @param Closure $closure  回调方法
+     * @param array $array 数组
+     * @param Closure $closure 回调方法
      */
     public static function each($array, Closure $closure)
     {

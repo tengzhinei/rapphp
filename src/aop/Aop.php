@@ -8,7 +8,6 @@ use rap\ioc\Ioc;
  * AOP 拦截
  * @SuppressWarnings(PHPMD)
  */
-
 class Aop
 {
 
@@ -49,17 +48,17 @@ class Aop
     public static function around($clazz, $actions, $aroundClazz, $warpAction, $call = null)
     {
         $actions = static::actionsBuild($actions);
-        if (!isset(static::$aroundActions[ $clazz ])) {
-            static::$aroundActions[ $clazz ] = array();
+        if (!isset(static::$aroundActions[$clazz])) {
+            static::$aroundActions[$clazz] = array();
         }
-        $info = array('methods' => $actions[ 'methods' ],
-                      'class' => $aroundClazz,
-                      'action' => $warpAction,
-                      "call" => $call,
-                      "range" => static::$range);
+        $info = array('methods' => $actions['methods'],
+            'class' => $aroundClazz,
+            'action' => $warpAction,
+            "call" => $call,
+            "range" => static::$range);
         static::$range++;
-        static::$aroundActions[ $clazz ][ $actions[ 'type' ] ] = array();
-        static::$aroundActions[ $clazz ][ $actions[ 'type' ] ][] = $info;
+        static::$aroundActions[$clazz][$actions['type']] = array();
+        static::$aroundActions[$clazz][$actions['type']][] = $info;
     }
 
     /**
@@ -74,19 +73,19 @@ class Aop
     public static function before($clazz, $actions, $beforeClazz, $warpAction, $call = null)
     {
         $actions = static::actionsBuild($actions);
-        if (!isset(static::$beforeActions[ $clazz ])) {
-            static::$beforeActions[ $clazz ] = array();
+        if (!isset(static::$beforeActions[$clazz])) {
+            static::$beforeActions[$clazz] = array();
         }
-        if (!isset(static::$beforeActions[ $clazz ][ $actions[ 'type' ] ])) {
-            static::$beforeActions[ $clazz ][ $actions[ 'type' ] ] = array();
+        if (!isset(static::$beforeActions[$clazz][$actions['type']])) {
+            static::$beforeActions[$clazz][$actions['type']] = array();
         }
-        $info = array('methods' => $actions[ 'methods' ],
-                      'class' => $beforeClazz,
-                      'action' => $warpAction,
-                      "call" => $call,
-                      "range" => static::$range);
+        $info = array('methods' => $actions['methods'],
+            'class' => $beforeClazz,
+            'action' => $warpAction,
+            "call" => $call,
+            "range" => static::$range);
         static::$range++;
-        static::$beforeActions[ $clazz ][ $actions[ 'type' ] ][] = $info;
+        static::$beforeActions[$clazz][$actions['type']][] = $info;
     }
 
     private static function actionsBuild($actions)
@@ -95,7 +94,7 @@ class Aop
             $actions = array("type" => "only", "methods" => $actions);
         }
         if (!array_key_exists('type', $actions)) {
-            $actions[ 'type' ] = "only";
+            $actions['type'] = "only";
         }
         return $actions;
     }
@@ -112,19 +111,19 @@ class Aop
     public static function after($clazz, $actions, $afterClazz, $warpAction, $call = null)
     {
         $actions = static::actionsBuild($actions);
-        if (!isset(static::$afterActions[ $clazz ])) {
-            static::$afterActions[ $clazz ] = array();
+        if (!isset(static::$afterActions[$clazz])) {
+            static::$afterActions[$clazz] = array();
         }
-        if (!isset(static::$afterActions[ $clazz ][ $actions[ 'type' ] ])) {
-            static::$afterActions[ $clazz ][ $actions[ 'type' ] ] = array();
+        if (!isset(static::$afterActions[$clazz][$actions['type']])) {
+            static::$afterActions[$clazz][$actions['type']] = array();
         }
-        $info = array('methods' => $actions[ 'methods' ],
-                      'class' => $afterClazz,
-                      'action' => $warpAction,
-                      "call" => $call,
-                      "range" => static::$range);
+        $info = array('methods' => $actions['methods'],
+            'class' => $afterClazz,
+            'action' => $warpAction,
+            "call" => $call,
+            "range" => static::$range);
         static::$range++;
-        static::$afterActions[ $clazz ][ $actions[ 'type' ] ][] = $info;
+        static::$afterActions[$clazz][$actions['type']][] = $info;
     }
 
     /**
@@ -137,8 +136,8 @@ class Aop
      */
     public static function getBeforeActions($clazz, $action)
     {
-        if (static::$beforeActions[ $clazz ]) {
-            return static::buildActions(static::$beforeActions[ $clazz ], $action);
+        if (static::$beforeActions[$clazz]) {
+            return static::buildActions(static::$beforeActions[$clazz], $action);
         }
         return null;
     }
@@ -152,7 +151,7 @@ class Aop
         self::endAction($actions, $wareactions, $action);
         self::containsAction($actions, $wareactions, $action);
         foreach ($actions as $val) {
-            $vals[] = $val[ 'range' ];
+            $vals[] = $val['range'];
         }
         if ($actions) {
             array_multisort($vals, $actions, SORT_ASC);
@@ -163,13 +162,13 @@ class Aop
     private static function onlyAction(&$actions, &$wareactions, $action)
     {
         if (array_key_exists('only', $wareactions)) {
-            $acs = $wareactions[ 'only' ];
+            $acs = $wareactions['only'];
             foreach ($acs as $ac) {
-                if (in_array($action, $ac[ 'methods' ])) {
-                    $actions[] = array('class' => $ac[ 'class' ],
-                                       "action" => $ac[ 'action' ],
-                                       "call" => $ac[ 'call' ],
-                                       "range" => $ac[ 'range' ]);
+                if (in_array($action, $ac['methods'])) {
+                    $actions[] = array('class' => $ac['class'],
+                        "action" => $ac['action'],
+                        "call" => $ac['call'],
+                        "range" => $ac['range']);
                 }
             }
         }
@@ -178,13 +177,13 @@ class Aop
     private static function exceptAction(&$actions, &$wareactions, $action)
     {
         if (array_key_exists('except', $wareactions)) {
-            $acs = $wareactions[ 'except' ];
+            $acs = $wareactions['except'];
             foreach ($acs as $ac) {
-                if (!in_array($action, $ac[ 'methods' ])) {
-                    $actions[] = array('class' => $ac[ 'class' ],
-                                       "action" => $ac[ 'action' ],
-                                       "call" => $ac[ 'call' ],
-                                       "range" => $ac[ 'range' ]);
+                if (!in_array($action, $ac['methods'])) {
+                    $actions[] = array('class' => $ac['class'],
+                        "action" => $ac['action'],
+                        "call" => $ac['call'],
+                        "range" => $ac['range']);
                 }
             }
         }
@@ -193,14 +192,14 @@ class Aop
     private static function startAction(&$actions, &$wareactions, $action)
     {
         if (array_key_exists('start', $wareactions)) {
-            $acs = $wareactions[ 'start' ];
+            $acs = $wareactions['start'];
             foreach ($acs as $ac) {
-                foreach ($ac[ 'methods' ] as $method) {
+                foreach ($ac['methods'] as $method) {
                     if (strpos($action, $method) === 0) {
-                        $actions[] = array('class' => $ac[ 'class' ],
-                                           "action" => $ac[ 'action' ],
-                                           "call" => $ac[ 'call' ],
-                                           "range" => $ac[ 'range' ]);
+                        $actions[] = array('class' => $ac['class'],
+                            "action" => $ac['action'],
+                            "call" => $ac['call'],
+                            "range" => $ac['range']);
                     }
                 }
             }
@@ -211,14 +210,14 @@ class Aop
     private static function endAction(&$actions, &$wareactions, $action)
     {
         if (array_key_exists('end', $wareactions)) {
-            $acs = $wareactions[ 'end' ];
+            $acs = $wareactions['end'];
             foreach ($acs as $ac) {
-                foreach ($ac[ 'methods' ] as $method) {
+                foreach ($ac['methods'] as $method) {
                     if (strpos($action, $method) + strlen($method) === strlen($action)) {
-                        $actions[] = array('class' => $ac[ 'class' ],
-                                           "action" => $ac[ 'action' ],
-                                           "call" => $ac[ 'call' ],
-                                           "range" => $ac[ 'range' ]);
+                        $actions[] = array('class' => $ac['class'],
+                            "action" => $ac['action'],
+                            "call" => $ac['call'],
+                            "range" => $ac['range']);
                     }
                 }
             }
@@ -228,14 +227,14 @@ class Aop
     private static function containsAction(&$actions, &$wareactions, $action)
     {
         if (array_key_exists('contains', $wareactions)) {
-            $acs = $wareactions[ 'contains' ];
+            $acs = $wareactions['contains'];
             foreach ($acs as $ac) {
-                foreach ($ac[ 'methods' ] as $method) {
+                foreach ($ac['methods'] as $method) {
                     if (strpos($action, $method) > 0) {
-                        $actions[] = array('class' => $ac[ 'class' ],
-                                           "action" => $ac[ 'action' ],
-                                           "call" => $ac[ 'call' ],
-                                           "range" => $ac[ 'range' ]);
+                        $actions[] = array('class' => $ac['class'],
+                            "action" => $ac['action'],
+                            "call" => $ac['call'],
+                            "range" => $ac['range']);
                     }
                 }
             }
@@ -252,8 +251,8 @@ class Aop
      */
     public static function getAfterActions($clazz, $action)
     {
-        if (static::$afterActions[ $clazz ]) {
-            return static::buildActions(static::$afterActions[ $clazz ], $action);
+        if (static::$afterActions[$clazz]) {
+            return static::buildActions(static::$afterActions[$clazz], $action);
         }
         return null;
     }
@@ -269,11 +268,11 @@ class Aop
     public static function getAroundActions($clazz, $action)
     {
         $actions = null;
-        if (isset(static::$aroundActions[ $clazz ]) && static::$aroundActions[ $clazz ]) {
-            $actions = static::buildActions(static::$aroundActions[ $clazz ], $action);
+        if (isset(static::$aroundActions[$clazz]) && static::$aroundActions[$clazz]) {
+            $actions = static::buildActions(static::$aroundActions[$clazz], $action);
         }
         if ($actions && count($actions) > 0) {
-            return $actions[ 0 ];
+            return $actions[0];
         }
         return null;
     }
@@ -317,7 +316,7 @@ class Aop
             return;
         }
         $op = dir($path);
-        while ( $item = $op->read()) {
+        while ($item = $op->read()) {
             if ($item == '.' || $item == '..') {
                 continue;
             }
@@ -383,11 +382,14 @@ class Aop
             $clazzStr = <<<EOF
 <?php
 namespace rap\aop\build$nameSpace;
+
 use rap\aop\Aop;
 use rap\aop\JoinPoint;
 use rap\ioc\Ioc;
+use Throwable;
+
 class $clazzSimpleName $extend_implements $clazzExtend{
-         $methodsStr
+$methodsStr
 }
 EOF;
 
@@ -416,7 +418,7 @@ EOF;
      * @SuppressWarnings(PHPMD)
      * @return string
      */
-    private static function buildMethods($methods, $aop_clazz, $isInterface, $methodsStr):string
+    private static function buildMethods($methods, $aop_clazz, $isInterface, $methodsStr): string
     {
         /* @var $method \ReflectionMethod */
         foreach ($methods as $method) {
@@ -430,6 +432,17 @@ EOF;
                 continue;
             }
             $methodName = $method->getName();
+            $return_type = '';
+            $result = '$result';
+            if (version_compare(PHP_VERSION, '7.1') === 1) {
+                $return_type = $method->getReturnType();
+                if ($return_type . '' === 'void') {
+                    $result = "";
+                }
+                if ($return_type) {
+                    $return_type = ": " . $return_type;
+                }
+            }
             $BeanClazz = "'" . $aop_clazz . "'";
             $methodArgs = "";
             $pointArgs = "";
@@ -439,48 +452,53 @@ EOF;
             list($methodArgs, $pointArgs, $names) = self::buildParams($params, $methodArgs, $pointArgs, $names, $index);
 
 
-            $names = '[' . implode(',', $names) . ']';
+            $names = '[' . implode(', ', $names) . ']';
             $call_parent = $isInterface ? 'false' : "parent::$methodName($pointArgs)";
             $methodItem = <<<EOF
-        public function $methodName($methodArgs){
-             \$names=$names;   
-             
-            \$point = new JoinPoint(\$this, __FUNCTION__,\$names,func_get_args(),$BeanClazz,function(\$pointArgs){
-                return $call_parent;
+        /**
+        * @throws Throwable
+        */
+        public function $methodName($methodArgs)$return_type{
+             \$names=$names;
+
+            \$point = new JoinPoint(\$this, __FUNCTION__, \$names, func_get_args(), $BeanClazz, function(\$pointArgs){
+                  return $call_parent;
                 }
             );
             \$action = Aop::getAroundActions($BeanClazz, __FUNCTION__);
             //包围操作只可以添加一个
             if (\$action) {
                 if (\$action[ 'call' ]) {
-                    return \$action[ 'call' ](\$point);
+                    \$result = \$action[ 'call' ](\$point);
+                    return $result;
                 }
                 \$action_name=  \$action[ 'action' ];
-                return Ioc::get(\$action[ 'class' ])->\$action_name(\$point);
+                \$result = Ioc::get(\$action[ 'class' ])->\$action_name(\$point);
+                return $result;
             }
             //前置操作
             \$actions = Aop::getBeforeActions($BeanClazz, __FUNCTION__);
-            try{
-                if(\$actions){
+            try {
+                if (\$actions) {
                     \$val = null;
                     foreach (\$actions as \$action) {
-                        \$value_data=null;
+                        \$value_data = null;
                         if (\$action[ 'call' ]) {
-                            try{
+                            try {
                                  \$value_data = \$action[ 'call' ](\$point);
-                            }catch (\Throwable \$throwable){
-                                if(!\$val){
-                                    \$val=\$throwable;
+                            } catch (Throwable \$throwable) {
+                                if (!\$val) {
+                                    \$val = \$throwable;
                                 }
                                 \$point->hasThrow(true);
                                  \$point->hasReturn(true);
                             }
                         } else {
-                           \$action_name=  \$action[ 'action' ];
-                           try{
+                           \$action_name =  \$action[ 'action' ];
+                           try {
                                 \$value_data =  Ioc::get(\$action[ 'class' ])->\$action_name(\$point);
-                           }catch (\Throwable \$throwable){
-                                if(!\$val){
+                           } catch (Throwable \$throwable) {
+                                if (!\$val) {
                                     \$val=\$throwable;
                                 }
                                 \$point->hasThrow(true);
@@ -492,41 +510,43 @@ EOF;
                             \$point->hasReturn(true);
                         }
                     }
-                    if(\$val instanceof \Throwable){
+                    if (\$val instanceof Throwable) {
                         throw \$val;
                     }
                     if (\$val) {
-                        return Aop::AOP_NULL===\$val?null:\$val;
+                         \$result =  Aop::AOP_NULL === \$val?null:\$val;
+                         return $result;
                     }
                 }
-                \$pointArgs=\$point->getArgs();
-                \$val=$call_parent;
-                 return Aop::AOP_NULL===\$val?null:\$val;
-            }catch (\Throwable \$e){
+                \$pointArgs = \$point->getArgs();
+                \$val = $call_parent;
+                 \$result =  Aop::AOP_NULL === \$val?null:\$val;
+                 return $result;
+            } catch (Throwable \$e) {
                 \$val=\$e;
                  throw \$e;
-            }finally{
+            } finally {
                 \$actions = Aop::getAfterActions($BeanClazz, __FUNCTION__);
-                 if(\$actions){
+                 if (\$actions) {
                     \$value=null;
                     foreach (\$actions as \$action) {
                         \$value_data=null;
                         if (\$action[ 'call' ]) {
-                            try{
+                            try {
                                  \$value_data = \$action[ 'call' ](\$point, \$val);
-                            }catch (\Throwable \$throwable){
-                                if(!\$value){
+                            } catch (Throwable \$throwable){
+                                if (!\$value) {
                                   \$value=\$throwable;
                                 }
                                 \$point->hasThrow(true);
                             }
                         } else {
                               \$action_name=  \$action[ 'action' ];
-                              try{
+                              try {
                                     \$value_data =  Ioc::get(\$action[ 'class' ])->\$action_name(\$point, \$val);
-                               }catch (\Throwable \$throwable){
-                                    if(!\$value){
-                                     \$value=\$throwable;
+                               } catch (Throwable \$throwable) {
+                                    if (!\$value) {
+                                     \$value = \$throwable;
                                     }
                                     \$point->hasThrow(true);
                                }
@@ -534,13 +554,13 @@ EOF;
                          if (\$value_data &&!\$value) {
                             \$value = \$value_data;
                         }
-                        
                     }
-                    if(\$value instanceof \Throwable){
+                    if (\$value instanceof Throwable) {
                         throw \$value;
                     }
-                    if(\$value){
-                       return Aop::AOP_NULL===\$value?null:\$value;
+                    if (\$value) {
+                       \$result =  Aop::AOP_NULL===\$value?null:\$value;
+                       return $result;
                     }
                 }
             }
@@ -561,13 +581,13 @@ EOF;
      *
      * @return array
      */
-    private static function buildParams($params, $methodArgs, $pointArgs, $names, $index):array
+    private static function buildParams($params, $methodArgs, $pointArgs, $names, $index): array
     {
         /* @var $param   \ReflectionParameter */
         foreach ($params as $param) {
             if ($methodArgs) {
-                $methodArgs .= ",";
-                $pointArgs .= ",";
+                $methodArgs .= ", ";
+                $pointArgs .= ", ";
             }
             $paramClazz = $param->getClass();
             $names[] = '"' . $param->getName() . '"';
@@ -592,7 +612,7 @@ EOF;
      * @return string
      * @throws \ReflectionException
      */
-    private static function buildParamsDefault($methodArgs, $param):string
+    private static function buildParamsDefault($methodArgs, $param): string
     {
         $value = $param->getDefaultValue();
         $isStr = gettype($value) == "string";
